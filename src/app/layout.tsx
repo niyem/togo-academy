@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,8 @@ export default function RootLayout({
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        {/* Active une fois ANTHROPIC_API_KEY credite (voir .env.example). */}
+        {process.env.NEXT_PUBLIC_CHAT_ENABLED === "1" && <ChatWidget />}
       </body>
     </html>
   );
