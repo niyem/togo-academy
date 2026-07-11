@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Container, Section } from "@/components/ui";
+import { signUp, type AuthState } from "@/lib/auth/actions";
 
 type Role = "eleve" | "parent";
 
+const CLASSES = [
+  ["", "Choisir plus tard"], ["cp1", "CP1"], ["cp2", "CP2"], ["ce1", "CE1"],
+  ["ce2", "CE2"], ["cm1", "CM1"], ["cm2", "CM2"], ["6eme", "6ème"],
+  ["5eme", "5ème"], ["4eme", "4ème"], ["3eme", "3ème"],
+  ["seconde", "Seconde"], ["premiere", "Première"], ["terminale", "Terminale"],
+];
+
 export default function RegisterPage() {
   const [role, setRole] = useState<Role>("eleve");
+  const [state, action, pending] = useActionState<AuthState, FormData>(
+    signUp,
+    {},
+  );
 
   return (
     <Section>
@@ -18,7 +30,6 @@ export default function RegisterPage() {
         </p>
 
         <Card className="mt-6">
-          {/* Role selector */}
           <div className="mb-5 grid grid-cols-2 gap-2 rounded-full bg-togo-green-50 p-1">
             {(["eleve", "parent"] as Role[]).map((r) => (
               <button
@@ -36,26 +47,45 @@ export default function RegisterPage() {
             ))}
           </div>
 
-          {/* Phase 1: submit to a server action -> Supabase Auth (email + phone OTP). */}
-          <form className="grid gap-4">
-            <Input label="Nom complet" name="name" />
-            <Input label="Téléphone" name="phone" placeholder="+228 ..." />
-            <Input label="Email (optionnel)" name="email" type="email" />
+          <form action={action} className="grid gap-4">
+            <input
+              type="hidden"
+              name="role"
+              value={role === "parent" ? "parent" : "student"}
+            />
+            <Input label="Nom complet" name="name" required />
+            <Input label="Email" name="email" type="email" required />
+            <Input label="Téléphone (optionnel)" name="phone" placeholder="+228 ..." />
             {role === "eleve" && (
               <div>
-                <label className="mb-1 block text-sm font-semibold">
+                <label htmlFor="class_slug" className="mb-1 block text-sm font-semibold">
                   Classe
                 </label>
-                <select className="w-full rounded-lg border border-[var(--color-line)] px-3 py-2">
-                  <option>3ème</option>
-                  <option>Terminale</option>
-                  <option>Autre…</option>
+                <select
+                  id="class_slug"
+                  name="class_slug"
+                  className="w-full rounded-lg border border-[var(--color-line)] px-3 py-2"
+                >
+                  {CLASSES.map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
-            <Input label="Mot de passe" name="password" type="password" />
+            <Input label="Mot de passe (8 caractères min.)" name="password" type="password" required />
+
+            {state.error && (
+              <p className="rounded-lg bg-togo-red-100 px-3 py-2 text-sm text-togo-red-700">
+                {state.error}
+              </p>
+            )}
+
             <Button type="submit" className="w-full">
-              Créer mon compte {role === "parent" ? "parent" : "élève"}
+              {pending
+                ? "Création..."
+                : `Créer mon compte ${role === "parent" ? "parent" : "élève"}`}
             </Button>
           </form>
 
@@ -76,11 +106,13 @@ function Input({
   name,
   type = "text",
   placeholder,
+  required,
 }: {
   label: string;
   name: string;
   type?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div>
@@ -92,6 +124,7 @@ function Input({
         name={name}
         type={type}
         placeholder={placeholder}
+        required={required}
         className="w-full rounded-lg border border-[var(--color-line)] px-3 py-2 focus:border-togo-green-500"
       />
     </div>

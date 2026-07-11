@@ -57,7 +57,11 @@ def run_sql_file(con, path):
 def main():
     con = connect()
     print("connecte.")
-    run_sql_file(con, os.path.join(BASE, "supabase/migrations/0001_init.sql"))
+    files = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if not files:
+        files = ["supabase/migrations/0001_init.sql"]
+    for f in files:
+        run_sql_file(con, os.path.join(BASE, f))
     if "--seed" in sys.argv:
         run_sql_file(con, os.path.join(BASE, "supabase/seed.sql"))
     n = con.run("select count(*) from classes")[0][0]

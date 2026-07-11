@@ -1,22 +1,51 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Badge, Button, Card, Container, Section } from "@/components/ui";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { signOut } from "@/lib/auth/actions";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
-// Phase 0 preview of the student dashboard with illustrative data.
-// Phase 1 replaces this with real progress from lesson_progress / quiz_attempts,
-// behind authentication.
-export default function DashboardPage() {
+// Tableau de bord derriere authentification. Les metriques passeront sur
+// lesson_progress / quiz_attempts a l'etape suivante de la Phase 1.
+export default async function DashboardPage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/connexion");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, role, class_slug")
+    .eq("id", user.id)
+    .single();
+
+  const firstName = profile?.full_name?.split(" ")[0] ?? "toi";
+
   return (
     <Section>
       <Container>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-extrabold">Bonjour 👋</h1>
-            <p className="text-[var(--color-muted)]">Classe de 3ème</p>
+            <h1 className="text-3xl font-extrabold">Bonjour {firstName} 👋</h1>
+            <p className="text-[var(--color-muted)]">
+              {profile?.role === "parent"
+                ? "Compte parent"
+                : profile?.class_slug
+                  ? `Classe de ${profile.class_slug}`
+                  : "Élève"}
+            </p>
           </div>
-          <Badge tone="yellow">Aperçu — démo</Badge>
+          <div className="flex items-center gap-3">
+            <Badge tone="yellow">Progression : bientôt en temps réel</Badge>
+            <form action={signOut}>
+              <Button type="submit" variant="outline">
+                Se déconnecter
+              </Button>
+            </form>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-4">
