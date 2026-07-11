@@ -109,6 +109,33 @@ export default async function ClassPage({
                   <h2 className="flex items-center gap-2 text-xl font-bold">
                     <span aria-hidden>{subject.icon}</span> {subject.name}
                   </h2>
+                  {(() => {
+                    // Certificat par COURS (matiere de la classe) : toutes les
+                    // epreuves de tous les chapitres du cours.
+                    const all = subject.chapterList.flatMap(
+                      (c) => c.assessmentList,
+                    );
+                    if (all.length === 0) return null;
+                    const passed = all.filter(
+                      (a) => (bestPercent.get(a.id) ?? -1) >= a.passPercent,
+                    ).length;
+                    const complete = passed === all.length;
+                    return (
+                      <p
+                        className={`mt-2 rounded-lg px-3 py-2 text-sm ${
+                          complete
+                            ? "bg-togo-green-600 font-semibold text-white"
+                            : "bg-togo-yellow-100/60 text-ink"
+                        }`}
+                      >
+                        {complete
+                          ? `🎓 Certificat du cours ${subject.name} ${schoolClass.name} obtenu : toutes les épreuves sont validées (${passed}/${all.length}) ! Félicitations.`
+                          : `🎓 Certificat du cours ${subject.name} ${schoolClass.name} : ${passed}/${all.length} épreuve${
+                              passed > 1 ? "s" : ""
+                            } validée${passed > 1 ? "s" : ""}. Les leçons restent libres, mais valide toutes les évaluations (70%) et tous les examens de chapitre (80%) pour l'obtenir.`}
+                      </p>
+                    );
+                  })()}
                   <div className="mt-3 space-y-4">
                     {chapters.map((chapter) => {
                       const lessons = chapter.lessonList;
@@ -223,10 +250,10 @@ export default async function ClassPage({
                                   }`}
                                 >
                                   {passed === total
-                                    ? `🎓 Certificat du chapitre : toutes les épreuves sont validées (${passed}/${total}) ! Bravo.`
-                                    : `🎓 Certificat du chapitre : ${passed}/${total} épreuve${
+                                    ? `✅ Chapitre validé : ${passed}/${total} épreuves réussies.`
+                                    : `Épreuves du chapitre : ${passed}/${total} validée${
                                         passed > 1 ? "s" : ""
-                                      } validée${passed > 1 ? "s" : ""}. Les leçons restent libres, mais valide les évaluations (70%) et l'examen final (80%) pour obtenir ton certificat.`}
+                                      }.`}
                                 </p>
                               );
                             })()}

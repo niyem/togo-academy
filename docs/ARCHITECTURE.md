@@ -52,6 +52,11 @@ exercice | quiz`); quizzes own `quiz_questions → quiz_options`.
    `quiz_questions.assessment_id`, attempts via
    `quiz_attempts.assessment_id`. Subscriber-only, graded on submit,
    retakes allowed.
+3. **Certificates are per COURSE** (a subject within a class, e.g.
+   Mathématiques de Terminale D — 4 courses in a class = 4 certificates).
+   Criteria: every évaluation ≥ 70% and every chapter exam ≥ 80% across the
+   whole course. Thresholds never block progression — the UI reminds the
+   student instead. Certificate issuance (document/page) is a Phase 5 item.
 
 People: `profiles` (role: student/parent/teacher/admin) with
 `parent_student_links` (many-to-many).
