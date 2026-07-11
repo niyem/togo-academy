@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Badge, Button, Card, Container, Section } from "@/components/ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth/actions";
+import { LinkChildForm } from "@/components/parent/LinkChildForm";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
 
@@ -18,11 +19,31 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, class_slug")
+    .select("full_name, role, class_slug, link_code")
     .eq("id", user.id)
     .single();
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "toi";
+
+  // Enfants relies (comptes parent). La RLS limite aux liens du parent.
+  let children: {
+    id: string;
+    full_name: string | null;
+    class_slug: string | null;
+  }[] = [];
+  if (profile?.role === "parent") {
+    const { data: links } = await supabase
+      .from("parent_student_links")
+      .select("student_id");
+    const ids = (links ?? []).map((l) => l.student_id);
+    if (ids.length) {
+      const { data: kids } = await supabase
+        .from("profiles")
+        .select("id, full_name, class_slug")
+        .in("id", ids);
+      children = kids ?? [];
+    }
+  }
 
   return (
     <Section>
@@ -48,6 +69,66 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {profile?.role === "student" && profile.link_code && (
+          <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 bg-togo-green-50/60">
+            <div>
+              <p className="font-semibold">👨‍👩‍👧 Code de liaison parent</p>
+              <p className="text-sm text-[var(--color-muted)]">
+                Donne ce code à ton parent pour qu&apos;il suive ta progression.
+              </p>
+            </div>
+            <span className="rounded-lg border border-togo-green-500 bg-white px-4 py-2 font-mono text-lg font-bold text-togo-green-700">
+              {profile.link_code}
+            </span>
+          </Card>
+        )}
+
+        {profile?.role === "parent" && (
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <h2 className="font-bold">Mes enfants</h2>
+              {children.length === 0 ? (
+                <p className="mt-3 text-sm text-[var(--color-muted)]">
+                  Aucun enfant relié pour l&apos;instant. Demandez à votre
+                  enfant le code affiché sur son tableau de bord, puis
+                  ajoutez-le ci-contre.
+                </p>
+              ) : (
+                <ul className="mt-4 space-y-3">
+                  {children.map((child) => (
+                    <li
+                      key={child.id}
+                      className="flex items-center justify-between rounded-lg border border-[var(--color-line)] p-3"
+                    >
+                      <div>
+                        <p className="font-semibold">{child.full_name}</p>
+                        <p className="text-xs text-[var(--color-muted)]">
+                          {child.class_slug
+                            ? `Classe de ${child.class_slug}`
+                            : "Classe non renseignée"}
+                        </p>
+                      </div>
+                      <Badge tone="green">Relié ✓</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-4 text-xs text-[var(--color-muted)]">
+                Les rapports de progression détaillés arrivent avec le suivi en
+                temps réel.
+              </p>
+            </Card>
+            <Card>
+              <h2 className="font-bold">Ajouter un enfant</h2>
+              <div className="mt-4">
+                <LinkChildForm />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {profile?.role !== "parent" && (
+          <>
         <div className="mt-6 grid gap-4 sm:grid-cols-4">
           <Metric value="1" label="Cours suivis" />
           <Metric value="1" label="Leçons terminées" />
@@ -86,6 +167,8 @@ export default async function DashboardPage() {
             </div>
           </Card>
         </div>
+          </>
+        )}
       </Container>
     </Section>
   );
