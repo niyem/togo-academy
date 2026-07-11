@@ -30,11 +30,15 @@ export interface EducationLevel {
   order: number;
 }
 
+/** Filiere apres le CEPD : enseignement general ou technique. */
+export type Track = "general" | "technique";
+
 export interface SchoolClass {
   slug: string; // e.g. "3eme"
   name: string; // e.g. "3ème"
   levelSlug: LevelStage;
   order: number;
+  track: Track;
 }
 
 export interface Subject {

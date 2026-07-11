@@ -39,15 +39,35 @@ export default async function CataloguePage() {
                 <p className="text-sm text-[var(--color-muted)]">
                   {level.description}
                 </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                  {classes.map((c) => (
-                    <Link key={c.slug} href={`/classes/${c.slug}`}>
-                      <Card className="flex h-full items-center justify-center py-6 text-center font-bold transition-shadow hover:shadow-md hover:border-togo-green-500">
-                        {c.name}
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
+                {(["general", "technique"] as const).map((track) => {
+                  const trackClasses = classes.filter(
+                    (c) => c.track === track,
+                  );
+                  if (trackClasses.length === 0) return null;
+                  const showTrackTitle = classes.some(
+                    (c) => c.track === "technique",
+                  );
+                  return (
+                    <div key={track} className="mt-4">
+                      {showTrackTitle && (
+                        <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-[var(--color-muted)]">
+                          {track === "general"
+                            ? "Enseignement général"
+                            : "Enseignement technique"}
+                        </h3>
+                      )}
+                      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                        {trackClasses.map((c) => (
+                          <Link key={c.slug} href={`/classes/${c.slug}`}>
+                            <Card className="flex h-full items-center justify-center py-6 text-center font-bold transition-shadow hover:shadow-md hover:border-togo-green-500">
+                              {c.name}
+                            </Card>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}

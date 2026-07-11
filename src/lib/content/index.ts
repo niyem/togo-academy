@@ -100,7 +100,7 @@ export async function getClasses(levelSlug?: string): Promise<SchoolClass[]> {
       : classes;
     return [...list].sort((a, b) => a.order - b.order);
   }
-  let q = db.from("classes").select("slug,name,level_slug,sort_order");
+  let q = db.from("classes").select("slug,name,level_slug,sort_order,track");
   if (levelSlug) q = q.eq("level_slug", levelSlug);
   const { data } = await q.order("sort_order");
   return (data ?? []).map((r) => ({
@@ -108,6 +108,7 @@ export async function getClasses(levelSlug?: string): Promise<SchoolClass[]> {
     name: r.name,
     levelSlug: r.level_slug,
     order: r.sort_order,
+    track: r.track ?? "general",
   }));
 }
 

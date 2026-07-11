@@ -35,22 +35,30 @@ export const levels: EducationLevel[] = [
 ];
 
 export const classes: SchoolClass[] = [
-  // Primaire
-  { slug: "cp1", name: "CP1", levelSlug: "primaire", order: 1 },
-  { slug: "cp2", name: "CP2", levelSlug: "primaire", order: 2 },
-  { slug: "ce1", name: "CE1", levelSlug: "primaire", order: 3 },
-  { slug: "ce2", name: "CE2", levelSlug: "primaire", order: 4 },
-  { slug: "cm1", name: "CM1", levelSlug: "primaire", order: 5 },
-  { slug: "cm2", name: "CM2", levelSlug: "primaire", order: 6 },
-  // Collège
-  { slug: "6eme", name: "6ème", levelSlug: "college", order: 1 },
-  { slug: "5eme", name: "5ème", levelSlug: "college", order: 2 },
-  { slug: "4eme", name: "4ème", levelSlug: "college", order: 3 },
-  { slug: "3eme", name: "3ème", levelSlug: "college", order: 4 },
-  // Lycée
-  { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1 },
-  { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2 },
-  { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3 },
+  // Primaire (jusqu'au CEPD)
+  { slug: "cp1", name: "CP1", levelSlug: "primaire", order: 1, track: "general" },
+  { slug: "cp2", name: "CP2", levelSlug: "primaire", order: 2, track: "general" },
+  { slug: "ce1", name: "CE1", levelSlug: "primaire", order: 3, track: "general" },
+  { slug: "ce2", name: "CE2", levelSlug: "primaire", order: 4, track: "general" },
+  { slug: "cm1", name: "CM1", levelSlug: "primaire", order: 5, track: "general" },
+  { slug: "cm2", name: "CM2", levelSlug: "primaire", order: 6, track: "general" },
+  // Collège : enseignement général (BEPC)
+  { slug: "6eme", name: "6ème", levelSlug: "college", order: 1, track: "general" },
+  { slug: "5eme", name: "5ème", levelSlug: "college", order: 2, track: "general" },
+  { slug: "4eme", name: "4ème", levelSlug: "college", order: 3, track: "general" },
+  { slug: "3eme", name: "3ème", levelSlug: "college", order: 4, track: "general" },
+  // Collège : enseignement technique (CET, filière CAP)
+  { slug: "cet1", name: "1ère année CET", levelSlug: "college", order: 11, track: "technique" },
+  { slug: "cet2", name: "2ème année CET", levelSlug: "college", order: 12, track: "technique" },
+  { slug: "cet3", name: "3ème année CET", levelSlug: "college", order: 13, track: "technique" },
+  // Lycée : enseignement général (BAC)
+  { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1, track: "general" },
+  { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
+  { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3, track: "general" },
+  // Lycée : enseignement technique (séries F, G, E, Ti précisées plus tard)
+  { slug: "seconde-technique", name: "Seconde technique", levelSlug: "lycee", order: 11, track: "technique" },
+  { slug: "premiere-technique", name: "Première technique", levelSlug: "lycee", order: 12, track: "technique" },
+  { slug: "terminale-technique", name: "Terminale technique", levelSlug: "lycee", order: 13, track: "technique" },
 ];
 
 export const subjects: Subject[] = [
