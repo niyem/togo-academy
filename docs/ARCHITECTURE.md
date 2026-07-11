@@ -90,6 +90,7 @@ activates → full access → progress tracked → linked parent sees reports.
 | 3 | AI: RAG tutor grounded on lessons + navigation chatbot | |
 | 4 | Authoring: teacher content dashboard + review/publish workflow | |
 | 5 | Admin & analytics: admin dashboard, aggregate metrics, assessments | |
+| 6 | Live tutoring marketplace: on-demand 1:1 sessions, auto-matching by level/subject, per-session payment, weekly Flooz payouts to admin-approved tutors | |
 
 ## 6. Open decisions (resolved for Phase 0)
 
@@ -110,3 +111,41 @@ activates → full access → progress tracked → linked parent sees reports.
   with a real subscription check.
 - `src/components/lesson/VideoPlayer.tsx` — branch on `videoProvider` for the
   real embed.
+
+## 8. Phase 6 — Live tutoring marketplace (planned design)
+
+Human 1:1 tutoring alongside the AI tutor. AI is instant, cheap and always-on
+for routine questions; when a student needs depth, it escalates to booking a
+live human session. Not part of the MVP; documented here so the data model can
+accommodate it without a later rewrite.
+
+**Model:** on-demand **1:1 private** sessions (no group office hours, so a tutor
+is only ever paid when matched to a paying student). Flow: student picks a
+subject + level → pays → the matching engine assigns an **online, available,
+admin-approved** tutor for that subject/level → live session (WebRTC) →
+earnings accrue to a ledger → **weekly batched payout** to the tutor's Flooz
+wallet, minus platform commission.
+
+**No-match safeguard:** availability is shown before payment, and payment is
+authorized-and-captured-on-match (or auto-refunded) so money is never taken
+with no tutor behind it.
+
+**Planned tables:**
+
+| Table | Purpose |
+|---|---|
+| `tutor_profiles` | user_id → profiles, approval_status, subjects[], classes[], bio, session_rate_xof, payout_msisdn (Flooz), rating_avg, is_online |
+| `tutor_verifications` | KYC / identity / credential docs, reviewed_by (admin) |
+| `tutoring_sessions` | student_id, tutor_id (null until matched), subject_key, class_slug, status (requested/matched/active/completed/cancelled/refunded), price_xof, room_id, started_at, ended_at, recording_url |
+| `match_requests` | queued student requests awaiting a match (subject, level, requested_at, status) — drives the matching engine |
+| `session_payments` | links to `payments`; authorized on request, captured on match, released/refunded on no-match |
+| `tutor_earnings` | ledger per session: gross_xof, commission_xof, net_xof, payout_week, payout_id |
+| `payouts` | tutor_id, week, total_net_xof, method (flooz), status, provider_ref, initiated_by |
+| `session_reviews` | student rates tutor after the session |
+
+**New infra dependencies for this phase:** a WebRTC provider (LiveKit / Daily /
+Jitsi) prioritizing audio + shared whiteboard with video optional and an
+audio-only fallback for low bandwidth; and a mobile-money **disbursement** API
+(payouts) from the same aggregator chosen for collections. Open sub-decisions to
+settle when we reach the phase: session length/pricing unit, commission split,
+and auth-hold vs charge-then-refund for the no-match case.

@@ -78,6 +78,10 @@ Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Résumé :
 - **Phase 4 — Création** : tableau de bord enseignant + circuit de publication.
 - **Phase 5 — Admin & analytics** : tableau de bord admin, indicateurs,
   évaluations.
+- **Phase 6 — Tutorat en direct (marketplace)** : sessions privées 1:1 à la
+  demande, mise en relation automatique élève ↔ tuteur en ligne (par niveau et
+  matière), paiement à la session, versement hebdomadaire aux tuteurs sur Flooz,
+  tuteurs validés par l'administrateur.
 
 ## Conventions
 
