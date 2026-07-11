@@ -115,7 +115,7 @@ export default async function LessonPage({
                 <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-togo-green-600">
                   {activityLabels[activity.type]}
                 </h2>
-                <ActivityView activity={activity} />
+                <ActivityView activity={activity} lessonSlug={lesson.slug} />
               </section>
             ))}
 
@@ -168,12 +168,18 @@ export default async function LessonPage({
   );
 }
 
-function ActivityView({ activity }: { activity: Activity }) {
+function ActivityView({
+  activity,
+  lessonSlug,
+}: {
+  activity: Activity;
+  lessonSlug: string;
+}) {
   switch (activity.type) {
     case "video":
       return <VideoPlayer activity={activity} />;
     case "quiz":
-      return <QuizBlock activity={activity} />;
+      return <QuizBlock activity={activity} lessonSlug={lessonSlug} />;
     case "exercice":
       return <ExerciseBlock activity={activity} />;
     case "exemple":

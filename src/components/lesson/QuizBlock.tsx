@@ -1,19 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { recordQuizAttempt } from "@/lib/progress/actions";
 import type { Activity, QuizQuestion } from "@/lib/content/types";
 
-// Quiz with immediate, per-question feedback. Local-state only in Phase 0;
-// Phase 1 persists attempts to the quiz_attempts / quiz_answers tables to feed
-// the progress dashboard.
-export function QuizBlock({ activity }: { activity: Activity }) {
+// Quiz avec correction immediate. A la fin, la tentative est enregistree
+// (quiz_attempts) et la lecon marquee terminee (lesson_progress) pour les
+// utilisateurs connectes.
+export function QuizBlock({
+  activity,
+  lessonSlug,
+}: {
+  activity: Activity;
+  lessonSlug?: string;
+}) {
   const questions = activity.questions ?? [];
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const recorded = useRef(false);
 
   const answeredCount = Object.keys(answers).length;
   const correctCount = questions.filter(
     (q) => q.options.find((o) => o.id === answers[q.id])?.correct,
   ).length;
+
+  const done = questions.length > 0 && answeredCount === questions.length;
+
+  useEffect(() => {
+    if (done && !recorded.current && lessonSlug) {
+      recorded.current = true;
+      recordQuizAttempt({
+        lessonSlug,
+        activityId: activity.id,
+        score: correctCount,
+        total: questions.length,
+      }).catch(() => {}); // best effort : ne bloque jamais l'eleve
+    }
+  }, [done, lessonSlug, activity.id, correctCount, questions.length]);
 
   return (
     <div className="space-y-5">

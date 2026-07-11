@@ -33,11 +33,43 @@ export default async function DashboardPage() {
     .limit(1);
   const sub = subs?.[0];
 
-  // Enfants relies (comptes parent). La RLS limite aux liens du parent.
+  // Progression reelle de l'eleve (RLS : ses lignes uniquement).
+  type ProgressRowData = {
+    state: string;
+    percent: number;
+    lessons: { slug: string; title: string } | null;
+  };
+  let progressRows: ProgressRowData[] = [];
+  let attempts: { score: number; total: number }[] = [];
+  if (profile?.role !== "parent") {
+    const [p, a] = await Promise.all([
+      supabase
+        .from("lesson_progress")
+        .select("state, percent, updated_at, lessons(slug, title)")
+        .order("updated_at", { ascending: false })
+        .limit(10),
+      supabase.from("quiz_attempts").select("score, total"),
+    ]);
+    progressRows = (p.data ?? []) as unknown as ProgressRowData[];
+    attempts = a.data ?? [];
+  }
+  const completedCount = progressRows.filter(
+    (r) => r.state === "completed",
+  ).length;
+  const totalPts = attempts.reduce((s, x) => s + x.total, 0);
+  const avgScore = totalPts
+    ? Math.round(
+        (100 * attempts.reduce((s, x) => s + x.score, 0)) / totalPts,
+      )
+    : null;
+
+  // Enfants relies (comptes parent) + leur progression (RLS parent).
   let children: {
     id: string;
     full_name: string | null;
     class_slug: string | null;
+    completed: number;
+    avgScore: number | null;
   }[] = [];
   if (profile?.role === "parent") {
     const { data: links } = await supabase
@@ -49,7 +81,32 @@ export default async function DashboardPage() {
         .from("profiles")
         .select("id, full_name, class_slug")
         .in("id", ids);
-      children = kids ?? [];
+      children = await Promise.all(
+        (kids ?? []).map(async (kid) => {
+          const [p, a] = await Promise.all([
+            supabase
+              .from("lesson_progress")
+              .select("state")
+              .eq("student_id", kid.id)
+              .eq("state", "completed"),
+            supabase
+              .from("quiz_attempts")
+              .select("score, total")
+              .eq("student_id", kid.id),
+          ]);
+          const pts = (a.data ?? []).reduce((s, x) => s + x.total, 0);
+          return {
+            ...kid,
+            completed: p.data?.length ?? 0,
+            avgScore: pts
+              ? Math.round(
+                  (100 * (a.data ?? []).reduce((s, x) => s + x.score, 0)) /
+                    pts,
+                )
+              : null,
+          };
+        }),
+      );
     }
   }
 
@@ -140,7 +197,19 @@ export default async function DashboardPage() {
                             : "Classe non renseignée"}
                         </p>
                       </div>
-                      <Badge tone="green">Relié ✓</Badge>
+                      <div className="text-right text-sm">
+                        <p className="font-semibold text-togo-green-700">
+                          {child.completed} leçon
+                          {child.completed > 1 ? "s" : ""} terminée
+                          {child.completed > 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-[var(--color-muted)]">
+                          Score moyen :{" "}
+                          {child.avgScore === null
+                            ? "pas encore de quiz"
+                            : `${child.avgScore}%`}
+                        </p>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -162,28 +231,41 @@ export default async function DashboardPage() {
         {profile?.role !== "parent" && (
           <>
         <div className="mt-6 grid gap-4 sm:grid-cols-4">
-          <Metric value="1" label="Cours suivis" />
-          <Metric value="1" label="Leçons terminées" />
-          <Metric value="75%" label="Score moyen quiz" />
-          <Metric value="20 min" label="Temps d'étude" />
+          <Metric value={`${completedCount}`} label="Leçons terminées" />
+          <Metric
+            value={`${progressRows.length - completedCount}`}
+            label="Leçons en cours"
+          />
+          <Metric
+            value={avgScore === null ? "—" : `${avgScore}%`}
+            label="Score moyen quiz"
+          />
+          <Metric value={`${attempts.length}`} label="Quiz réalisés" />
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <h2 className="font-bold">Continuer l&apos;apprentissage</h2>
             <div className="mt-4 space-y-3">
-              <ProgressRow
-                title="Découvrir le théorème de Thalès"
-                subject="Mathématiques"
-                pct={100}
-                href="/lecon/decouvrir-le-theoreme-de-thales"
-              />
-              <ProgressRow
-                title="La réciproque du théorème de Thalès"
-                subject="Mathématiques"
-                pct={20}
-                href="/lecon/reciproque-du-theoreme-de-thales"
-              />
+              {progressRows.length === 0 && (
+                <p className="text-sm text-[var(--color-muted)]">
+                  Commence une leçon : ta progression s&apos;affichera ici.
+                </p>
+              )}
+              {progressRows.map(
+                (r) =>
+                  r.lessons && (
+                    <ProgressRow
+                      key={r.lessons.slug}
+                      title={r.lessons.title}
+                      subject={
+                        r.state === "completed" ? "Terminée ✓" : "En cours"
+                      }
+                      pct={r.percent}
+                      href={`/lecon/${r.lessons.slug}`}
+                    />
+                  ),
+              )}
             </div>
           </Card>
 
