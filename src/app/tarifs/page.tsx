@@ -12,8 +12,8 @@ function formatXof(n: number) {
   return n === 0 ? "Gratuit" : `${n.toLocaleString("fr-FR")} FCFA`;
 }
 
-export default function PricingPage() {
-  const plans = getPlans();
+export default async function PricingPage() {
+  const plans = await getPlans();
 
   return (
     <Section>

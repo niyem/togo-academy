@@ -2,10 +2,14 @@ import Link from "next/link";
 import { Badge, Button, Card, Container, Section } from "@/components/ui";
 import { getLevels, getStats, getSubjects } from "@/lib/content";
 
-export default function HomePage() {
-  const levels = getLevels();
-  const subjects = getSubjects();
-  const stats = getStats();
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const [levels, subjects, stats] = await Promise.all([
+    getLevels(),
+    getSubjects(),
+    getStats(),
+  ]);
 
   return (
     <>

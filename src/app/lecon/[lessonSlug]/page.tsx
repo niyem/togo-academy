@@ -24,12 +24,14 @@ export async function generateMetadata({
   params: Promise<{ lessonSlug: string }>;
 }): Promise<Metadata> {
   const { lessonSlug } = await params;
-  const lesson = getLesson(lessonSlug);
+  const lesson = await getLesson(lessonSlug);
   return {
     title: lesson?.title ?? "Leçon",
     description: lesson?.summary,
   };
 }
+
+export const revalidate = 60;
 
 const activityLabels: Record<Activity["type"], string> = {
   video: "Vidéo",
@@ -45,11 +47,13 @@ export default async function LessonPage({
   params: Promise<{ lessonSlug: string }>;
 }) {
   const { lessonSlug } = await params;
-  const lesson = getLesson(lessonSlug);
+  const lesson = await getLesson(lessonSlug);
   if (!lesson) notFound();
 
-  const subject = getSubject(lesson.subjectKey);
-  const schoolClass = getClass(lesson.classSlug);
+  const [subject, schoolClass] = await Promise.all([
+    getSubject(lesson.subjectKey),
+    getClass(lesson.classSlug),
+  ]);
 
   // Phase 0 gating: free-preview lessons are fully open; others show a paywall.
   // Phase 1 replaces `false` with a real subscription check from the session.

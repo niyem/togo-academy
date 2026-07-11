@@ -9,8 +9,10 @@ export const metadata: Metadata = {
     "Parcourez les niveaux, classes et matières couverts par Togo Academy.",
 };
 
-export default function CataloguePage() {
-  const levels = getLevels();
+export const revalidate = 60;
+
+export default async function CataloguePage() {
+  const [levels, allClasses] = await Promise.all([getLevels(), getClasses()]);
 
   return (
     <Section>
@@ -23,7 +25,7 @@ export default function CataloguePage() {
 
         <div className="mt-8 space-y-10">
           {levels.map((level) => {
-            const classes = getClasses(level.slug);
+            const classes = allClasses.filter((c) => c.levelSlug === level.slug);
             return (
               <div key={level.slug} id={level.slug} className="scroll-mt-24">
                 <div className="flex items-baseline justify-between">

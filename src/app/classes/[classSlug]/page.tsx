@@ -10,9 +10,11 @@ import {
   getSubjectsForClass,
 } from "@/lib/content";
 
-export function generateStaticParams() {
-  return getClasses().map((c) => ({ classSlug: c.slug }));
+export async function generateStaticParams() {
+  return (await getClasses()).map((c) => ({ classSlug: c.slug }));
 }
+
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -20,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ classSlug: string }>;
 }): Promise<Metadata> {
   const { classSlug } = await params;
-  const c = getClass(classSlug);
+  const c = await getClass(classSlug);
   return { title: c ? `Classe de ${c.name}` : "Classe" };
 }
 
@@ -30,10 +32,22 @@ export default async function ClassPage({
   params: Promise<{ classSlug: string }>;
 }) {
   const { classSlug } = await params;
-  const schoolClass = getClass(classSlug);
+  const schoolClass = await getClass(classSlug);
   if (!schoolClass) notFound();
 
-  const subjects = getSubjectsForClass(classSlug);
+  // Prefetch de tout l'arbre matiere -> chapitres -> lecons pour cette classe.
+  const subjectList = await getSubjectsForClass(classSlug);
+  const subjects = await Promise.all(
+    subjectList.map(async (subject) => ({
+      ...subject,
+      chapterList: await Promise.all(
+        (await getChapters(classSlug, subject.key)).map(async (chapter) => ({
+          ...chapter,
+          lessonList: await getLessonsForChapter(chapter.slug),
+        })),
+      ),
+    })),
+  );
 
   return (
     <Section>
@@ -60,7 +74,7 @@ export default async function ClassPage({
         ) : (
           <div className="mt-8 space-y-8">
             {subjects.map((subject) => {
-              const chapters = getChapters(classSlug, subject.key);
+              const chapters = subject.chapterList;
               return (
                 <div key={subject.key}>
                   <h2 className="flex items-center gap-2 text-xl font-bold">
@@ -68,7 +82,7 @@ export default async function ClassPage({
                   </h2>
                   <div className="mt-3 space-y-4">
                     {chapters.map((chapter) => {
-                      const lessons = getLessonsForChapter(chapter.slug);
+                      const lessons = chapter.lessonList;
                       return (
                         <Card key={chapter.slug}>
                           <h3 className="font-bold text-togo-green-700">
