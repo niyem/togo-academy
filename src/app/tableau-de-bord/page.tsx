@@ -25,6 +25,14 @@ export default async function DashboardPage() {
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "toi";
 
+  // Dernier abonnement de l'utilisateur (RLS : les siens uniquement).
+  const { data: subs } = await supabase
+    .from("subscriptions")
+    .select("plan_slug, status, period_end")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const sub = subs?.[0];
+
   // Enfants relies (comptes parent). La RLS limite aux liens du parent.
   let children: {
     id: string;
@@ -68,6 +76,30 @@ export default async function DashboardPage() {
             </form>
           </div>
         </div>
+
+        <Card className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold">💳 Mon abonnement</p>
+            <p className="text-sm text-[var(--color-muted)]">
+              {!sub && "Aucun abonnement actif."}
+              {sub?.status === "pending" &&
+                "Paiement en cours de vérification par notre équipe."}
+              {sub?.status === "active" &&
+                `Actif${sub.period_end ? ` jusqu'au ${sub.period_end}` : ""}.`}
+              {(sub?.status === "expired" || sub?.status === "cancelled") &&
+                "Abonnement expiré."}
+            </p>
+          </div>
+          {sub?.status === "active" ? (
+            <Badge tone="green">Actif ✓</Badge>
+          ) : sub?.status === "pending" ? (
+            <Badge tone="yellow">En vérification</Badge>
+          ) : (
+            <Button href="/tarifs" variant="outline">
+              Voir les formules
+            </Button>
+          )}
+        </Card>
 
         {profile?.role === "student" && profile.link_code && (
           <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 bg-togo-green-50/60">

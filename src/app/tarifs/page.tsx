@@ -57,7 +57,11 @@ export default async function PricingPage() {
               </ul>
               <div className="mt-5">
                 <Button
-                  href="/inscription"
+                  href={
+                    plan.priceXof === 0
+                      ? "/inscription"
+                      : `/abonnement/${plan.slug}`
+                  }
                   variant={plan.recommended ? "primary" : "outline"}
                   className="w-full"
                 >

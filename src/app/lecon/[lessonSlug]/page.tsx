@@ -12,6 +12,7 @@ import {
   getSubject,
 } from "@/lib/content";
 import { lessons } from "@/lib/content/seed";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Activity } from "@/lib/content/types";
 
 export function generateStaticParams() {
@@ -55,9 +56,20 @@ export default async function LessonPage({
     getClass(lesson.classSlug),
   ]);
 
-  // Phase 0 gating: free-preview lessons are fully open; others show a paywall.
-  // Phase 1 replaces `false` with a real subscription check from the session.
-  const hasAccess = lesson.isFreePreview || false;
+  // Acces : lecon gratuite, ou abonnement actif du visiteur connecte.
+  let hasAccess = lesson.isFreePreview;
+  if (!hasAccess) {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase.rpc("has_active_subscription", {
+        uid: user.id,
+      });
+      hasAccess = data === true;
+    }
+  }
 
   return (
     <Section>
