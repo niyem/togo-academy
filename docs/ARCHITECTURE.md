@@ -1,4 +1,4 @@
-# Architecture — Togo Academy
+# Architecture : Togo Academy
 
 This document is the reference for the platform's architecture, data model,
 sitemap and roadmap. It reflects the Phase 0 foundation in this repository.
@@ -103,16 +103,16 @@ activates → full access → progress tracked → linked parent sees reports.
 
 ## 7. Phase 1 entry points (where to plug in Supabase)
 
-- `src/lib/content/index.ts` — replace seed reads with SQL queries.
-- `src/lib/supabase/{server,client}.ts` — already scaffolded.
-- `src/app/inscription`, `src/app/connexion` — wire forms to Server Actions +
+- `src/lib/content/index.ts` : replace seed reads with SQL queries.
+- `src/lib/supabase/{server,client}.ts` : already scaffolded.
+- `src/app/inscription`, `src/app/connexion` : wire forms to Server Actions +
   Supabase Auth.
-- `src/app/lecon/[lessonSlug]/page.tsx` — replace the `hasAccess` placeholder
+- `src/app/lecon/[lessonSlug]/page.tsx` : replace the `hasAccess` placeholder
   with a real subscription check.
-- `src/components/lesson/VideoPlayer.tsx` — branch on `videoProvider` for the
+- `src/components/lesson/VideoPlayer.tsx` : branch on `videoProvider` for the
   real embed.
 
-## 8. Phase 6 — Live tutoring marketplace (planned design)
+## 8. Phase 6: Live tutoring marketplace (planned design)
 
 Human 1:1 tutoring alongside the AI tutor. AI is instant, cheap and always-on
 for routine questions; when a student needs depth, it escalates to booking a
@@ -121,14 +121,19 @@ accommodate it without a later rewrite.
 
 **Model:** on-demand **1:1 private** sessions (no group office hours, so a tutor
 is only ever paid when matched to a paying student). Flow: student picks a
-subject + level → pays → the matching engine assigns an **online, available,
-admin-approved** tutor for that subject/level → live session (WebRTC) →
-earnings accrue to a ledger → **weekly batched payout** to the tutor's Flooz
-wallet, minus platform commission.
+subject + level → **browses the tutors currently online** for that
+subject/level (name, rating, sessions given) and decides whether to proceed →
+pays → the matching engine assigns an **online, available, admin-approved**
+tutor → live session (WebRTC) → earnings accrue to a ledger → **weekly batched
+payout** to the tutor's Flooz wallet, minus platform commission.
 
-**No-match safeguard:** availability is shown before payment, and payment is
-authorized-and-captured-on-match (or auto-refunded) so money is never taken
-with no tutor behind it.
+**No-match safeguard (credit, not refund):** the tutor list is shown *before*
+payment, so students rarely pay into an empty queue. If a student pays and no
+tutor can be matched (everyone went offline or got taken), the amount is
+converted into **platform credit** on the student's balance, spendable on a
+later session (or other paid features). This avoids mobile-money refunds
+entirely, which are slow and fee-heavy. Paying for a session first draws from
+any existing credit, then charges the remainder via mobile money.
 
 **Planned tables:**
 
@@ -137,8 +142,9 @@ with no tutor behind it.
 | `tutor_profiles` | user_id → profiles, approval_status, subjects[], classes[], bio, session_rate_xof, payout_msisdn (Flooz), rating_avg, is_online |
 | `tutor_verifications` | KYC / identity / credential docs, reviewed_by (admin) |
 | `tutoring_sessions` | student_id, tutor_id (null until matched), subject_key, class_slug, status (requested/matched/active/completed/cancelled/refunded), price_xof, room_id, started_at, ended_at, recording_url |
-| `match_requests` | queued student requests awaiting a match (subject, level, requested_at, status) — drives the matching engine |
-| `session_payments` | links to `payments`; authorized on request, captured on match, released/refunded on no-match |
+| `match_requests` | queued student requests awaiting a match (subject, level, requested_at, status) : drives the matching engine |
+| `session_payments` | links to `payments`; on no-match the amount is converted to student credit instead of refunded |
+| `student_credits` | credit ledger per student: entries (+ from no-match conversions or top-ups, - when spent on a session), running balance derivable |
 | `tutor_earnings` | ledger per session: gross_xof, commission_xof, net_xof, payout_week, payout_id |
 | `payouts` | tutor_id, week, total_net_xof, method (flooz), status, provider_ref, initiated_by |
 | `session_reviews` | student rates tutor after the session |
@@ -148,4 +154,5 @@ Jitsi) prioritizing audio + shared whiteboard with video optional and an
 audio-only fallback for low bandwidth; and a mobile-money **disbursement** API
 (payouts) from the same aggregator chosen for collections. Open sub-decisions to
 settle when we reach the phase: session length/pricing unit, commission split,
-and auth-hold vs charge-then-refund for the no-match case.
+whether credit is withdrawable or spend-only (recommend spend-only), and how
+long a match attempt runs before converting to credit.
