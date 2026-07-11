@@ -5,6 +5,24 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+export async function recordAssessmentAttempt(input: {
+  assessmentId: string;
+  score: number;
+  total: number;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from("quiz_attempts").insert({
+    student_id: user.id,
+    assessment_id: input.assessmentId,
+    score: input.score,
+    total: input.total,
+  });
+}
+
 export async function recordQuizAttempt(input: {
   lessonSlug: string;
   activityId: string;

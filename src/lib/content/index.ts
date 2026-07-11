@@ -14,11 +14,13 @@ import {
 import { chapters, classes, lessons, levels, plans, subjects } from "./seed";
 import type {
   Activity,
+  Assessment,
   Chapter,
   ContentStatus,
   EducationLevel,
   Lesson,
   SchoolClass,
+  Subchapter,
   Subject,
   SubjectKey,
   SubscriptionPlan,
@@ -53,6 +55,7 @@ function mapActivity(row: any): Activity {
         id: q.id,
         prompt: q.prompt,
         explanation: q.explanation ?? "",
+        atTimeSec: q.at_time_sec ?? undefined,
         options: (q.quiz_options ?? [])
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
           .map((o: any) => ({ id: o.id, label: o.label, correct: o.is_correct })),
@@ -71,6 +74,7 @@ function mapLesson(row: any): Lesson {
     order: row.sort_order,
     isFreePreview: row.is_free_preview,
     status: statusMap[row.status] ?? "brouillon",
+    subchapterId: row.subchapter_id ?? undefined,
     pdfPath: row.pdf_path ?? undefined,
     activities: (row.activities ?? [])
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
@@ -171,7 +175,7 @@ export async function getChapters(
 }
 
 const LESSON_SELECT =
-  "slug,title,summary,sort_order,is_free_preview,status,pdf_path," +
+  "slug,title,summary,sort_order,is_free_preview,status,pdf_path,subchapter_id," +
   "chapters!inner(slug,class_slug,subject_key)," +
   "activities(*,quiz_questions(*,quiz_options(*)))";
 
@@ -198,6 +202,79 @@ export async function getLesson(slug: string): Promise<Lesson | undefined> {
     .eq("slug", slug)
     .limit(1);
   return data && data[0] ? mapLesson(data[0]) : undefined;
+}
+
+/** Sous-chapitres d'un chapitre (structure Coursera). */
+export async function getSubchapters(chapterSlug: string): Promise<Subchapter[]> {
+  if (!db) return [];
+  const { data } = await db
+    .from("subchapters")
+    .select("id,slug,title,sort_order,chapters!inner(slug)")
+    .eq("chapters.slug", chapterSlug)
+    .order("sort_order");
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    order: r.sort_order,
+  }));
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function mapAssessment(row: any): Assessment {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    kind: row.kind,
+    passPercent: row.pass_percent,
+    subchapterId: row.subchapter_id ?? undefined,
+    questions: (row.quiz_questions ?? [])
+      .sort((a: any, b: any) => a.sort_order - b.sort_order)
+      .map((q: any) => ({
+        id: q.id,
+        prompt: q.prompt,
+        explanation: q.explanation ?? "",
+        options: (q.quiz_options ?? [])
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+          .map((o: any) => ({ id: o.id, label: o.label, correct: o.is_correct })),
+      })),
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+const ASSESSMENT_SELECT =
+  "id,slug,title,kind,pass_percent,subchapter_id," +
+  "quiz_questions!assessment_id(*,quiz_options(*))";
+
+/** Evaluations (par sous-chapitre) et examen final d'un chapitre. */
+export async function getAssessmentsForChapter(
+  chapterSlug: string,
+): Promise<Assessment[]> {
+  if (!db) return [];
+  const [evals, exams] = await Promise.all([
+    db
+      .from("assessments")
+      .select(ASSESSMENT_SELECT + ",subchapters!inner(chapters!inner(slug))")
+      .eq("subchapters.chapters.slug", chapterSlug)
+      .order("sort_order"),
+    db
+      .from("assessments")
+      .select(ASSESSMENT_SELECT + ",chapters!inner(slug)")
+      .eq("chapters.slug", chapterSlug)
+      .order("sort_order"),
+  ]);
+  return [...(evals.data ?? []), ...(exams.data ?? [])].map(mapAssessment);
+}
+
+export async function getAssessment(slug: string): Promise<Assessment | undefined> {
+  if (!db) return undefined;
+  const { data } = await db
+    .from("assessments")
+    .select(ASSESSMENT_SELECT)
+    .eq("slug", slug)
+    .limit(1);
+  return data && data[0] ? mapAssessment(data[0]) : undefined;
 }
 
 // Les plans restent sur le seed en Phase 1 (les textes marketing "highlights"

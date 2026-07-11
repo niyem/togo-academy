@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Badge, Card, Container, Section } from "@/components/ui";
 import {
+  getAssessmentsForChapter,
   getChapters,
   getClass,
   getClasses,
   getLessonsForChapter,
+  getSubchapters,
   getSubjectsForClass,
 } from "@/lib/content";
 
@@ -41,10 +43,15 @@ export default async function ClassPage({
     subjectList.map(async (subject) => ({
       ...subject,
       chapterList: await Promise.all(
-        (await getChapters(classSlug, subject.key)).map(async (chapter) => ({
-          ...chapter,
-          lessonList: await getLessonsForChapter(chapter.slug),
-        })),
+        (await getChapters(classSlug, subject.key)).map(async (chapter) => {
+          const [lessonList, subchapterList, assessmentList] =
+            await Promise.all([
+              getLessonsForChapter(chapter.slug),
+              getSubchapters(chapter.slug),
+              getAssessmentsForChapter(chapter.slug),
+            ]);
+          return { ...chapter, lessonList, subchapterList, assessmentList };
+        }),
       ),
     })),
   );
@@ -83,30 +90,85 @@ export default async function ClassPage({
                   <div className="mt-3 space-y-4">
                     {chapters.map((chapter) => {
                       const lessons = chapter.lessonList;
+                      const exam = chapter.assessmentList.find(
+                        (a) => a.kind === "examen",
+                      );
+                      // Groupes : sous-chapitres declares, puis lecons isolees.
+                      const groups = chapter.subchapterList.map((sc) => ({
+                        sc,
+                        lessons: lessons.filter(
+                          (l) => l.subchapterId === sc.id,
+                        ),
+                        evaluation: chapter.assessmentList.find(
+                          (a) =>
+                            a.kind === "evaluation" &&
+                            a.subchapterId === sc.id,
+                        ),
+                      }));
+                      const ungrouped = lessons.filter(
+                        (l) =>
+                          !chapter.subchapterList.some(
+                            (sc) => sc.id === l.subchapterId,
+                          ),
+                      );
+
+                      const lessonRow = (lesson: (typeof lessons)[number]) => (
+                        <li key={lesson.slug}>
+                          <Link
+                            href={`/lecon/${lesson.slug}`}
+                            className="flex items-center justify-between gap-3 py-3 hover:text-togo-green-700"
+                          >
+                            <span className="font-medium">{lesson.title}</span>
+                            {lesson.isFreePreview ? (
+                              <Badge tone="green">Gratuit</Badge>
+                            ) : (
+                              <Badge tone="red">🔒 Abonnés</Badge>
+                            )}
+                          </Link>
+                        </li>
+                      );
+
                       return (
                         <Card key={chapter.slug}>
                           <h3 className="font-bold text-togo-green-700">
                             {chapter.title}
                           </h3>
-                          <ul className="mt-3 divide-y divide-[var(--color-line)]">
-                            {lessons.map((lesson) => (
-                              <li key={lesson.slug}>
+
+                          {groups.map(({ sc, lessons: scLessons, evaluation }) => (
+                            <div key={sc.id} className="mt-3">
+                              <p className="text-xs font-bold uppercase tracking-wide text-[var(--color-muted)]">
+                                {sc.title}
+                              </p>
+                              <ul className="divide-y divide-[var(--color-line)]">
+                                {scLessons.map(lessonRow)}
+                              </ul>
+                              {evaluation && (
                                 <Link
-                                  href={`/lecon/${lesson.slug}`}
-                                  className="flex items-center justify-between gap-3 py-3 hover:text-togo-green-700"
+                                  href={`/evaluation/${evaluation.slug}`}
+                                  className="mt-1 flex items-center justify-between gap-3 rounded-lg bg-togo-yellow-100/60 px-3 py-2.5 text-sm font-semibold hover:bg-togo-yellow-100"
                                 >
-                                  <span className="font-medium">
-                                    {lesson.title}
-                                  </span>
-                                  {lesson.isFreePreview ? (
-                                    <Badge tone="green">Gratuit</Badge>
-                                  ) : (
-                                    <Badge tone="red">🔒 Abonnés</Badge>
-                                  )}
+                                  <span>📝 {evaluation.title}</span>
+                                  <Badge tone="yellow">Évaluation</Badge>
                                 </Link>
-                              </li>
-                            ))}
-                          </ul>
+                              )}
+                            </div>
+                          ))}
+
+                          {ungrouped.length > 0 && (
+                            <ul className="mt-3 divide-y divide-[var(--color-line)]">
+                              {ungrouped.map(lessonRow)}
+                            </ul>
+                          )}
+
+                          {exam && (
+                            <Link
+                              href={`/evaluation/${exam.slug}`}
+                              className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-togo-red-500 bg-togo-red-100/40 px-3 py-3 text-sm font-bold hover:bg-togo-red-100"
+                            >
+                              <span>🎓 {exam.title}</span>
+                              <Badge tone="red">Examen final</Badge>
+                            </Link>
+                          )}
                         </Card>
                       );
                     })}

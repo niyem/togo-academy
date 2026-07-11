@@ -38,9 +38,20 @@ page changes.
 
 ## 3. Data model
 
-Hierarchy: `education_levels → classes → subjects → chapters → lessons →
-activities`. Activities are typed (`video | lecture | exemple | exercice |
-quiz`); quizzes own `quiz_questions → quiz_options`.
+Hierarchy: `education_levels → classes → subjects → chapters → subchapters →
+lessons → activities`. Activities are typed (`video | lecture | exemple |
+exercice | quiz`); quizzes own `quiz_questions → quiz_options`.
+
+**Assessment model (Coursera-style):**
+1. **In-video quizzes** : `quiz_questions.at_time_sec` on the video activity;
+   the player pauses at each mark, shows the question, gives immediate
+   correct/incorrect feedback, and offers "Réessayer" or "Passer".
+2. **Évaluation** at the end of each subchapter, **examen final** per chapter
+   (10 chapters = 10 exams) : the `assessments` table (kind
+   `evaluation | examen`, `pass_percent`), questions via
+   `quiz_questions.assessment_id`, attempts via
+   `quiz_attempts.assessment_id`. Subscriber-only, graded on submit,
+   retakes allowed.
 
 People: `profiles` (role: student/parent/teacher/admin) with
 `parent_student_links` (many-to-many).

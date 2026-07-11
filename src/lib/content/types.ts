@@ -67,6 +67,27 @@ export interface QuizQuestion {
   prompt: string;
   options: QuizOption[];
   explanation: string; // shown as immediate feedback
+  /** Quiz dans la video : seconde a laquelle la video se met en pause. */
+  atTimeSec?: number;
+}
+
+/** Sous-chapitre : groupe de lecons, conclu par une evaluation. */
+export interface Subchapter {
+  id: string;
+  slug: string;
+  title: string;
+  order: number;
+}
+
+/** Evaluation de sous-chapitre ou examen final de chapitre. */
+export interface Assessment {
+  id: string;
+  slug: string;
+  title: string;
+  kind: "evaluation" | "examen";
+  passPercent: number;
+  subchapterId?: string;
+  questions: QuizQuestion[];
 }
 
 export interface Activity {
@@ -93,6 +114,7 @@ export interface Lesson {
   order: number;
   isFreePreview: boolean;
   status: ContentStatus;
+  subchapterId?: string;
   pdfPath?: string; // subscriber-gated download (Supabase Storage signed URL)
   activities: Activity[];
 }
