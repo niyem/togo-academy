@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Badge, Button, Card, Container, Section } from "@/components/ui";
 import { LessonProse } from "@/components/lesson/LessonProse";
+import { TutorPanel } from "@/components/lesson/TutorPanel";
 import { VideoPlayer } from "@/components/lesson/VideoPlayer";
 import { ExerciseBlock } from "@/components/lesson/ExerciseBlock";
 import { QuizBlock } from "@/components/lesson/QuizBlock";
@@ -139,13 +140,22 @@ export default async function LessonPage({
               </Card>
             )}
 
-            <Card className="bg-togo-yellow-100/50">
-              <p className="font-semibold">🤖 Besoin d&apos;aide ?</p>
-              <p className="mt-1 text-sm text-[var(--color-muted)]">
-                Le tuteur IA t&apos;expliquera ce concept autrement et te
-                proposera d&apos;autres exercices (bientôt disponible).
-              </p>
-            </Card>
+            {user ? (
+              <TutorPanel lessonSlug={lesson.slug} />
+            ) : (
+              <Card className="bg-togo-yellow-100/50">
+                <p className="font-semibold">🤖 Besoin d&apos;aide ?</p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                  Connecte-toi pour discuter avec le tuteur IA : il explique
+                  autrement, donne des indices et propose des exercices.
+                </p>
+                <div className="mt-3">
+                  <Button href="/connexion" variant="outline">
+                    Se connecter
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
         ) : (
           <Card className="mt-8 text-center">
