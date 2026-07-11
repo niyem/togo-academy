@@ -120,7 +120,10 @@ live human session. Not part of the MVP; documented here so the data model can
 accommodate it without a later rewrite.
 
 **Model:** on-demand **1:1 private** sessions (no group office hours, so a tutor
-is only ever paid when matched to a paying student). Flow: student picks a
+is only ever paid when matched to a paying student). **No subscription
+required:** live tutoring is pay-per-session and open to any registered
+student; it is an independent revenue stream and an acquisition channel
+toward subscriptions, not a subscriber perk. Flow: student picks a
 subject + level → **browses the tutors currently online** for that
 subject/level (name, rating, sessions given) and decides whether to proceed →
 pays → the matching engine assigns an **online, available, admin-approved**
