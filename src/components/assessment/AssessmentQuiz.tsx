@@ -104,10 +104,20 @@ export function AssessmentQuiz({ assessment }: { assessment: Assessment }) {
           <p className="mt-1 font-semibold">
             {passed
               ? assessment.kind === "examen"
-                ? "🎉 Examen réussi ! Félicitations."
-                : "✅ Évaluation réussie !"
-              : `Il te faut ${assessment.passPercent}% pour réussir. Revois la leçon puis réessaie.`}
+                ? "🎉 Examen validé ! Il compte pour ton certificat de chapitre."
+                : "✅ Évaluation validée pour ton certificat de chapitre !"
+              : `Il te faut ${assessment.passPercent}% pour valider ${
+                  assessment.kind === "examen" ? "l'examen" : "l'évaluation"
+                }.`}
           </p>
+          {!passed && (
+            <p className="mt-2 text-sm">
+              Tu peux continuer les leçons librement 👍 mais pense à revenir
+              valider cette épreuve : les évaluations (70%) et l&apos;examen
+              final (80%) sont nécessaires pour obtenir ton certificat de
+              chapitre.
+            </p>
+          )}
           <button
             type="button"
             onClick={restart}
