@@ -57,18 +57,26 @@ export default async function LessonPage({
   ]);
 
   // Acces : lecon gratuite, ou abonnement actif du visiteur connecte.
-  let hasAccess = lesson.isFreePreview;
-  if (!hasAccess) {
-    const supabase = await createSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.rpc("has_active_subscription", {
-        uid: user.id,
-      });
-      hasAccess = data === true;
-    }
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let subscribed = false;
+  if (user) {
+    const { data } = await supabase.rpc("has_active_subscription", {
+      uid: user.id,
+    });
+    subscribed = data === true;
+  }
+  const hasAccess = lesson.isFreePreview || subscribed;
+
+  // Fiche PDF : URL signee (1 h), reservee aux abonnes (politique storage).
+  let pdfUrl: string | null = null;
+  if (lesson.pdfPath && subscribed) {
+    const { data } = await supabase.storage
+      .from("lesson-pdfs")
+      .createSignedUrl(lesson.pdfPath, 3600);
+    pdfUrl = data?.signedUrl ?? null;
   }
 
   return (
@@ -116,12 +124,18 @@ export default async function LessonPage({
                 <div>
                   <p className="font-semibold">📄 Fiche de leçon (PDF)</p>
                   <p className="text-sm text-[var(--color-muted)]">
-                    Téléchargeable par les abonnés.
+                    {pdfUrl
+                      ? "À télécharger et réviser hors ligne."
+                      : "Téléchargeable par les abonnés."}
                   </p>
                 </div>
-                <Button href="/tarifs" variant="outline">
-                  Débloquer
-                </Button>
+                {pdfUrl ? (
+                  <Button href={pdfUrl}>Télécharger</Button>
+                ) : (
+                  <Button href="/tarifs" variant="outline">
+                    Débloquer
+                  </Button>
+                )}
               </Card>
             )}
 
