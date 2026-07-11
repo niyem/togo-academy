@@ -13,6 +13,7 @@ chaque scene etant dictee par la piste audio de narration.
 from __future__ import annotations
 
 import math
+import os
 import subprocess
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Tuple
@@ -71,13 +72,15 @@ class Anim:
     t0: float  # debut, fraction de la scene [0,1]
     t1: float  # fin
     draw_fn: Callable[[Image.Image, ImageDraw.ImageDraw, float], None]
+    linear: bool = False  # True : progression lineaire (lecture video)
 
     def progress(self, t: float) -> Optional[float]:
         if t < self.t0:
             return None
         if self.t1 <= self.t0:
             return 1.0
-        return ease((t - self.t0) / (self.t1 - self.t0))
+        p = (t - self.t0) / (self.t1 - self.t0)
+        return max(0.0, min(1.0, p)) if self.linear else ease(p)
 
 
 def line_draw(t0, t1, p1, p2, color=INK, width=5) -> Anim:
@@ -149,6 +152,33 @@ def parallel_marks(t0, t1, p1, p2, color=YELLOW_DARK) -> Anim:
     return Anim(t0, t1, fn)
 
 
+EXTRACT_FPS = 15  # cadence d'extraction des clips mascotte
+
+
+def video_sprite(t0, t1, frames_dir, center, height, window_sec) -> Anim:
+    """Clip mascotte anime : lecture en boucle ping-pong a vitesse naturelle.
+
+    `frames_dir` contient des PNG extraits a EXTRACT_FPS ; `window_sec` est la
+    duree reelle couverte par la fenetre [t0, t1] de la scene.
+    """
+    import glob as _glob
+    files = sorted(_glob.glob(os.path.join(frames_dir, "*.png")))
+    scaled = []
+    for fp in files:
+        im = Image.open(fp).convert("RGB")
+        w2 = int(im.width * height / im.height)
+        scaled.append(im.resize((w2, height), Image.LANCZOS))
+    seq = scaled + scaled[-2:0:-1] if len(scaled) > 2 else scaled
+
+    def fn(img, d, p):
+        elapsed = p * window_sec
+        idx = int(elapsed * EXTRACT_FPS) % len(seq)
+        im = seq[idx]
+        img.paste(im, (int(center[0] - im.width / 2),
+                       int(center[1] - im.height / 2)))
+    return Anim(t0, t1, fn, linear=True)
+
+
 def image_paste(t0, t1, img_path, center, height, zoom_to=1.04) -> Anim:
     """Mascotte : fondu + tres leger zoom (effet Ken Burns)."""
     src = Image.open(img_path).convert("RGBA")
@@ -199,11 +229,11 @@ def render_scene(path: str, duration: float, anims: List[Anim]):
         t = i / n
         img = Image.new("RGB", (W, H), BG)
         d = ImageDraw.Draw(img)
-        chrome(d)
         for a in anims:
             p = a.progress(t)
             if p is not None:
                 a.draw_fn(img, d, p)
+        chrome(d)  # bandeau + marque par-dessus tout (jamais recouverts)
         proc.stdin.write(img.tobytes())
     proc.stdin.close()
     proc.wait()

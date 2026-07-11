@@ -13,6 +13,7 @@ et les images mascotte dans Desktop/COWORK/togo-academy-mascot/.
 """
 
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -20,9 +21,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from PIL import Image
 
 from kademy import (
-    GREEN, GREEN_DARK, INK, MUTED, RED, W, H,
+    FFMPEG, GREEN, GREEN_DARK, INK, MUTED, RED, W, H,
     audio_duration, concat, dot_label, fraction, image_paste, line_draw,
-    mux, parallel_marks, render_scene, rounded_box, text_fade,
+    mux, parallel_marks, render_scene, rounded_box, text_fade, video_sprite,
 )
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -94,11 +95,40 @@ def mini_config(s=0.5, dx=-30, dy=110, with_labels=True):
 
 
 # ---------------------------------------------------------------------------
+# Clips mascotte animes (parole + gestes), avec repli sur image fixe
+# ---------------------------------------------------------------------------
+INTRO_CLIP = os.path.join(ASSETS, "intro-clip.mp4")
+OUTRO_CLIP = os.path.join(ASSETS, "outro-clip.mp4")
+
+
+def ensure_frames(clip, dirname, height=520):
+    """Extrait les images d'un clip a EXTRACT_FPS ; renvoie le dossier."""
+    d = os.path.join(ASSETS, dirname)
+    if not (os.path.isdir(d) and os.listdir(d)):
+        os.makedirs(d, exist_ok=True)
+        subprocess.run(
+            [FFMPEG, "-y", "-i", clip, "-r", "15",
+             "-vf", f"scale=-2:{height}", os.path.join(d, "f%04d.png")],
+            check=True, capture_output=True)
+    return d
+
+
+def mascot(t0, t1, clip, dirname, center, height, dur, fallback_img):
+    """Mascotte animee si le clip existe, sinon image fixe."""
+    if os.path.exists(clip):
+        frames = ensure_frames(clip, dirname)
+        return video_sprite(t0, t1, frames, center, height,
+                            (t1 - t0) * dur)
+    return image_paste(t0, min(t0 + 0.25, t1), fallback_img, center, height)
+
+
+# ---------------------------------------------------------------------------
 # Scene 1 : intro
 # ---------------------------------------------------------------------------
-def scene_intro():
+def scene_intro(dur):
     return [
-        image_paste(0.0, 0.25, REF, (950, 400), 560),
+        mascot(0.0, 1.0, INTRO_CLIP, "intro-frames", (940, 390), 500,
+               dur, REF),
         text_fade(0.10, 0.30, (370, 270), "Le théorème de Thalès",
                   42, GREEN_DARK),
         line_draw(0.28, 0.40, (170, 315), (570, 315), GREEN, 4),
@@ -111,7 +141,7 @@ def scene_intro():
 # ---------------------------------------------------------------------------
 # Scene 2 : la configuration
 # ---------------------------------------------------------------------------
-def scene_configuration():
+def scene_configuration(dur):
     anims = [
         text_fade(0.02, 0.10, (W / 2, 64), "La configuration de Thalès",
                   38, GREEN_DARK),
@@ -139,7 +169,7 @@ def scene_configuration():
 # ---------------------------------------------------------------------------
 # Scene 3 : les trois rapports egaux
 # ---------------------------------------------------------------------------
-def scene_rapports():
+def scene_rapports(dur):
     anims, _ = mini_config()
     anims.append(text_fade(0.02, 0.10, (W / 2, 64),
                            "Le théorème de Thalès", 38, GREEN_DARK))
@@ -158,7 +188,7 @@ def scene_rapports():
 # ---------------------------------------------------------------------------
 # Scene 4 : exemple resolu
 # ---------------------------------------------------------------------------
-def scene_exemple():
+def scene_exemple(dur):
     anims, (a, m, n, b, c) = mini_config()
     anims.append(text_fade(0.02, 0.10, (W / 2, 64),
                            "Exemple : calculer AN", 38, GREEN_DARK))
@@ -184,9 +214,10 @@ def scene_exemple():
 # ---------------------------------------------------------------------------
 # Scene 5 : outro
 # ---------------------------------------------------------------------------
-def scene_outro():
+def scene_outro(dur):
     return [
-        image_paste(0.0, 0.25, CELEBRATE, (640, 300), 400),
+        mascot(0.0, 1.0, OUTRO_CLIP, "outro-frames", (640, 290), 400,
+               dur, CELEBRATE),
         text_fade(0.30, 0.50, (640, 560), "À toi de jouer !",
                   46, GREEN_DARK),
         text_fade(0.50, 0.70, (640, 620),
@@ -215,7 +246,7 @@ def main():
         silent = os.path.join(OUT, f"{name}-silent.mp4")
         final = os.path.join(OUT, f"{name}.mp4")
         print(f"[{name}] {dur:.1f}s : rendu...", flush=True)
-        render_scene(silent, dur, builder())
+        render_scene(silent, dur, builder(dur))
         mux(silent, mp3, final, dur)
         parts.append(final)
 
