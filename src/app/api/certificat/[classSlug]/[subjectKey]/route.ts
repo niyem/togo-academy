@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import {
   checkEligibility,
   issueCertificate,
+  loadSignature,
   renderCertificatePdf,
 } from "@/lib/certificates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -58,6 +59,7 @@ export async function GET(
   } catch {
     // certificat sans sceau en cas d'echec
   }
+  const signaturePng = await loadSignature();
 
   const pdf = await renderCertificatePdf({
     studentName,
@@ -66,6 +68,7 @@ export async function GET(
     issuedAt: new Date(cert.issued_at),
     epreuves: eligibility.total,
     sealPng,
+    signaturePng,
   });
 
   return new NextResponse(Buffer.from(pdf), {

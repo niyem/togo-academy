@@ -135,6 +135,18 @@ function centered(
   page.drawText(text, { x: (page.getWidth() - w) / 2, y, size, font, color });
 }
 
+/** Signature du fondateur depuis le stockage prive (jamais expose en URL
+ *  publique). Null si indisponible : le certificat sort sans signature. */
+export async function loadSignature(): Promise<Uint8Array | undefined> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return undefined;
+  const { data } = await admin.storage
+    .from("branding")
+    .download("signature.png");
+  if (!data) return undefined;
+  return new Uint8Array(await data.arrayBuffer());
+}
+
 /** Rendu du certificat en PDF A4 paysage. */
 export async function renderCertificatePdf(opts: {
   studentName: string;
@@ -143,6 +155,7 @@ export async function renderCertificatePdf(opts: {
   issuedAt: Date;
   epreuves: number;
   sealPng?: Uint8Array;
+  signaturePng?: Uint8Array;
 }) {
   const doc = await PDFDocument.create();
   const page = doc.addPage([842, 595]); // A4 paysage
@@ -199,17 +212,69 @@ export async function renderCertificatePdf(opts: {
     month: "long",
     year: "numeric",
   });
-  centered(page, `Fait le ${dateStr}`, 168, serif, 12);
 
-  // Sceau Groupe BM
+  // Bloc du bas : date a gauche, sceau au centre, signature a droite.
+  const leftX = 215;
+  const rightX = W - 215;
+  const lineY = 143;
+  const lineHalf = 90;
+
+  // Date (gauche)
+  {
+    const t = `Fait le ${dateStr}`;
+    const w = serif.widthOfTextAtSize(t, 12);
+    page.drawText(t, { x: leftX - w / 2, y: lineY + 8, size: 12, font: serif, color: INK });
+    page.drawLine({
+      start: { x: leftX - lineHalf, y: lineY },
+      end: { x: leftX + lineHalf, y: lineY },
+      thickness: 0.8,
+      color: MUTED,
+    });
+    const l = "Date d'émission";
+    const lw = sans.widthOfTextAtSize(l, 8);
+    page.drawText(l, { x: leftX - lw / 2, y: lineY - 14, size: 8, font: sans, color: MUTED });
+  }
+
+  // Sceau Groupe BM (centre)
   if (opts.sealPng) {
     try {
       const seal = await doc.embedPng(opts.sealPng);
       const s = 74;
-      page.drawImage(seal, { x: (W - s) / 2, y: 76, width: s, height: s });
+      page.drawImage(seal, { x: (W - s) / 2, y: 100, width: s, height: s });
     } catch {
       // sans sceau si l'image est indisponible
     }
+  }
+
+  // Signature du fondateur (droite)
+  {
+    if (opts.signaturePng) {
+      try {
+        const sig = await doc.embedPng(opts.signaturePng);
+        const sw = 110;
+        const sh = (sw * sig.height) / sig.width;
+        page.drawImage(sig, {
+          x: rightX - sw / 2,
+          y: lineY + 4,
+          width: sw,
+          height: sh,
+        });
+      } catch {
+        // sans image de signature si indisponible
+      }
+    }
+    page.drawLine({
+      start: { x: rightX - lineHalf, y: lineY },
+      end: { x: rightX + lineHalf, y: lineY },
+      thickness: 0.8,
+      color: MUTED,
+    });
+    const name = "Niyem M. Bawana, Ph.D.";
+    const nw = serifBold.widthOfTextAtSize(name, 11);
+    page.drawText(name, { x: rightX - nw / 2, y: lineY - 15, size: 11, font: serifBold, color: INK });
+    const role = "Fondateur, Groupe BM";
+    const rw = sans.widthOfTextAtSize(role, 8);
+    page.drawText(role, { x: rightX - rw / 2, y: lineY - 28, size: 8, font: sans, color: MUTED });
   }
 
   centered(
