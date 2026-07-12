@@ -13,7 +13,7 @@ const columns = [
   {
     title: "La plateforme",
     links: [
-      { href: "/a-propos", label: "Notre mission" },
+      { href: "/a-propos", label: "À propos" },
       { href: "/faq", label: "Questions fréquentes" },
       { href: "/contact", label: "Contact & support" },
     ],

@@ -38,7 +38,8 @@ dediee au programme scolaire togolais.
 
 ## Pages utiles (liens relatifs)
 /catalogue (tous les niveaux), /tutorat (tutorat en direct), /tarifs
-(abonnements), /inscription, /connexion, /tableau-de-bord, /a-propos, /faq,
+(abonnements), /inscription, /connexion, /tableau-de-bord, /a-propos
+(qui nous sommes : departement "Académie en ligne" de Groupe BM), /faq,
 /contact.
 
 ## Paiement (apres choix d'une formule sur /tarifs)

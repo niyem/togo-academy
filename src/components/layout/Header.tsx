@@ -5,7 +5,7 @@ const navLinks = [
   { href: "/catalogue", label: "Catalogue" },
   { href: "/tutorat", label: "Tutorat" },
   { href: "/tarifs", label: "Tarifs" },
-  { href: "/a-propos", label: "Notre mission" },
+  { href: "/a-propos", label: "À propos" },
   { href: "/faq", label: "FAQ" },
 ];
 
