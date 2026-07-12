@@ -158,6 +158,21 @@ export default async function DashboardPage() {
           )}
         </Card>
 
+        {profile?.role !== "parent" && (
+          <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-togo-green-500 bg-togo-green-50/40">
+            <div>
+              <p className="font-semibold">🤖 Ton tuteur IA t&apos;attend</p>
+              <p className="text-sm text-[var(--color-muted)]">
+                Dans chaque leçon, pose tes questions : il explique autrement,
+                donne des indices et propose des exercices en plus.
+              </p>
+            </div>
+            <Button href="/lecon/decouvrir-le-theoreme-de-thales#tuteur">
+              Essayer le tuteur
+            </Button>
+          </Card>
+        )}
+
         {profile?.role === "student" && profile.link_code && (
           <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 bg-togo-green-50/60">
             <div>

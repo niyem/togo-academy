@@ -109,6 +109,15 @@ export default async function LessonPage({
         </div>
         <p className="mt-2 text-[var(--color-muted)]">{lesson.summary}</p>
 
+        {hasAccess && (
+          <a
+            href="#tuteur"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-togo-green-500 bg-togo-green-50 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-100"
+          >
+            🤖 Tuteur IA : pose ta question sur cette leçon ↓
+          </a>
+        )}
+
         {hasAccess ? (
           <div className="mt-8 space-y-8">
             {lesson.activities.map((activity) => (
@@ -141,7 +150,9 @@ export default async function LessonPage({
             )}
 
             {user ? (
-              <TutorPanel lessonSlug={lesson.slug} />
+              <div id="tuteur" className="scroll-mt-24">
+                <TutorPanel lessonSlug={lesson.slug} />
+              </div>
             ) : (
               <Card className="bg-togo-yellow-100/50">
                 <p className="font-semibold">🤖 Besoin d&apos;aide ?</p>
