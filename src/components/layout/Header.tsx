@@ -13,7 +13,7 @@ const navLinks = [
   { href: "/tutorat", label: "Tutorat" },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/a-propos", label: "À propos" },
-  { href: "/faq", label: "FAQ" },
+  { href: "/faq", label: "Questions fréquentes" },
 ];
 
 export function Header() {
