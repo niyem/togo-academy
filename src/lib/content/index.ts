@@ -150,6 +150,34 @@ export async function getSubjectsForClass(classSlug: string): Promise<Subject[]>
   return (await getSubjects()).filter((s) => keys.has(s.key));
 }
 
+/**
+ * Carte classe -> noms des matieres ayant des chapitres.
+ * Une seule requete (pour le catalogue), au lieu d'un appel par classe.
+ */
+export async function getSubjectsByClass(): Promise<Record<string, string[]>> {
+  const subs = await getSubjects();
+  const nameOf = new Map(subs.map((s) => [s.key as string, s.name]));
+  const pairs: { classSlug: string; subjectKey: string }[] = [];
+  if (!db) {
+    chapters.forEach((ch) =>
+      pairs.push({ classSlug: ch.classSlug, subjectKey: ch.subjectKey }),
+    );
+  } else {
+    const { data } = await db.from("chapters").select("class_slug,subject_key");
+    (data ?? []).forEach((r) =>
+      pairs.push({ classSlug: r.class_slug, subjectKey: r.subject_key }),
+    );
+  }
+  const map: Record<string, string[]> = {};
+  for (const { classSlug, subjectKey } of pairs) {
+    const name = nameOf.get(subjectKey);
+    if (!name) continue;
+    const list = (map[classSlug] ??= []);
+    if (!list.includes(name)) list.push(name);
+  }
+  return map;
+}
+
 export async function getChapters(
   classSlug: string,
   subjectKey: SubjectKey,

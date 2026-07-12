@@ -1,168 +1,280 @@
+// Accueil : structure editoriale (design Claude Design "Menu Redesign"),
+// couleurs Togo inchangees. Donnees reelles (niveaux, classes, stats).
+
 import Link from "next/link";
-import { Badge, Button, Card, Container, Section } from "@/components/ui";
-import { getLevels, getStats, getSubjects } from "@/lib/content";
+import { Button, Container, Eyebrow, LevelDot } from "@/components/ui";
+import { getClasses, getLevels, getStats } from "@/lib/content";
 
 export const revalidate = 60;
 
+const LEVEL_DOT: Record<string, string> = {
+  primaire: "bg-togo-green-500",
+  college: "bg-togo-yellow-400",
+  lycee: "bg-togo-red-500",
+};
+
 export default async function HomePage() {
-  const [levels, subjects, stats] = await Promise.all([
+  const [levels, classes, stats] = await Promise.all([
     getLevels(),
-    getSubjects(),
+    getClasses(),
     getStats(),
   ]);
 
+  const statItems = [
+    { value: `${stats.classes}`, label: "classes couvertes" },
+    { value: `${stats.subjects}`, label: "matières" },
+    { value: `${stats.lessons}+`, label: "leçons & exercices" },
+    { value: "100%", label: "programme togolais" },
+  ];
+
+  const features = [
+    {
+      title: "Cours structurés",
+      body: "Chaque matière suit le programme officiel, découpée en chapitres et leçons claires : vidéo courte, cours écrit, exercices corrigés.",
+      icon: (
+        <path d="M4 5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM14 3v6h6M8 13h8M8 17h5" />
+      ),
+    },
+    {
+      title: "Un tuteur quand vous bloquez",
+      body: "Le tuteur IA explique autrement dans chaque leçon. Et bientôt : des séances privées avec de vrais enseignants togolais.",
+      icon: (
+        <path d="M21 12a8 8 0 0 1-11.3 7.3L3 21l1.7-6.7A8 8 0 1 1 21 12zM8 12h.01M12 12h.01M16 12h.01" />
+      ),
+    },
+    {
+      title: "Suivez vos progrès",
+      body: "Quiz corrigés immédiatement, évaluations, examens et certificats de cours. Reprenez là où vous vous êtes arrêté.",
+      icon: <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />,
+    },
+  ];
+
+  const heroLessons = [
+    { title: "Limites et continuité", time: "12 min", done: true },
+    { title: "Dérivées : introduction", time: "18 min", done: false },
+    { title: "Fonctions exponentielles", time: "15 min", done: false },
+    { title: "Exercices corrigés", time: "24 min", done: false },
+  ];
+
   return (
     <>
-      {/* Hero */}
-      <Section className="bg-gradient-to-b from-togo-green-50 to-white pt-14">
-        <Container className="grid items-center gap-10 md:grid-cols-2">
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section>
+        <Container className="grid items-center gap-12 pb-10 pt-14 md:grid-cols-[1.05fr_0.95fr] md:pt-20">
           <div>
-            <Badge tone="yellow">Éducation pour tous au Togo 🇹🇬</Badge>
-            <h1 className="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl">
-              Comprendre chaque leçon,{" "}
-              <span className="text-togo-green-600">réussir chaque examen</span>.
+            <Eyebrow>Plateforme d&apos;apprentissage</Eyebrow>
+            <h1 className="mt-4 font-display text-4xl leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-6xl">
+              Apprenez à votre rythme, du primaire au bac.
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-[var(--color-muted)]">
-              Des cours vidéo courts, des exercices, des quiz corrigés et un
-              tuteur IA, alignés sur le programme togolais. Du primaire au
-              lycée, en sciences et bien plus.
+            <p className="mt-5 max-w-lg text-lg text-[var(--color-muted)]">
+              Tout le programme togolais en cours vidéo et leçons écrites, avec
+              un tuteur quand vous êtes bloqué. Une éducation de qualité,
+              accessible partout au Togo.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button href="/catalogue" variant="primary">
-                Explorer le catalogue
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Button href="/inscription" variant="primary">
+                Commencer gratuitement
               </Button>
-              <Button href="/tarifs" variant="outline">
-                Voir les abonnements
+              <Button href="/catalogue" variant="secondary">
+                Voir le catalogue
               </Button>
             </div>
-            <p className="mt-4 text-sm text-[var(--color-muted)]">
-              🎁 Des leçons d&apos;essai gratuites, sans carte bancaire.
-            </p>
           </div>
 
-          <Card className="bg-white/80 shadow-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <Stat value={`${stats.classes}`} label="Classes couvertes" />
-              <Stat value={`${stats.subjects}`} label="Matières STEM" />
-              <Stat value={`${stats.lessons}+`} label="Leçons" />
-              <Stat value={`${stats.freeLessons}`} label="Leçons gratuites" />
+          {/* Maquette de leçon sur panneau sombre */}
+          <div className="rounded-2xl bg-ink p-6 text-[var(--color-on-dark)]">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                Terminale · Mathématiques
+              </span>
+              <span className="rounded-full bg-togo-yellow-400/15 px-2.5 py-0.5 text-xs font-medium text-togo-yellow-400">
+                En cours
+              </span>
             </div>
-            <p className="mt-4 rounded-xl bg-togo-green-50 p-3 text-sm text-togo-green-700">
-              Là où il manque des enseignants qualifiés en sciences, Togo
-              Academy apporte des explications claires, partout.
-            </p>
-          </Card>
+            <div className="flex flex-col gap-2.5">
+              {heroLessons.map((l) => (
+                <div
+                  key={l.title}
+                  className={`flex items-center gap-3 rounded-xl border border-[var(--color-ink-700)] px-3.5 py-3 ${
+                    l.done ? "bg-[var(--color-ink-800)]" : "bg-[var(--color-ink-950)]"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={l.done ? "text-togo-yellow-400" : "text-[var(--color-on-dark-soft)]"}
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <path d={l.done ? "M9 12l2 2 4-4" : "M8 12h8"} />
+                    </svg>
+                  </span>
+                  <span className="flex-1 text-sm">{l.title}</span>
+                  <span className="text-xs text-[var(--color-on-dark-soft)]">
+                    {l.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </Container>
-      </Section>
+      </section>
 
-      {/* Levels */}
-      <Section>
-        <Container>
-          <h2 className="text-2xl font-bold">Choisis ton niveau</h2>
-          <p className="mt-1 text-[var(--color-muted)]">
-            Niveau → Classe → Matière → Chapitre → Leçon.
+      {/* ── Bande de statistiques ─────────────────────────── */}
+      <section className="border-y border-[var(--color-line)] bg-[var(--color-surface-soft)]">
+        <Container className="grid grid-cols-2 gap-6 py-8 md:grid-cols-4">
+          {statItems.map((s) => (
+            <div key={s.label}>
+              <div className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
+                {s.value}
+              </div>
+              <div className="mt-1 text-sm text-[var(--color-muted)]">
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </Container>
+      </section>
+
+      {/* ── Ce qu'il faut pour réussir ───────────────────── */}
+      <section>
+        <Container className="pb-10 pt-16 md:pt-20">
+          <h2 className="max-w-xl font-display text-3xl tracking-tight text-ink sm:text-4xl">
+            Tout ce qu&apos;il faut pour réussir.
+          </h2>
+          <p className="mt-3 max-w-lg text-[var(--color-muted)]">
+            Une plateforme pensée pour les élèves togolais, du CP1 à la
+            Terminale, enseignement général et technique.
           </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {levels.map((level) => (
-              <Link key={level.slug} href={`/catalogue#${level.slug}`}>
-                <Card className="h-full transition-shadow hover:shadow-md">
-                  <h3 className="text-lg font-bold text-togo-green-700">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="rounded-2xl border border-[var(--color-line)] bg-white p-7"
+              >
+                <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-togo-green-50 text-togo-green-600">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    {f.icon}
+                  </svg>
+                </span>
+                <h3 className="text-lg font-semibold text-ink">{f.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
+                  {f.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* ── Niveaux ──────────────────────────────────────── */}
+      <section>
+        <Container className="py-10">
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-3xl tracking-tight text-ink">
+              Trois niveaux, un seul parcours.
+            </h2>
+            <Link
+              href="/catalogue"
+              className="text-sm font-medium text-togo-green-600 hover:text-togo-green-700"
+            >
+              Tout le catalogue →
+            </Link>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-3">
+            {levels.map((level) => {
+              const count = classes.filter(
+                (c) => c.levelSlug === level.slug,
+              ).length;
+              return (
+                <Link
+                  key={level.slug}
+                  href={`/catalogue#${level.slug}`}
+                  className="group flex flex-col gap-2 rounded-2xl border border-[var(--color-line)] bg-white p-7 transition-shadow hover:shadow-md"
+                >
+                  <LevelDot color={LEVEL_DOT[level.slug]} />
+                  <h3 className="mt-2 font-display text-2xl tracking-tight text-ink group-hover:text-togo-green-700">
                     {level.name}
                   </h3>
-                  <p className="mt-2 text-sm text-[var(--color-muted)]">
+                  <div className="text-xs font-medium text-[var(--color-muted)]">
+                    {count} classes
+                  </div>
+                  <p className="mt-1 text-sm text-[var(--color-muted)]">
                     {level.description}
                   </p>
-                </Card>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </Container>
-      </Section>
+      </section>
 
-      {/* Subjects */}
-      <Section className="bg-togo-green-50/40">
-        <Container>
-          <h2 className="text-2xl font-bold">Matières scientifiques</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {subjects.map((s) => (
-              <Card key={s.key} className="flex items-start gap-3">
-                <span aria-hidden className="text-2xl">
-                  {s.icon}
+      {/* ── Témoignage ───────────────────────────────────── */}
+      <section>
+        <Container className="pb-16 pt-4">
+          <div className="rounded-2xl bg-ink px-8 py-12 text-[var(--color-on-dark)] sm:px-12">
+            <div className="max-w-2xl">
+              <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+                Témoignage
+              </div>
+              <p className="font-display text-2xl leading-snug tracking-tight sm:text-[26px]">
+                « Ma fille a repris confiance en mathématiques. Elle révise
+                seule le soir et pose ses questions au tuteur quand elle
+                bloque. »
+              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-togo-green-600 font-semibold text-white">
+                  A
                 </span>
                 <div>
-                  <h3 className="font-bold">{s.name}</h3>
-                  <p className="text-sm text-[var(--color-muted)]">
-                    {s.description}
-                  </p>
+                  <div className="text-sm font-semibold">Awa D.</div>
+                  <div className="text-xs text-[var(--color-on-dark-soft)]">
+                    Parent d&apos;élève, Lomé
+                  </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      {/* How it works */}
-      <Section>
-        <Container>
-          <h2 className="text-2xl font-bold">Comment ça marche</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {[
-              ["1", "Regarde", "Une vidéo courte explique un concept à la fois."],
-              ["2", "Comprends", "Le cours écrit et des exemples résolus."],
-              ["3", "Pratique", "Des exercices et quiz avec correction immédiate."],
-              ["4", "Progresse", "Suis tes scores et reçois des recommandations."],
-            ].map(([n, t, d]) => (
-              <Card key={n}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-togo-yellow-400 font-bold">
-                  {n}
-                </div>
-                <h3 className="mt-3 font-bold">{t}</h3>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">{d}</p>
-              </Card>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      {/* CTA */}
-      <Section>
-        <Container>
-          <Card className="bg-togo-green-600 text-center text-white">
-            <h2 className="text-2xl font-bold">
-              Commence gratuitement dès aujourd&apos;hui
-            </h2>
-            <p className="mx-auto mt-2 max-w-xl text-togo-green-50">
-              Crée un compte élève ou parent et découvre une première leçon
-              complète, sans payer.
-            </p>
-            <div className="mt-5 flex justify-center gap-3">
-              <Button
-                href="/inscription"
-                variant="primary"
-                className="bg-white !text-togo-green-700 hover:bg-togo-green-50"
-              >
-                Créer un compte
-              </Button>
-              <Button
-                href="/catalogue"
-                variant="outline"
-                className="!border-white !text-white hover:!bg-togo-green-700"
-              >
-                Voir une leçon
-              </Button>
+              </div>
             </div>
-          </Card>
+          </div>
         </Container>
-      </Section>
-    </>
-  );
-}
+      </section>
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-xl border border-[var(--color-line)] p-4 text-center">
-      <div className="text-2xl font-extrabold text-togo-green-600">{value}</div>
-      <div className="text-xs text-[var(--color-muted)]">{label}</div>
-    </div>
+      {/* ── CTA pleine largeur ───────────────────────────── */}
+      <section className="-mb-16 bg-togo-green-600">
+        <Container className="py-16 text-center">
+          <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
+            Prêt à commencer ?
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-togo-green-50">
+            Créez un compte gratuit et débloquez vos premières leçons dès
+            aujourd&apos;hui. Sans carte bancaire.
+          </p>
+          <div className="mt-7 flex justify-center">
+            <Button
+              href="/inscription"
+              className="bg-white !text-togo-green-700 hover:bg-togo-green-50"
+            >
+              Créer un compte gratuit
+            </Button>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

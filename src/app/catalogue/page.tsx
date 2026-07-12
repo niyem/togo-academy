@@ -1,7 +1,13 @@
-import Link from "next/link";
+// Catalogue : recherche + filtres par niveau (redesign editorial),
+// donnees reelles chargees cote serveur, exploration cote client.
+
 import type { Metadata } from "next";
-import { Badge, Card, Container, Section } from "@/components/ui";
-import { getClasses, getLevels } from "@/lib/content";
+import { Container, Eyebrow } from "@/components/ui";
+import {
+  CatalogueExplorer,
+  type ExplorerClass,
+} from "@/components/catalogue/CatalogueExplorer";
+import { getClasses, getLevels, getSubjectsByClass } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Catalogue",
@@ -12,76 +18,46 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function CataloguePage() {
-  const [levels, allClasses] = await Promise.all([getLevels(), getClasses()]);
+  const [levels, allClasses, subjectsByClass] = await Promise.all([
+    getLevels(),
+    getClasses(),
+    getSubjectsByClass(),
+  ]);
+
+  const classes: ExplorerClass[] = allClasses.map((c) => {
+    const subjects = subjectsByClass[c.slug] ?? [];
+    return {
+      slug: c.slug,
+      name: c.name,
+      levelSlug: c.levelSlug,
+      track: c.track,
+      subjects,
+      hasContent: subjects.length > 0,
+    };
+  });
 
   return (
-    <Section>
-      <Container>
-        <h1 className="text-3xl font-extrabold">Catalogue des cours</h1>
-        <p className="mt-2 max-w-2xl text-[var(--color-muted)]">
-          Du primaire au lycée. Choisissez une classe pour découvrir ses
-          matières, chapitres et leçons.
+    <Container className="pb-20 pt-12 sm:pt-16">
+      <div className="mb-8 max-w-2xl">
+        <Eyebrow>Catalogue des cours</Eyebrow>
+        <h1 className="mt-4 font-display text-4xl tracking-tight text-ink sm:text-5xl">
+          Trouvez votre classe.
+        </h1>
+        <p className="mt-4 text-[var(--color-muted)]">
+          Du primaire au lycée, enseignement général et technique. Cherchez une
+          matière ou choisissez directement votre classe pour découvrir ses
+          chapitres et ses leçons.
         </p>
+      </div>
 
-        <div className="mt-8 space-y-10">
-          {levels.map((level) => {
-            const classes = allClasses.filter((c) => c.levelSlug === level.slug);
-            return (
-              <div key={level.slug} id={level.slug} className="scroll-mt-24">
-                <div className="flex items-baseline justify-between">
-                  <h2 className="text-xl font-bold text-togo-green-700">
-                    {level.name}
-                  </h2>
-                  <span className="text-sm text-[var(--color-muted)]">
-                    {classes.length} classes
-                  </span>
-                </div>
-                <p className="text-sm text-[var(--color-muted)]">
-                  {level.description}
-                </p>
-                {(["general", "technique"] as const).map((track) => {
-                  const trackClasses = classes.filter(
-                    (c) => c.track === track,
-                  );
-                  if (trackClasses.length === 0) return null;
-                  const showTrackTitle = classes.some(
-                    (c) => c.track === "technique",
-                  );
-                  return (
-                    <div key={track} className="mt-4">
-                      {showTrackTitle && (
-                        <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-[var(--color-muted)]">
-                          {track === "general"
-                            ? "Enseignement général"
-                            : "Enseignement technique"}
-                        </h3>
-                      )}
-                      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                        {trackClasses.map((c) => (
-                          <Link key={c.slug} href={`/classes/${c.slug}`}>
-                            <Card className="flex h-full items-center justify-center py-6 text-center font-bold transition-shadow hover:shadow-md hover:border-togo-green-500">
-                              {c.name}
-                            </Card>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-10">
-          <Badge tone="yellow">Astuce</Badge>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
-            Les leçons marquées{" "}
-            <Badge tone="green">Gratuit</Badge> sont accessibles sans
-            abonnement.
-          </p>
-        </div>
-      </Container>
-    </Section>
+      <CatalogueExplorer
+        levels={levels.map((l) => ({
+          slug: l.slug,
+          name: l.name,
+          description: l.description,
+        }))}
+        classes={classes}
+      />
+    </Container>
   );
 }

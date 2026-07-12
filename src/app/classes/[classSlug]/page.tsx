@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Badge, Card, Container, Section } from "@/components/ui";
+import { Badge, Button, Card, Container, Section } from "@/components/ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   getAssessmentsForChapter,
@@ -9,6 +9,7 @@ import {
   getClass,
   getClasses,
   getLessonsForChapter,
+  getLevels,
   getSubchapters,
   getSubjectsForClass,
 } from "@/lib/content";
@@ -60,6 +61,8 @@ export default async function ClassPage({
   }
 
   // Prefetch de tout l'arbre matiere -> chapitres -> lecons pour cette classe.
+  const levels = await getLevels();
+  const level = levels.find((l) => l.slug === schoolClass.levelSlug);
   const subjectList = await getSubjectsForClass(classSlug);
   const subjects = await Promise.all(
     subjectList.map(async (subject) => ({
@@ -81,15 +84,51 @@ export default async function ClassPage({
   return (
     <Section>
       <Container>
-        <nav className="text-sm text-[var(--color-muted)]">
-          <Link href="/catalogue" className="hover:text-togo-green-700">
-            Catalogue
-          </Link>{" "}
-          / <span className="text-ink">{schoolClass.name}</span>
-        </nav>
-        <h1 className="mt-2 text-3xl font-extrabold">
-          Classe de {schoolClass.name}
-        </h1>
+        <Link
+          href="/catalogue"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-muted)] hover:text-ink"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M11 6l-6 6 6 6" />
+          </svg>
+          Retour au catalogue
+        </Link>
+
+        {/* En-tete sombre editorial */}
+        <div className="rounded-2xl bg-ink px-8 py-10 text-[var(--color-on-dark)] sm:px-10">
+          <div className="text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+            {level?.name ?? "Classe"}
+            {schoolClass.track === "technique" && " · Enseignement technique"}
+          </div>
+          <h1 className="mt-3 font-display text-4xl tracking-tight text-white sm:text-5xl">
+            Classe de {schoolClass.name}
+          </h1>
+          <p className="mt-3 max-w-lg text-[var(--color-on-dark-soft)]">
+            {subjects.length > 0
+              ? `${subjects.length} matière${subjects.length > 1 ? "s" : ""} disponible${subjects.length > 1 ? "s" : ""} · leçons, quiz, évaluations et examens alignés sur le programme officiel.`
+              : "Le contenu de cette classe est en cours de préparation par nos enseignants."}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
+              href="/tarifs"
+              className="bg-togo-green-600 hover:bg-togo-green-500"
+            >
+              S&apos;abonner pour tout débloquer
+            </Button>
+            <Button href="/catalogue" variant="on-dark">
+              Voir d&apos;autres classes
+            </Button>
+          </div>
+        </div>
 
         {subjects.length === 0 ? (
           <Card className="mt-8 bg-togo-yellow-100/60">
@@ -106,8 +145,11 @@ export default async function ClassPage({
               const chapters = subject.chapterList;
               return (
                 <div key={subject.key}>
-                  <h2 className="flex items-center gap-2 text-xl font-bold">
-                    <span aria-hidden>{subject.icon}</span> {subject.name}
+                  <h2 className="flex items-center gap-2 font-display text-2xl tracking-tight text-ink">
+                    <span aria-hidden className="text-xl">
+                      {subject.icon}
+                    </span>{" "}
+                    {subject.name}
                   </h2>
                   {(() => {
                     // Certificat par COURS (matiere de la classe) : toutes les
