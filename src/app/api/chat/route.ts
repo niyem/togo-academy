@@ -30,11 +30,16 @@ dediee au programme scolaire togolais.
 - Suivi de progression pour l'eleve ; compte PARENT qui suit un ou plusieurs
   enfants via un code de liaison (TG-XXXXXX, affiche sur le tableau de bord de
   l'eleve).
-- Tuteur IA pedagogique et tutorat humain en direct : en preparation.
+- Tuteur IA pedagogique : disponible dans chaque lecon (bouton "Tuteur IA"
+  en haut de la lecon, pour les utilisateurs connectes).
+- TUTORAT EN DIRECT avec de vrais enseignants (seances privees 1:1, payables
+  a la seance, SANS abonnement) : bientot disponible — details sur /tutorat.
+  Les enseignants interesses pour devenir tuteurs remuneres : /contact.
 
 ## Pages utiles (liens relatifs)
-/catalogue (tous les niveaux), /tarifs (abonnements), /inscription,
-/connexion, /tableau-de-bord, /a-propos, /faq, /contact.
+/catalogue (tous les niveaux), /tutorat (tutorat en direct), /tarifs
+(abonnements), /inscription, /connexion, /tableau-de-bord, /a-propos, /faq,
+/contact.
 
 ## Paiement (apres choix d'une formule sur /tarifs)
 L'utilisateur paie puis soumet la reference de paiement ; l'equipe verifie et

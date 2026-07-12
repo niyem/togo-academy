@@ -3,6 +3,7 @@ import { Button, Container, FlagBar } from "@/components/ui";
 
 const navLinks = [
   { href: "/catalogue", label: "Catalogue" },
+  { href: "/tutorat", label: "Tutorat" },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/a-propos", label: "Notre mission" },
   { href: "/faq", label: "FAQ" },
