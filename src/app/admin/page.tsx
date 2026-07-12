@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Badge, Card, Container, Section } from "@/components/ui";
 import { PaymentQueue, type PendingItem } from "@/components/admin/PaymentQueue";
+import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Administration" };
@@ -20,8 +21,16 @@ export default async function AdminPage() {
     .single();
   if (profile?.role !== "admin") redirect("/tableau-de-bord");
 
-  const [students, parents, activeSubs, published, attempts, pendingSubs, review] =
-    await Promise.all([
+  const [
+    students,
+    parents,
+    activeSubs,
+    published,
+    attempts,
+    pendingSubs,
+    review,
+    inbox,
+  ] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true })
         .eq("role", "student"),
       supabase.from("profiles").select("*", { count: "exact", head: true })
@@ -43,7 +52,23 @@ export default async function AdminPage() {
         .select("slug,title,updated_at,chapters(title,class_slug)")
         .eq("status", "in_review")
         .order("updated_at", { ascending: true }),
+      supabase
+        .from("contact_messages")
+        .select("id, created_at, name, email, phone, topic, message")
+        .eq("status", "nouveau")
+        .order("created_at", { ascending: true })
+        .limit(50),
     ]);
+
+  const messages: InboxItem[] = (inbox.data ?? []).map((m) => ({
+    id: m.id,
+    createdAt: m.created_at,
+    name: m.name,
+    email: m.email,
+    phone: m.phone,
+    topic: m.topic,
+    message: m.message,
+  }));
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const queue: PendingItem[] = (pendingSubs.data ?? []).map((s: any) => {
@@ -141,6 +166,18 @@ export default async function AdminPage() {
             </ul>
           </Card>
         </div>
+
+        <Card className="mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold">📬 Messages de contact</h2>
+            <Badge tone={messages.length ? "yellow" : "green"}>
+              {messages.length}
+            </Badge>
+          </div>
+          <div className="mt-3">
+            <ContactInbox items={messages} />
+          </div>
+        </Card>
 
         <p className="mt-6 text-xs text-[var(--color-muted)]">
           À venir : émission des certificats de cours, gestion des utilisateurs

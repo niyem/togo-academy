@@ -40,7 +40,9 @@ dediee au programme scolaire togolais.
 /catalogue (tous les niveaux), /tutorat (tutorat en direct), /tarifs
 (abonnements), /inscription, /connexion, /tableau-de-bord, /a-propos
 (qui nous sommes : departement "Académie en ligne" de Groupe BM), /faq,
-/contact.
+/contact (formulaire de contact : l'equipe repond sous 24 h ; sujets :
+question, abonnement/paiement, devenir tuteur, probleme technique,
+partenariat).
 
 ## Paiement (apres choix d'une formule sur /tarifs)
 L'utilisateur paie puis soumet la reference de paiement ; l'equipe verifie et

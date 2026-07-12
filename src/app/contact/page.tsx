@@ -1,57 +1,117 @@
-import type { Metadata } from "next";
-import { Button, Card, Container, Section } from "@/components/ui";
+// Contact & support : formulaire reel (messages stockes en base, traites
+// depuis /admin) + panneau sombre d'informations. Style editorial du redesign.
 
-export const metadata: Metadata = { title: "Contact & support" };
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Container, Eyebrow } from "@/components/ui";
+import { ContactForm } from "@/components/contact/ContactForm";
+
+export const metadata: Metadata = {
+  title: "Contact & support",
+  description:
+    "Une question sur les cours, les abonnements ou le tutorat ? Écrivez-nous, l'équipe Togo Academy répond sous 24 h.",
+};
 
 export default function ContactPage() {
   return (
-    <Section>
-      <Container className="max-w-3xl">
-        <h1 className="text-3xl font-extrabold">Contact & support</h1>
-        <p className="mt-2 text-[var(--color-muted)]">
-          Une question ? Écrivez-nous, nous répondons rapidement.
+    <Container className="pb-20 pt-12 sm:pt-16">
+      <div className="mb-10 max-w-2xl">
+        <Eyebrow>Contact & support</Eyebrow>
+        <h1 className="mt-4 font-display text-4xl tracking-tight text-ink sm:text-5xl">
+          Écrivez-nous.
+        </h1>
+        <p className="mt-4 text-[var(--color-muted)]">
+          Une question sur les cours, les abonnements, un paiement ou le
+          tutorat ? Notre équipe vous répond sous 24 h.
         </p>
+      </div>
 
-        <Card className="mt-8">
-          {/* Phase 1: wire to a server action + email (Resend). */}
-          <form className="grid gap-4">
-            <Field label="Nom complet" name="name" />
-            <Field label="Email ou téléphone" name="contact" />
-            <div>
-              <label
-                htmlFor="message"
-                className="mb-1 block text-sm font-semibold"
-              >
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                rows={5}
-                className="w-full rounded-lg border border-[var(--color-line)] px-3 py-2 focus:border-togo-green-500"
-              />
+      <div className="grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-2xl border border-[var(--color-line)] bg-white p-8 sm:p-10">
+          <ContactForm />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          {/* Panneau sombre : à savoir */}
+          <div className="rounded-2xl bg-ink p-8 text-[var(--color-on-dark)]">
+            <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+              Bon à savoir
             </div>
-            <Button type="submit" className="w-fit">
-              Envoyer
-            </Button>
-          </form>
-        </Card>
-      </Container>
-    </Section>
+            <ul className="flex flex-col gap-4 text-sm leading-relaxed">
+              <li className="flex items-start gap-3">
+                <Check />
+                <span>
+                  Réponse sous <strong className="text-white">24 h</strong>,
+                  du lundi au samedi.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check />
+                <span>
+                  Pour un paiement effectué, indiquez la{" "}
+                  <strong className="text-white">référence de paiement</strong>{" "}
+                  dans votre message : l&apos;activation en sera plus rapide.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check />
+                <span>
+                  Enseignant(e) ? Choisissez le sujet{" "}
+                  <strong className="text-white">« Devenir tuteur »</strong> et
+                  précisez vos matières et disponibilités.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Renvoi FAQ */}
+          <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface-soft)] p-7">
+            <h2 className="font-semibold text-ink">
+              Votre réponse est peut-être déjà là
+            </h2>
+            <p className="mt-1.5 text-sm text-[var(--color-muted)]">
+              Abonnements, paiements, certificats, comptes parents : les
+              questions les plus courantes ont déjà leur réponse.
+            </p>
+            <Link
+              href="/faq"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-togo-green-600 hover:text-togo-green-700"
+            >
+              Voir les questions fréquentes
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Container>
   );
 }
 
-function Field({ label, name }: { label: string; name: string }) {
+function Check() {
   return (
-    <div>
-      <label htmlFor={name} className="mb-1 block text-sm font-semibold">
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        className="w-full rounded-lg border border-[var(--color-line)] px-3 py-2 focus:border-togo-green-500"
-      />
-    </div>
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="mt-0.5 flex-none text-togo-yellow-400"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
   );
 }
