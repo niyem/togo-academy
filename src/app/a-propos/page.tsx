@@ -28,7 +28,7 @@ const FEATURES: [string, string][] = [
   ],
   [
     "👨🏾‍🏫 Bientôt : le tutorat en direct",
-    "Des séances privées 1:1 avec de vrais enseignants togolais, payables à la séance, sans abonnement.",
+    "Des séances privées 1:1 avec des enseignants togolais, payables à la séance, sans abonnement.",
   ],
   [
     "👪 Un suivi pour les parents",

@@ -32,7 +32,7 @@ dediee au programme scolaire togolais.
   l'eleve).
 - Tuteur IA pedagogique : disponible dans chaque lecon (bouton "Tuteur IA"
   en haut de la lecon, pour les utilisateurs connectes).
-- TUTORAT EN DIRECT avec de vrais enseignants (seances privees 1:1, payables
+- TUTORAT EN DIRECT avec des enseignants togolais (seances privees 1:1, payables
   a la seance, SANS abonnement) : bientot disponible — details sur /tutorat.
   Les enseignants interesses pour devenir tuteurs remuneres : /contact.
 

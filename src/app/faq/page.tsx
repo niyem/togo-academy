@@ -78,7 +78,7 @@ const GROUPS: FaqGroup[] = [
     items: [
       {
         q: "Comment fonctionnera le tutorat en direct ?",
-        a: "Bientôt disponible : des séances privées 1:1 avec de vrais enseignants togolais validés par notre équipe. Vous voyez les tuteurs disponibles en ligne pour votre matière avant de payer, puis vous échangez en direct (audio et tableau partagé).",
+        a: "Bientôt disponible : des séances privées 1:1 avec des enseignants togolais validés par notre équipe. Vous voyez les tuteurs disponibles en ligne pour votre matière avant de payer, puis vous échangez en direct (audio et tableau partagé).",
       },
       {
         q: "Faut-il un abonnement pour le tutorat en direct ?",

@@ -8,7 +8,7 @@ import { Button, Card, Container, Eyebrow } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Tutorat en direct",
   description:
-    "Bientôt : des séances privées 1:1 avec de vrais enseignants togolais, payables à la séance, sans abonnement.",
+    "Bientôt : des séances privées 1:1 avec des enseignants togolais, payables à la séance, sans abonnement.",
 };
 
 const STEPS: [string, string, string][] = [
@@ -47,7 +47,7 @@ export default function TutoratPage() {
         <div>
           <Eyebrow>Tutorat · Bientôt disponible</Eyebrow>
           <h1 className="mt-4 font-display text-4xl leading-[1.1] tracking-tight text-ink sm:text-5xl">
-            Un vrai tuteur, quand vous en avez besoin.
+            Un tuteur, quand vous en avez besoin.
           </h1>
           <p className="mt-5 max-w-lg text-lg text-[var(--color-muted)]">
             Bloqué sur un exercice ? En plus du tuteur IA inclus dans chaque

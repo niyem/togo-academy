@@ -37,7 +37,7 @@ export default async function HomePage() {
     },
     {
       title: "Un tuteur quand vous bloquez",
-      body: "Le tuteur IA explique autrement dans chaque leçon. Et bientôt : des séances privées avec de vrais enseignants togolais.",
+      body: "Le tuteur IA explique autrement dans chaque leçon. Et bientôt : des séances privées avec des enseignants togolais.",
       icon: (
         <path d="M21 12a8 8 0 0 1-11.3 7.3L3 21l1.7-6.7A8 8 0 1 1 21 12zM8 12h.01M12 12h.01M16 12h.01" />
       ),
