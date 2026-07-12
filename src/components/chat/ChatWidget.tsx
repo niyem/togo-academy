@@ -21,6 +21,18 @@ export function ChatWidget() {
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Ouverture automatique a l'arrivee sur le site (une fois par session de
+  // navigation) : l'assistant ne passe pas inapercu, sans etre insistant.
+  // Si l'utilisateur le ferme, il reste ferme jusqu'a la prochaine visite.
+  useEffect(() => {
+    if (sessionStorage.getItem("ta-chat-auto") === "1") return;
+    const timer = setTimeout(() => {
+      sessionStorage.setItem("ta-chat-auto", "1");
+      setOpen(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages, open]);
