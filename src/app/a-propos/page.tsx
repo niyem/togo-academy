@@ -120,7 +120,16 @@ export default async function AboutPage() {
         <h2 className="mt-12 font-display text-3xl tracking-tight text-ink">
           Qui sommes-nous
         </h2>
-        <div className="mt-5 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7">
+        <div className="mt-5 flex flex-col gap-5 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7 sm:flex-row sm:items-start">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/gbm-logo.png"
+            alt="Sceau officiel de Groupe BM"
+            width={72}
+            height={72}
+            loading="lazy"
+            className="flex-none"
+          />
           <p className="leading-relaxed text-[var(--color-muted)]">
             Togo Academy est le département « Académie en ligne » de{" "}
             <a

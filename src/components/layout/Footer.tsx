@@ -62,6 +62,20 @@ export function Footer() {
           <p className="mt-4 max-w-xs text-sm text-white/65">
             L&apos;éducation de qualité, accessible partout au Togo.
           </p>
+          <a
+            href="https://groupebm.net"
+            className="mt-5 inline-flex items-center gap-2.5 text-sm text-white/80 hover:text-togo-yellow-400"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/gbm-logo.png"
+              alt="Sceau officiel de Groupe BM"
+              width={34}
+              height={34}
+              loading="lazy"
+            />
+            Un département de Groupe BM
+          </a>
         </div>
         {columns.map((col) => (
           <div key={col.title}>
