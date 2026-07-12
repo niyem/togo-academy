@@ -14,6 +14,7 @@ const navLinks = [
   { href: "/tarifs", label: "Tarifs" },
   { href: "/a-propos", label: "À propos" },
   { href: "/faq", label: "Questions fréquentes" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {
