@@ -31,6 +31,9 @@
   --color-muted: #5c6b66;
   --color-line: #e6ebe8;
 
+  /* Vert foret (demande Niyem) : fond de l'en-tete et du pied de page */
+  --color-forest: #154406;
+
   /* Surfaces sombres (panneaux "editoriaux") derivees de l'encre existante */
   --color-ink-950: #14211c;
   --color-ink-800: #23362f;

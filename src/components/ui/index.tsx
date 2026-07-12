@@ -144,15 +144,22 @@ export function LevelDot({
   );
 }
 
-/** Logo TogoAcademy : carre vert + toque, texte en serif editorial. */
-export function BrandMark({ small = false }: { small?: boolean }) {
+/** Logo TogoAcademy : carre + toque, texte en serif editorial.
+ *  `onDark` : variante pour fonds sombres (en-tete/pied vert foret). */
+export function BrandMark({
+  small = false,
+  onDark = false,
+}: {
+  small?: boolean;
+  onDark?: boolean;
+}) {
   return (
     <span className="inline-flex items-center gap-2.5">
       <span
         aria-hidden
-        className={`inline-flex items-center justify-center rounded-lg bg-togo-green-600 text-white ${
-          small ? "h-7 w-7" : "h-8 w-8"
-        }`}
+        className={`inline-flex items-center justify-center rounded-lg ${
+          onDark ? "bg-white text-forest" : "bg-togo-green-600 text-white"
+        } ${small ? "h-7 w-7" : "h-8 w-8"}`}
       >
         <svg
           width={small ? 16 : 18}
@@ -170,9 +177,14 @@ export function BrandMark({ small = false }: { small?: boolean }) {
         </svg>
       </span>
       <span
-        className={`font-display tracking-tight ${small ? "text-lg" : "text-xl"}`}
+        className={`font-display tracking-tight ${small ? "text-lg" : "text-xl"} ${
+          onDark ? "text-white" : ""
+        }`}
       >
-        Togo<span className="text-togo-green-600">Academy</span>
+        Togo
+        <span className={onDark ? "text-togo-yellow-400" : "text-togo-green-600"}>
+          Academy
+        </span>
       </span>
     </span>
   );

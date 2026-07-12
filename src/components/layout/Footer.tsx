@@ -1,4 +1,4 @@
-// Pied de page sombre (panneau editorial) sur l'encre existante de la marque.
+// Pied de page sombre sur fond vert foret (#154406, demande Niyem).
 
 import Link from "next/link";
 import { Container, FlagBar } from "@/components/ui";
@@ -32,14 +32,14 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="mt-16 bg-ink text-[var(--color-on-dark)]">
+    <footer className="mt-16 bg-forest text-white/90">
       <FlagBar />
       <Container className="grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-4">
         <div className="sm:col-span-2 md:col-span-1">
           <span className="inline-flex items-center gap-2.5">
             <span
               aria-hidden
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-togo-green-600 text-white"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-forest"
             >
               <svg
                 width="18"
@@ -59,13 +59,13 @@ export function Footer() {
               Togo<span className="text-togo-yellow-400">Academy</span>
             </span>
           </span>
-          <p className="mt-4 max-w-xs text-sm text-[var(--color-on-dark-soft)]">
+          <p className="mt-4 max-w-xs text-sm text-white/65">
             L&apos;éducation de qualité, accessible partout au Togo.
           </p>
         </div>
         {columns.map((col) => (
           <div key={col.title}>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-on-dark-soft)]">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">
               {col.title}
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -73,7 +73,7 @@ export function Footer() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
-                    className="text-[var(--color-on-dark)] hover:text-togo-yellow-400"
+                    className="text-white hover:text-togo-yellow-400"
                   >
                     {l.label}
                   </Link>
@@ -83,7 +83,7 @@ export function Footer() {
           </div>
         ))}
       </Container>
-      <div className="border-t border-[var(--color-ink-700)] py-5 text-center text-xs text-[var(--color-on-dark-soft)]">
+      <div className="border-t border-white/15 py-5 text-center text-xs text-white/65">
         © {new Date().getFullYear()} Togo Academy · Un département de{" "}
         <a
           href="https://groupebm.net"

@@ -1,7 +1,7 @@
 "use client";
 
-// En-tete editorial : barre drapeau, logo serif, navigation centrale,
-// menu hamburger fonctionnel sur mobile. Couleurs Togo inchangees.
+// En-tete editorial sur fond vert foret (#154406, demande Niyem) :
+// barre drapeau, logo serif, navigation centrale, menu hamburger sur mobile.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,11 +25,15 @@ export function Header() {
     pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--color-line)] bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-forest/95 backdrop-blur">
       <FlagBar />
       <Container className="flex items-center justify-between gap-4 py-3">
-        <Link href="/" aria-label="Accueil TogoAcademy" onClick={() => setOpen(false)}>
-          <BrandMark />
+        <Link
+          href="/"
+          aria-label="Accueil TogoAcademy"
+          onClick={() => setOpen(false)}
+        >
+          <BrandMark onDark />
         </Link>
 
         <nav
@@ -40,8 +44,8 @@ export function Header() {
             <Link
               key={l.href}
               href={l.href}
-              className={`text-sm font-medium transition-colors hover:text-ink ${
-                isActive(l.href) ? "text-ink" : "text-[var(--color-muted)]"
+              className={`text-sm font-medium transition-colors hover:text-white ${
+                isActive(l.href) ? "text-white" : "text-white/70"
               }`}
             >
               {l.label}
@@ -52,11 +56,14 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/connexion"
-            className="text-sm font-medium text-ink hover:text-togo-green-700"
+            className="text-sm font-medium text-white hover:text-togo-yellow-400"
           >
             Connexion
           </Link>
-          <Button href="/inscription" variant="primary">
+          <Button
+            href="/inscription"
+            className="bg-white !text-forest hover:bg-togo-yellow-400"
+          >
             S&apos;inscrire
           </Button>
         </div>
@@ -67,7 +74,7 @@ export function Header() {
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-ink md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/25 text-white md:hidden"
         >
           {open ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -83,15 +90,15 @@ export function Header() {
 
       {/* Panneau mobile */}
       {open && (
-        <div className="border-t border-[var(--color-line)] bg-white md:hidden">
+        <div className="border-t border-white/10 bg-forest md:hidden">
           <Container className="flex flex-col pb-5 pt-1">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className={`border-b border-[var(--color-line)]/60 py-3 text-base font-medium ${
-                  isActive(l.href) ? "text-togo-green-700" : "text-ink"
+                className={`border-b border-white/10 py-3 text-base font-medium ${
+                  isActive(l.href) ? "text-togo-yellow-400" : "text-white"
                 }`}
               >
                 {l.label}
@@ -100,15 +107,14 @@ export function Header() {
             <Link
               href="/connexion"
               onClick={() => setOpen(false)}
-              className="py-3 text-base font-medium text-ink"
+              className="py-3 text-base font-medium text-white"
             >
               Connexion
             </Link>
             <div className="mt-3">
               <Button
                 href="/inscription"
-                variant="primary"
-                className="w-full"
+                className="w-full bg-white !text-forest hover:bg-togo-yellow-400"
               >
                 S&apos;inscrire
               </Button>
