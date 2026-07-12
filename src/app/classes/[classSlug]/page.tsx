@@ -160,19 +160,29 @@ export default async function ClassPage({
                     ).length;
                     const complete = passed === all.length;
                     return (
-                      <p
-                        className={`mt-2 rounded-lg px-3 py-2 text-sm ${
+                      <div
+                        className={`mt-2 flex flex-wrap items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm ${
                           complete
                             ? "bg-togo-green-600 font-semibold text-white"
                             : "bg-togo-yellow-100/60 text-ink"
                         }`}
                       >
-                        {complete
-                          ? `🎓 Certificat du cours ${subject.name} ${schoolClass.name} obtenu : toutes les épreuves sont validées (${passed}/${all.length}) ! Félicitations.`
-                          : `🎓 Certificat du cours ${subject.name} ${schoolClass.name} : ${passed}/${all.length} épreuve${
-                              passed > 1 ? "s" : ""
-                            } validée${passed > 1 ? "s" : ""}. Les leçons restent libres, mais valide toutes les évaluations (70%) et tous les examens de chapitre (80%) pour l'obtenir.`}
-                      </p>
+                        <span>
+                          {complete
+                            ? `🎓 Certificat du cours ${subject.name} ${schoolClass.name} obtenu : toutes les épreuves sont validées (${passed}/${all.length}) ! Félicitations.`
+                            : `🎓 Certificat du cours ${subject.name} ${schoolClass.name} : ${passed}/${all.length} épreuve${
+                                passed > 1 ? "s" : ""
+                              } validée${passed > 1 ? "s" : ""}. Les leçons restent libres, mais valide toutes les évaluations (70%) et tous les examens de chapitre (80%) pour l'obtenir.`}
+                        </span>
+                        {complete && (
+                          <a
+                            href={`/api/certificat/${schoolClass.slug}/${subject.key}`}
+                            className="flex-none rounded-lg bg-white px-3.5 py-1.5 text-xs font-semibold text-togo-green-700 hover:bg-togo-green-50"
+                          >
+                            📄 Télécharger le certificat (PDF)
+                          </a>
+                        )}
+                      </div>
                     );
                   })()}
                   <div className="mt-3 space-y-4">
