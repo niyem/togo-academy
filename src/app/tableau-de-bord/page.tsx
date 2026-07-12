@@ -117,11 +117,15 @@ export default async function DashboardPage() {
           <div>
             <h1 className="text-3xl font-extrabold">Bonjour {firstName} 👋</h1>
             <p className="text-[var(--color-muted)]">
-              {profile?.role === "parent"
-                ? "Compte parent"
-                : profile?.class_slug
-                  ? `Classe de ${profile.class_slug}`
-                  : "Élève"}
+              {profile?.role === "admin"
+                ? "Compte administrateur"
+                : profile?.role === "teacher"
+                  ? "Compte enseignant"
+                  : profile?.role === "parent"
+                    ? "Compte parent"
+                    : profile?.class_slug
+                      ? `Classe de ${profile.class_slug}`
+                      : "Élève"}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -133,6 +137,30 @@ export default async function DashboardPage() {
             </form>
           </div>
         </div>
+
+        {profile?.role === "admin" && (
+          <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-togo-green-500">
+            <div>
+              <p className="font-semibold">🛠️ Espace administration</p>
+              <p className="text-sm text-[var(--color-muted)]">
+                Paiements à vérifier, messages de contact, leçons en revue et
+                indicateurs de la plateforme.
+              </p>
+            </div>
+            <Button href="/admin">Ouvrir l&apos;administration</Button>
+          </Card>
+        )}
+        {profile?.role === "teacher" && (
+          <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-togo-green-500">
+            <div>
+              <p className="font-semibold">📚 Espace enseignant</p>
+              <p className="text-sm text-[var(--color-muted)]">
+                Rédigez et mettez à jour les leçons de la plateforme.
+              </p>
+            </div>
+            <Button href="/enseignant">Ouvrir l&apos;espace enseignant</Button>
+          </Card>
+        )}
 
         <Card className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <div>

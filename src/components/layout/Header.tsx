@@ -5,8 +5,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandMark, Button, Container, FlagBar } from "@/components/ui";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const navLinks = [
   { href: "/catalogue", label: "Catalogue" },
@@ -17,9 +18,54 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
+/** Etat de session cote client (l'en-tete reste statique cote serveur pour
+ *  ne pas rendre tout le site dynamique via cookies()). */
+function useSessionRole() {
+  const [state, setState] = useState<{
+    authed: boolean;
+    role: string | null;
+  }>({ authed: false, role: null });
+  const pathname = usePathname();
+
+  useEffect(() => {
+    let cancelled = false;
+    const supabase = createSupabaseBrowserClient();
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (cancelled) return;
+      if (!user) {
+        setState({ authed: false, role: null });
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (!cancelled) setState({ authed: true, role: profile?.role ?? null });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Reevalue apres chaque navigation (connexion/deconnexion incluses).
+  }, [pathname]);
+
+  return state;
+}
+
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { authed, role } = useSessionRole();
+
+  const roleLink =
+    role === "admin"
+      ? { href: "/admin", label: "Administration" }
+      : role === "teacher"
+        ? { href: "/enseignant", label: "Espace enseignant" }
+        : null;
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -54,18 +100,39 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/connexion"
-            className="text-sm font-medium text-white hover:text-togo-yellow-400"
-          >
-            Connexion
-          </Link>
-          <Button
-            href="/inscription"
-            className="bg-white !text-forest hover:bg-togo-yellow-400"
-          >
-            S&apos;inscrire
-          </Button>
+          {authed ? (
+            <>
+              {roleLink && (
+                <Link
+                  href={roleLink.href}
+                  className="text-sm font-semibold text-togo-yellow-400 hover:text-white"
+                >
+                  {roleLink.label}
+                </Link>
+              )}
+              <Button
+                href="/tableau-de-bord"
+                className="bg-white !text-forest hover:bg-togo-yellow-400"
+              >
+                Tableau de bord
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/connexion"
+                className="text-sm font-medium text-white hover:text-togo-yellow-400"
+              >
+                Connexion
+              </Link>
+              <Button
+                href="/inscription"
+                className="bg-white !text-forest hover:bg-togo-yellow-400"
+              >
+                S&apos;inscrire
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Bouton menu mobile */}
@@ -104,21 +171,45 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
-            <Link
-              href="/connexion"
-              onClick={() => setOpen(false)}
-              className="py-3 text-base font-medium text-white"
-            >
-              Connexion
-            </Link>
-            <div className="mt-3">
-              <Button
-                href="/inscription"
-                className="w-full bg-white !text-forest hover:bg-togo-yellow-400"
-              >
-                S&apos;inscrire
-              </Button>
-            </div>
+            {authed ? (
+              <>
+                {roleLink && (
+                  <Link
+                    href={roleLink.href}
+                    onClick={() => setOpen(false)}
+                    className="py-3 text-base font-semibold text-togo-yellow-400"
+                  >
+                    {roleLink.label}
+                  </Link>
+                )}
+                <div className="mt-3">
+                  <Button
+                    href="/tableau-de-bord"
+                    className="w-full bg-white !text-forest hover:bg-togo-yellow-400"
+                  >
+                    Tableau de bord
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/connexion"
+                  onClick={() => setOpen(false)}
+                  className="py-3 text-base font-medium text-white"
+                >
+                  Connexion
+                </Link>
+                <div className="mt-3">
+                  <Button
+                    href="/inscription"
+                    className="w-full bg-white !text-forest hover:bg-togo-yellow-400"
+                  >
+                    S&apos;inscrire
+                  </Button>
+                </div>
+              </>
+            )}
           </Container>
         </div>
       )}
