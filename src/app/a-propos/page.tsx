@@ -129,9 +129,9 @@ export default async function AboutPage() {
             >
               Groupe BM
             </a>{" "}
-            (« Bâtir et Moderniser »), qui connecte l&apos;Afrique francophone
-            à l&apos;excellence mondiale : études à l&apos;étranger, services
-            professionnels, recherche et ingénierie. Togo Academy est à la fois
+            (« Bâtir et Moderniser »), un groupe de services et de technologie
+            qui connecte les talents à l&apos;excellence mondiale : éducation,
+            immigration, services professionnels, recherche et ingénierie. Togo Academy est à la fois
             une entreprise éducative durable et un outil de démocratisation de
             l&apos;éducation de qualité au Togo : les abonnements financent la
             production de nouveaux cours et leur accessibilité au plus grand
