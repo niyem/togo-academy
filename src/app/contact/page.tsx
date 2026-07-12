@@ -32,33 +32,32 @@ export default function ContactPage() {
         </div>
 
         <div className="flex flex-col gap-5">
-          {/* Panneau sombre : à savoir */}
-          <div className="rounded-2xl bg-ink p-8 text-[var(--color-on-dark)]">
-            <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+          {/* Panneau clair : à savoir */}
+          <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 text-ink">
+            <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
               Bon à savoir
             </div>
             <ul className="flex flex-col gap-4 text-sm leading-relaxed">
               <li className="flex items-start gap-3">
                 <Check />
                 <span>
-                  Réponse sous <strong className="text-white">24 h</strong>,
-                  du lundi au samedi.
+                  Réponse sous <strong>24 h</strong>, du lundi au samedi.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check />
                 <span>
                   Pour un paiement effectué, indiquez la{" "}
-                  <strong className="text-white">référence de paiement</strong>{" "}
-                  dans votre message : l&apos;activation en sera plus rapide.
+                  <strong>référence de paiement</strong> dans votre message :
+                  l&apos;activation en sera plus rapide.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <Check />
                 <span>
                   Enseignant(e) ? Choisissez le sujet{" "}
-                  <strong className="text-white">« Devenir tuteur »</strong> et
-                  précisez vos matières et disponibilités.
+                  <strong>« Devenir tuteur »</strong> et précisez vos matières
+                  et disponibilités.
                 </span>
               </li>
             </ul>
@@ -109,7 +108,7 @@ function Check() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="mt-0.5 flex-none text-togo-yellow-400"
+      className="mt-0.5 flex-none text-togo-green-600"
     >
       <path d="M20 6 9 17l-5-5" />
     </svg>

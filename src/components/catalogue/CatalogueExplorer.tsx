@@ -131,7 +131,7 @@ export function CatalogueExplorer({
                 onClick={() => setLevel(t.key)}
                 className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "border-ink bg-ink text-white"
+                    ? "border-togo-green-600 bg-togo-green-600 text-white"
                     : "border-[var(--color-line)] bg-transparent text-[var(--color-muted)] hover:text-ink"
                 }`}
               >

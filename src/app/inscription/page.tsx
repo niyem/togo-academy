@@ -134,9 +134,9 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Panneau sombre : inclus dès l'inscription */}
-        <div className="flex flex-col justify-center rounded-2xl bg-ink p-8 text-[var(--color-on-dark)] sm:p-10">
-          <div className="mb-6 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+        {/* Panneau clair : inclus dès l'inscription */}
+        <div className="flex flex-col justify-center rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 sm:p-10">
+          <div className="mb-6 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
             Inclus dès l&apos;inscription
           </div>
           <div className="flex flex-col gap-5">
@@ -151,11 +151,11 @@ export default function RegisterPage() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="mt-0.5 flex-none text-togo-yellow-400"
+                  className="mt-0.5 flex-none text-togo-green-600"
                 >
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
-                <span className="text-base">{p}</span>
+                <span className="text-base text-ink">{p}</span>
               </div>
             ))}
           </div>

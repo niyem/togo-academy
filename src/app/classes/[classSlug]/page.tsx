@@ -103,28 +103,25 @@ export default async function ClassPage({
           Retour au catalogue
         </Link>
 
-        {/* En-tete sombre editorial */}
-        <div className="rounded-2xl bg-ink px-8 py-10 text-[var(--color-on-dark)] sm:px-10">
-          <div className="text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+        {/* En-tete clair editorial */}
+        <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 px-8 py-10 sm:px-10">
+          <div className="text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
             {level?.name ?? "Classe"}
             {schoolClass.track === "technique" && " · Enseignement technique"}
           </div>
-          <h1 className="mt-3 font-display text-4xl tracking-tight text-white sm:text-5xl">
+          <h1 className="mt-3 font-display text-4xl tracking-tight text-ink sm:text-5xl">
             Classe de {schoolClass.name}
           </h1>
-          <p className="mt-3 max-w-lg text-[var(--color-on-dark-soft)]">
+          <p className="mt-3 max-w-lg text-[var(--color-muted)]">
             {subjects.length > 0
               ? `${subjects.length} matière${subjects.length > 1 ? "s" : ""} disponible${subjects.length > 1 ? "s" : ""} · leçons, quiz, évaluations et examens alignés sur le programme officiel.`
               : "Le contenu de cette classe est en cours de préparation par nos enseignants."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button
-              href="/tarifs"
-              className="bg-togo-green-600 hover:bg-togo-green-500"
-            >
+            <Button href="/tarifs" variant="primary">
               S&apos;abonner pour tout débloquer
             </Button>
-            <Button href="/catalogue" variant="on-dark">
+            <Button href="/catalogue" variant="secondary">
               Voir d&apos;autres classes
             </Button>
           </div>

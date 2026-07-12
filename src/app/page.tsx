@@ -81,13 +81,13 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Maquette de leçon sur panneau sombre */}
-          <div className="rounded-2xl bg-ink p-6 text-[var(--color-on-dark)]">
+          {/* Maquette de leçon sur carte claire */}
+          <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-ink">
                 Terminale · Mathématiques
               </span>
-              <span className="rounded-full bg-togo-yellow-400/15 px-2.5 py-0.5 text-xs font-medium text-togo-yellow-400">
+              <span className="rounded-full bg-togo-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-togo-yellow-600">
                 En cours
               </span>
             </div>
@@ -95,13 +95,17 @@ export default async function HomePage() {
               {heroLessons.map((l) => (
                 <div
                   key={l.title}
-                  className={`flex items-center gap-3 rounded-xl border border-[var(--color-ink-700)] px-3.5 py-3 ${
-                    l.done ? "bg-[var(--color-ink-800)]" : "bg-[var(--color-ink-950)]"
+                  className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 ${
+                    l.done
+                      ? "border-togo-green-500 bg-white"
+                      : "border-[var(--color-line)] bg-white"
                   }`}
                 >
                   <span
                     aria-hidden
-                    className={l.done ? "text-togo-yellow-400" : "text-[var(--color-on-dark-soft)]"}
+                    className={
+                      l.done ? "text-togo-green-600" : "text-[var(--color-muted)]"
+                    }
                   >
                     <svg
                       width="18"
@@ -117,8 +121,8 @@ export default async function HomePage() {
                       <path d={l.done ? "M9 12l2 2 4-4" : "M8 12h8"} />
                     </svg>
                   </span>
-                  <span className="flex-1 text-sm">{l.title}</span>
-                  <span className="text-xs text-[var(--color-on-dark-soft)]">
+                  <span className="flex-1 text-sm text-ink">{l.title}</span>
+                  <span className="text-xs text-[var(--color-muted)]">
                     {l.time}
                   </span>
                 </div>
@@ -229,12 +233,12 @@ export default async function HomePage() {
       {/* ── Témoignage ───────────────────────────────────── */}
       <section>
         <Container className="pb-16 pt-4">
-          <div className="rounded-2xl bg-ink px-8 py-12 text-[var(--color-on-dark)] sm:px-12">
+          <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 px-8 py-12 sm:px-12">
             <div className="max-w-2xl">
-              <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+              <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
                 Témoignage
               </div>
-              <p className="font-display text-2xl leading-snug tracking-tight sm:text-[26px]">
+              <p className="font-display text-2xl leading-snug tracking-tight text-ink sm:text-[26px]">
                 « Ma fille a repris confiance en mathématiques. Elle révise
                 seule le soir et pose ses questions au tuteur quand elle
                 bloque. »
@@ -244,8 +248,8 @@ export default async function HomePage() {
                   A
                 </span>
                 <div>
-                  <div className="text-sm font-semibold">Awa D.</div>
-                  <div className="text-xs text-[var(--color-on-dark-soft)]">
+                  <div className="text-sm font-semibold text-ink">Awa D.</div>
+                  <div className="text-xs text-[var(--color-muted)]">
                     Parent d&apos;élève, Lomé
                   </div>
                 </div>
@@ -255,22 +259,19 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* ── CTA (carte sombre, comme sur les autres pages) ── */}
+      {/* ── CTA (carte claire) ───────────────────────────── */}
       <section>
         <Container className="pb-6">
-          <div className="rounded-2xl bg-ink px-8 py-12 text-center text-[var(--color-on-dark)]">
-            <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
+          <div className="rounded-2xl border border-[var(--color-line)] bg-white px-8 py-12 text-center">
+            <h2 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
               Prêt à commencer ?
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[var(--color-on-dark-soft)]">
+            <p className="mx-auto mt-3 max-w-xl text-[var(--color-muted)]">
               Créez un compte gratuit et débloquez vos premières leçons dès
               aujourd&apos;hui. Sans carte bancaire.
             </p>
             <div className="mt-7 flex justify-center">
-              <Button
-                href="/inscription"
-                className="bg-togo-green-600 hover:bg-togo-green-500"
-              >
+              <Button href="/inscription" variant="primary">
                 Créer un compte gratuit
               </Button>
             </div>

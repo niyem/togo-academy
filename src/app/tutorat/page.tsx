@@ -65,17 +65,17 @@ export default function TutoratPage() {
         </div>
 
         {/* Maquette de conversation */}
-        <div className="flex flex-col gap-3 rounded-2xl bg-ink p-6 text-[var(--color-on-dark)]">
-          <div className="max-w-[80%] self-start rounded-2xl rounded-bl-md bg-[var(--color-ink-800)] px-4 py-3 text-sm">
+        <div className="flex flex-col gap-3 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6">
+          <div className="max-w-[80%] self-start rounded-2xl rounded-bl-md border border-[var(--color-line)] bg-white px-4 py-3 text-sm text-ink">
             Je ne comprends pas les limites en maths…
           </div>
           <div className="max-w-[80%] self-end rounded-2xl rounded-br-md bg-togo-green-600 px-4 py-3 text-sm text-white">
             Pas de souci ! On reprend ensemble avec un exemple simple.
           </div>
-          <div className="max-w-[80%] self-start rounded-2xl rounded-bl-md bg-[var(--color-ink-800)] px-4 py-3 text-sm">
+          <div className="max-w-[80%] self-start rounded-2xl rounded-bl-md border border-[var(--color-line)] bg-white px-4 py-3 text-sm text-ink">
             Merci, c&apos;est beaucoup plus clair !
           </div>
-          <div className="mt-1 flex items-center gap-2 text-xs text-togo-yellow-400">
+          <div className="mt-1 flex items-center gap-2 text-xs font-medium text-togo-green-700">
             <span
               aria-hidden
               className="inline-block h-2 w-2 rounded-full bg-togo-green-500"

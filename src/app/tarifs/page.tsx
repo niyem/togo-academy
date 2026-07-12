@@ -43,48 +43,28 @@ export default async function PricingPage() {
           return (
             <div
               key={plan.slug}
-              className={`flex flex-col rounded-2xl p-8 ${
+              className={`flex flex-col rounded-2xl bg-white p-8 ${
                 featured
-                  ? "bg-ink text-[var(--color-on-dark)]"
-                  : "border border-[var(--color-line)] bg-white"
+                  ? "border-2 border-togo-green-600 shadow-md"
+                  : "border border-[var(--color-line)]"
               }`}
             >
               {featured && (
-                <div className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-togo-yellow-400">
+                <div className="mb-4 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
                   Le plus choisi
                 </div>
               )}
-              <h2
-                className={`text-xl font-semibold ${featured ? "text-white" : "text-ink"}`}
-              >
-                {plan.name}
-              </h2>
-              <p
-                className={`mt-1 text-sm ${
-                  featured
-                    ? "text-[var(--color-on-dark-soft)]"
-                    : "text-[var(--color-muted)]"
-                }`}
-              >
+              <h2 className="text-xl font-semibold text-ink">{plan.name}</h2>
+              <p className="mt-1 text-sm text-[var(--color-muted)]">
                 {plan.priceXof === 0
                   ? "Pour découvrir la plateforme."
                   : SCOPE_TAGLINE[plan.scope]}
               </p>
               <div className="mb-6 mt-5 flex items-baseline gap-2">
-                <span
-                  className={`font-display text-4xl tracking-tight ${
-                    featured ? "text-white" : "text-ink"
-                  }`}
-                >
+                <span className="font-display text-4xl tracking-tight text-ink">
                   {formatXof(plan.priceXof)}
                 </span>
-                <span
-                  className={`text-sm ${
-                    featured
-                      ? "text-[var(--color-on-dark-soft)]"
-                      : "text-[var(--color-muted)]"
-                  }`}
-                >
+                <span className="text-sm text-[var(--color-muted)]">
                   FCFA{plan.priceXof > 0 && ` / ${plan.cadence}`}
                 </span>
               </div>
@@ -100,9 +80,7 @@ export default async function PricingPage() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className={`mt-0.5 flex-none ${
-                        featured ? "text-togo-yellow-400" : "text-togo-green-600"
-                      }`}
+                      className="mt-0.5 flex-none text-togo-green-600"
                     >
                       <path d="M20 6 9 17l-5-5" />
                     </svg>

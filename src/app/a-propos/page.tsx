@@ -158,21 +158,18 @@ export default async function AboutPage() {
 
       {/* ── CTA ──────────────────────────────────────────── */}
       <Container className="pb-6 pt-14">
-        <div className="rounded-2xl bg-ink px-8 py-12 text-center text-[var(--color-on-dark)]">
-          <h2 className="font-display text-3xl tracking-tight text-white">
+        <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 px-8 py-12 text-center">
+          <h2 className="font-display text-3xl tracking-tight text-ink">
             Prêt à essayer ?
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm text-[var(--color-on-dark-soft)]">
+          <p className="mx-auto mt-3 max-w-md text-sm text-[var(--color-muted)]">
             Des leçons d&apos;essai sont gratuites, sans carte bancaire.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button
-              href="/catalogue"
-              className="bg-togo-green-600 hover:bg-togo-green-500"
-            >
+            <Button href="/catalogue" variant="primary">
               Découvrir les leçons
             </Button>
-            <Button href="/contact" variant="on-dark">
+            <Button href="/contact" variant="secondary">
               Nous contacter
             </Button>
           </div>
