@@ -35,9 +35,8 @@ const SUBJECTS = [
   "SVT",
   "Technologie",
   "Informatique",
-  "Français",
   "Anglais",
-  "Philosophie",
+  "Comptabilité",
 ];
 
 export default function TutoratPage() {
