@@ -27,7 +27,7 @@ export default function ContactPage() {
       </div>
 
       <div className="grid items-start gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-2xl border border-[var(--color-line)] bg-white p-8 sm:p-10">
+        <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 sm:p-10">
           <ContactForm />
         </div>
 
@@ -64,7 +64,7 @@ export default function ContactPage() {
           </div>
 
           {/* Renvoi FAQ */}
-          <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface-soft)] p-7">
+          <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7">
             <h2 className="font-semibold text-ink">
               Votre réponse est peut-être déjà là
             </h2>

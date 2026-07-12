@@ -43,10 +43,10 @@ export default async function PricingPage() {
           return (
             <div
               key={plan.slug}
-              className={`flex flex-col rounded-2xl bg-white p-8 ${
+              className={`flex flex-col rounded-2xl bg-togo-green-50 p-8 ${
                 featured
                   ? "border-2 border-togo-green-600 shadow-md"
-                  : "border border-[var(--color-line)]"
+                  : "border border-togo-green-100"
               }`}
             >
               {featured && (

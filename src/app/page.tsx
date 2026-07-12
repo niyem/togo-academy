@@ -162,9 +162,9 @@ export default async function HomePage() {
             {features.map((f) => (
               <div
                 key={f.title}
-                className="rounded-2xl border border-[var(--color-line)] bg-white p-7"
+                className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7"
               >
-                <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-togo-green-50 text-togo-green-600">
+                <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-togo-green-600">
                   <svg
                     width="22"
                     height="22"
@@ -211,7 +211,7 @@ export default async function HomePage() {
                 <Link
                   key={level.slug}
                   href={`/catalogue#${level.slug}`}
-                  className="group flex flex-col gap-2 rounded-2xl border border-[var(--color-line)] bg-white p-7 transition-shadow hover:shadow-md"
+                  className="group flex flex-col gap-2 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7 transition-shadow hover:shadow-md"
                 >
                   <LevelDot color={LEVEL_DOT[level.slug]} />
                   <h3 className="mt-2 font-display text-2xl tracking-tight text-ink group-hover:text-togo-green-700">
@@ -262,7 +262,7 @@ export default async function HomePage() {
       {/* ── CTA (carte claire) ───────────────────────────── */}
       <section>
         <Container className="pb-6">
-          <div className="rounded-2xl border border-[var(--color-line)] bg-white px-8 py-12 text-center">
+          <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 px-8 py-12 text-center">
             <h2 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
               Prêt à commencer ?
             </h2>

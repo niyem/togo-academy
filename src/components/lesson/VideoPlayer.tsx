@@ -175,7 +175,7 @@ export function VideoPlayer({ activity }: { activity: Activity }) {
       </div>
 
       {/* Barre de progression avec reperes des questions. */}
-      <div className="relative h-2 bg-togo-green-50">
+      <div className="relative h-2 bg-white">
         <div
           className="h-full bg-togo-green-500 transition-[width]"
           style={{ width: `${(time / duration) * 100}%` }}

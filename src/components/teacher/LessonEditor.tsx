@@ -27,7 +27,7 @@ function Feedback({ state }: { state: TeacherState }) {
     );
   if (state.ok)
     return (
-      <p className="rounded-lg bg-togo-green-50 px-3 py-2 text-sm text-togo-green-700">
+      <p className="rounded-lg border border-togo-green-100 bg-white px-3 py-2 text-sm text-togo-green-700">
         ✓ Enregistré
       </p>
     );

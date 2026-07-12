@@ -94,7 +94,7 @@ export default function TutoratPage() {
           {STEPS.map(([num, title, body]) => (
             <div
               key={num}
-              className="rounded-2xl border border-[var(--color-line)] bg-white p-7"
+              className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7"
             >
               <div className="mb-3 font-display text-2xl tracking-tight text-togo-green-600">
                 {num}
@@ -110,7 +110,7 @@ export default function TutoratPage() {
 
       {/* ── Matières couvertes ───────────────────────────── */}
       <Container className="pb-10 pt-4">
-        <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface-soft)] p-8">
+        <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8">
           <h3 className="mb-4 text-lg font-semibold text-ink">
             Matières couvertes au lancement
           </h3>

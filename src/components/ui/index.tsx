@@ -79,7 +79,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-[var(--radius-card)] border border-[var(--color-line)] bg-white p-5 ${className}`}
+      className={`rounded-[var(--radius-card)] border border-togo-green-100 bg-togo-green-50 p-5 ${className}`}
     >
       {children}
     </div>
@@ -89,7 +89,7 @@ export function Card({
 type BadgeTone = "green" | "yellow" | "red" | "neutral";
 
 const badgeTones: Record<BadgeTone, string> = {
-  green: "bg-togo-green-50 text-togo-green-700",
+  green: "border border-togo-green-100 bg-white text-togo-green-700",
   yellow: "bg-togo-yellow-100 text-togo-yellow-600",
   red: "bg-togo-red-100 text-togo-red-700",
   neutral: "bg-[var(--color-line)] text-[var(--color-muted)]",

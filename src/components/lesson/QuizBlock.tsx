@@ -114,7 +114,7 @@ function QuestionCard({
         <p
           className={`mt-3 rounded-lg px-4 py-2 text-sm ${
             selectedOption?.correct
-              ? "bg-togo-green-50 text-togo-green-700"
+              ? "border border-togo-green-100 bg-white text-togo-green-700"
               : "bg-togo-red-100 text-togo-red-700"
           }`}
         >

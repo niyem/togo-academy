@@ -23,7 +23,7 @@ export function ContactForm() {
 
   if (state.ok) {
     return (
-      <div className="rounded-xl bg-togo-green-50 p-6 text-center">
+      <div className="rounded-xl border border-togo-green-100 bg-white p-6 text-center">
         <div className="text-lg font-semibold text-togo-green-700">
           ✓ Message envoyé
         </div>

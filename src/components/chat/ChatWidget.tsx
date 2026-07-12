@@ -70,7 +70,7 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {open && (
-        <div className="mb-3 flex h-[28rem] w-[min(22rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-white shadow-xl">
+        <div className="mb-3 flex h-[28rem] w-[min(22rem,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-togo-green-100 bg-togo-green-50 shadow-xl">
           <div className="flex items-center justify-between bg-togo-green-600 px-4 py-3 text-white">
             <p className="font-bold">Assistant Togo Academy</p>
             <button
@@ -90,7 +90,7 @@ export function ChatWidget() {
                 className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
                   m.role === "user"
                     ? "ml-auto bg-togo-green-600 text-white"
-                    : "bg-togo-green-50 text-ink"
+                    : "border border-togo-green-100 bg-white text-ink"
                 }`}
               >
                 {m.content || "…"}

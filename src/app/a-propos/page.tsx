@@ -81,7 +81,7 @@ export default async function AboutPage() {
           {FEATURES.map(([title, body]) => (
             <div
               key={title}
-              className="rounded-2xl border border-[var(--color-line)] bg-white p-7"
+              className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7"
             >
               <h3 className="font-semibold text-ink">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
@@ -120,7 +120,7 @@ export default async function AboutPage() {
         <h2 className="mt-12 font-display text-3xl tracking-tight text-ink">
           Qui sommes-nous
         </h2>
-        <div className="mt-5 rounded-2xl border border-[var(--color-line)] bg-white p-7">
+        <div className="mt-5 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7">
           <p className="leading-relaxed text-[var(--color-muted)]">
             Togo Academy est le département « Académie en ligne » de{" "}
             <a

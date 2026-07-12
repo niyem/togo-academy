@@ -284,8 +284,8 @@ export default async function ClassPage({
                                 <p
                                   className={`mt-3 rounded-lg px-3 py-2 text-xs ${
                                     passed === total
-                                      ? "bg-togo-green-50 font-semibold text-togo-green-700"
-                                      : "bg-togo-green-50/50 text-[var(--color-muted)]"
+                                      ? "bg-white font-semibold text-togo-green-700"
+                                      : "bg-white/60 text-[var(--color-muted)]"
                                   }`}
                                 >
                                   {passed === total

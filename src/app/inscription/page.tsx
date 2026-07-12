@@ -36,7 +36,7 @@ export default function RegisterPage() {
     <Container className="pb-20 pt-12 sm:pt-14">
       <div className="grid items-stretch gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Formulaire */}
-        <div className="rounded-2xl border border-[var(--color-line)] bg-white p-8 sm:p-10">
+        <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 sm:p-10">
           <h1 className="font-display text-3xl tracking-tight text-ink sm:text-4xl">
             Créez votre compte.
           </h1>
@@ -45,7 +45,7 @@ export default function RegisterPage() {
             minute.
           </p>
 
-          <div className="mb-6 mt-6 grid grid-cols-2 gap-2 rounded-full bg-togo-green-50 p-1">
+          <div className="mb-6 mt-6 grid grid-cols-2 gap-2 rounded-full border border-togo-green-100 bg-white p-1">
             {(["eleve", "parent"] as Role[]).map((r) => (
               <button
                 key={r}

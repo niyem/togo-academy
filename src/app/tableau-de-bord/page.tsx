@@ -333,7 +333,7 @@ function ProgressRow({
         <span className="text-sm text-[var(--color-muted)]">{pct}%</span>
       </div>
       <p className="text-xs text-[var(--color-muted)]">{subject}</p>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-togo-green-50">
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
         <div
           className="h-full bg-togo-green-500"
           style={{ width: `${pct}%` }}

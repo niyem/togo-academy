@@ -144,7 +144,7 @@ export default function FaqPage() {
         ))}
       </div>
 
-      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--color-line)] bg-white p-7">
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-7">
         <div>
           <h2 className="font-semibold text-ink">Une autre question ?</h2>
           <p className="mt-1 text-sm text-[var(--color-muted)]">

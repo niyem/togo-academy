@@ -17,7 +17,7 @@ export function SubscribeForm({ planSlug }: { planSlug: string }) {
 
   if (state.submitted) {
     return (
-      <div className="rounded-xl bg-togo-green-50 p-5">
+      <div className="rounded-xl border border-togo-green-100 bg-white p-5">
         <p className="font-bold text-togo-green-700">
           ✓ Demande enregistrée !
         </p>

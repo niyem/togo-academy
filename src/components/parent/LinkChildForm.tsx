@@ -34,7 +34,7 @@ export function LinkChildForm() {
         </p>
       )}
       {state.linkedName && (
-        <p className="w-full rounded-lg bg-togo-green-50 px-3 py-2 text-sm text-togo-green-700">
+        <p className="w-full rounded-lg border border-togo-green-100 bg-white px-3 py-2 text-sm text-togo-green-700">
           ✓ {state.linkedName} est maintenant relié à votre compte.
         </p>
       )}

@@ -208,7 +208,7 @@ function ActivityView({
         <Card>
           {activity.body && <LessonProse text={activity.body} />}
           {activity.solution && (
-            <div className="mt-3 rounded-lg bg-togo-green-50 px-4 py-3 text-sm">
+            <div className="mt-3 rounded-lg border border-togo-green-100 bg-white px-4 py-3 text-sm">
               <LessonProse text={activity.solution} />
             </div>
           )}

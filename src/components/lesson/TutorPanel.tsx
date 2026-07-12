@@ -98,7 +98,7 @@ export function TutorPanel({ lessonSlug }: { lessonSlug: string }) {
               className={`max-w-[90%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
                 m.role === "user"
                   ? "ml-auto bg-togo-green-600 text-white"
-                  : "bg-togo-green-50 text-ink"
+                  : "border border-togo-green-100 bg-white text-ink"
               }`}
             >
               {m.content || "…"}

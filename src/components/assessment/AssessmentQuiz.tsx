@@ -74,7 +74,7 @@ export function AssessmentQuiz({ assessment }: { assessment: Assessment }) {
             })}
           </div>
           {submitted && (
-            <p className="mt-2 rounded-lg bg-togo-green-50 px-3 py-2 text-sm text-togo-green-700">
+            <p className="mt-2 rounded-lg border border-togo-green-100 bg-white px-3 py-2 text-sm text-togo-green-700">
               {q.explanation}
             </p>
           )}

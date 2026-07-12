@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   return (
     <Container className="max-w-md pb-24 pt-16 sm:pt-20">
-      <div className="rounded-2xl border border-[var(--color-line)] bg-white p-8 sm:p-10">
+      <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 sm:p-10">
         <h1 className="font-display text-3xl tracking-tight text-ink">
           Content de vous revoir.
         </h1>

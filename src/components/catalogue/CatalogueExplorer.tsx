@@ -187,14 +187,14 @@ export function CatalogueExplorer({
                             <Link
                               key={c.slug}
                               href={`/classes/${c.slug}`}
-                              className="group flex flex-col gap-3 rounded-2xl border border-[var(--color-line)] bg-white p-5 transition-all hover:border-togo-green-500 hover:shadow-md"
+                              className="group flex flex-col gap-3 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-5 transition-all hover:border-togo-green-500 hover:shadow-md"
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <span className="text-lg font-semibold text-ink">
                                   {c.name}
                                 </span>
                                 {c.hasContent ? (
-                                  <span className="rounded-full bg-togo-green-50 px-2.5 py-0.5 text-xs font-semibold text-togo-green-700">
+                                  <span className="rounded-full border border-togo-green-100 bg-white px-2.5 py-0.5 text-xs font-semibold text-togo-green-700">
                                     Gratuit
                                   </span>
                                 ) : (
@@ -215,7 +215,7 @@ export function CatalogueExplorer({
                                     {c.subjects.slice(0, 3).map((s) => (
                                       <span
                                         key={s}
-                                        className="rounded-md border border-[var(--color-line)] bg-[var(--color-surface-soft)] px-2 py-0.5 text-xs text-ink"
+                                        className="rounded-md border border-togo-green-100 bg-white px-2 py-0.5 text-xs text-ink"
                                       >
                                         {s}
                                       </span>
@@ -260,7 +260,7 @@ export function CatalogueExplorer({
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface-soft)] px-6 py-16 text-center">
+        <div className="rounded-2xl border border-dashed border-togo-green-100 bg-togo-green-50 px-6 py-16 text-center">
           <div className="text-lg font-semibold text-ink">
             Aucune classe trouvée
           </div>
@@ -282,7 +282,7 @@ export function CatalogueExplorer({
       )}
 
       {/* Note leçons gratuites */}
-      <div className="mt-14 flex items-center gap-3 rounded-2xl border border-[var(--color-line)] bg-white px-5 py-4">
+      <div className="mt-14 flex items-center gap-3 rounded-2xl border border-togo-green-100 bg-togo-green-50 px-5 py-4">
         <span aria-hidden className="flex-none text-togo-green-600">
           <svg
             width="20"
