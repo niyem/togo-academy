@@ -255,23 +255,25 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* ── CTA pleine largeur ───────────────────────────── */}
-      <section className="-mb-16 bg-togo-green-600">
-        <Container className="py-16 text-center">
-          <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
-            Prêt à commencer ?
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-togo-green-50">
-            Créez un compte gratuit et débloquez vos premières leçons dès
-            aujourd&apos;hui. Sans carte bancaire.
-          </p>
-          <div className="mt-7 flex justify-center">
-            <Button
-              href="/inscription"
-              className="bg-white !text-togo-green-700 hover:bg-togo-green-50"
-            >
-              Créer un compte gratuit
-            </Button>
+      {/* ── CTA (carte sombre, comme sur les autres pages) ── */}
+      <section>
+        <Container className="pb-6">
+          <div className="rounded-2xl bg-ink px-8 py-12 text-center text-[var(--color-on-dark)]">
+            <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
+              Prêt à commencer ?
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-[var(--color-on-dark-soft)]">
+              Créez un compte gratuit et débloquez vos premières leçons dès
+              aujourd&apos;hui. Sans carte bancaire.
+            </p>
+            <div className="mt-7 flex justify-center">
+              <Button
+                href="/inscription"
+                className="bg-togo-green-600 hover:bg-togo-green-500"
+              >
+                Créer un compte gratuit
+              </Button>
+            </div>
           </div>
         </Container>
       </section>
