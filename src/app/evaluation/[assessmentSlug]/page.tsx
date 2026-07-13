@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Badge, Card, Container, Section } from "@/components/ui";
+import { BackButton } from "@/components/ui/BackButton";
 import {
   AssessmentExam,
   type PublicQuestion,
@@ -78,6 +79,7 @@ export default async function AssessmentPage({
   return (
     <Section>
       <Container className="max-w-2xl">
+        <BackButton />
         <nav className="text-sm text-[var(--color-muted)]">
           <Link href="/catalogue" className="hover:text-togo-green-700">
             Catalogue

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Badge, Button, Card, Container, Section } from "@/components/ui";
+import { BackButton } from "@/components/ui/BackButton";
 import { LessonProse } from "@/components/lesson/LessonProse";
 import { TutorPanel } from "@/components/lesson/TutorPanel";
 import { VideoPlayer } from "@/components/lesson/VideoPlayer";
@@ -215,6 +216,7 @@ export default async function LessonPage({
           </details>
         )}
 
+        <BackButton />
         <nav className="text-sm text-[var(--color-muted)]">
           <Link href="/catalogue" className="hover:text-togo-green-700">
             Catalogue
