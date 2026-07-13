@@ -5,6 +5,7 @@
 // historique en memoire de session uniquement.
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -21,17 +22,19 @@ export function ChatWidget() {
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Ouverture automatique a l'arrivee sur le site (une fois par session de
-  // navigation) : l'assistant ne passe pas inapercu, sans etre insistant.
-  // Si l'utilisateur le ferme, il reste ferme jusqu'a la prochaine visite.
+  // Ouverture automatique UNIQUEMENT sur la page d'accueil, une fois par
+  // session de navigation : l'assistant ne passe pas inapercu a l'arrivee,
+  // mais ne recouvre jamais le contenu des lecons (navigation, quiz...).
+  const pathname = usePathname();
   useEffect(() => {
+    if (pathname !== "/") return;
     if (sessionStorage.getItem("ta-chat-auto") === "1") return;
     const timer = setTimeout(() => {
       sessionStorage.setItem("ta-chat-auto", "1");
       setOpen(true);
     }, 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
