@@ -96,21 +96,30 @@ export default async function LessonPage({
     ]);
   const chapter = chapterList.find((c) => c.slug === lesson.chapterSlug);
 
-  // Tous les modules du cours (PHY 1, PHY 2...) pour la navigation laterale :
-  // le module courant est deplie, les autres pointent vers leur 1re lecon.
-  const modules = await Promise.all(
-    chapterList.map(async (c) => {
-      if (c.slug === lesson.chapterSlug) {
-        return { chapter: c, firstLessonSlug: null, isCurrent: true };
-      }
-      const first = (await getLessonsForChapter(c.slug))[0];
-      return {
-        chapter: c,
-        firstLessonSlug: first?.slug ?? null,
-        isCurrent: false,
-      };
-    }),
+  // Lecons de chaque module du cours, dans l'ordre du programme : sert a la
+  // navigation laterale (modules) ET aux boutons precedent / suivant.
+  const chapterLessonLists = await Promise.all(
+    chapterList.map((c) =>
+      c.slug === lesson.chapterSlug
+        ? Promise.resolve(chapterLessons)
+        : getLessonsForChapter(c.slug),
+    ),
   );
+  const modules = chapterList.map((c, i) => ({
+    chapter: c,
+    firstLessonSlug:
+      c.slug === lesson.chapterSlug
+        ? null
+        : chapterLessonLists[i][0]?.slug ?? null,
+    isCurrent: c.slug === lesson.chapterSlug,
+  }));
+
+  // Precedent / suivant : sequence complete du cours, modules enchaines.
+  const sequence = chapterLessonLists.flat();
+  const idx = sequence.findIndex((l) => l.slug === lesson.slug);
+  const prevLesson = idx > 0 ? sequence[idx - 1] : null;
+  const nextLesson =
+    idx >= 0 && idx < sequence.length - 1 ? sequence[idx + 1] : null;
 
   // Lecons terminees par l'utilisateur (coches ✓ du sommaire).
   let completedSlugs: string[] = [];
@@ -324,6 +333,46 @@ export default async function LessonPage({
               </Button>
             </div>
           </Card>
+        )}
+
+        {/* Navigation precedent / suivant (sequence du cours, modules enchaines) */}
+        {(prevLesson || nextLesson) && (
+          <div className="mt-10 flex flex-col gap-3 border-t border-[var(--color-line)] pt-6 sm:flex-row sm:items-stretch sm:justify-between">
+            {prevLesson ? (
+              <Link
+                href={`/lecon/${prevLesson.slug}`}
+                className="group flex max-w-full flex-1 items-center gap-3 rounded-xl border border-[var(--color-line)] bg-white px-4 py-3 hover:border-togo-green-500 sm:max-w-[48%]"
+              >
+                <span aria-hidden className="flex-none text-togo-green-600">←</span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+                    Leçon précédente
+                  </span>
+                  <span className="block truncate text-sm font-medium group-hover:text-togo-green-700">
+                    {prevLesson.title}
+                  </span>
+                </span>
+              </Link>
+            ) : (
+              <span className="hidden sm:block sm:max-w-[48%] sm:flex-1" />
+            )}
+            {nextLesson && (
+              <Link
+                href={`/lecon/${nextLesson.slug}`}
+                className="group flex max-w-full flex-1 items-center justify-end gap-3 rounded-xl border border-togo-green-500 bg-togo-green-50 px-4 py-3 text-right hover:bg-togo-green-100 sm:max-w-[48%]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-xs font-semibold uppercase tracking-wide text-togo-green-600">
+                    Leçon suivante
+                  </span>
+                  <span className="block truncate text-sm font-semibold text-togo-green-700">
+                    {nextLesson.title}
+                  </span>
+                </span>
+                <span aria-hidden className="flex-none text-togo-green-600">→</span>
+              </Link>
+            )}
+          </div>
         )}
         </div>
       </Container>
