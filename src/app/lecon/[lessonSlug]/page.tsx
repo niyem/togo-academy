@@ -17,14 +17,15 @@ import {
   getSubchapters,
   getSubject,
 } from "@/lib/content";
-import { lessons } from "@/lib/content/seed";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Activity } from "@/lib/content/types";
 
-export function generateStaticParams() {
-  return lessons.map((l) => ({ lessonSlug: l.slug }));
-}
+// Rendu TOUJOURS dynamique : la page depend de la session (cookies) pour
+// l'acces, les URL signees et la progression. Sans cette directive, si les
+// lecons temoins du seed sont depubliees, le build classe la route statique
+// et cookies() explose a l'execution (digest DYNAMIC_SERVER_USAGE).
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -39,7 +40,6 @@ export async function generateMetadata({
   };
 }
 
-export const revalidate = 60;
 
 const activityLabels: Record<Activity["type"], string> = {
   video: "Vidéo",
