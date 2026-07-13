@@ -81,6 +81,10 @@ export default async function LessonPage({
   }
   const hasAccess = lesson.isFreePreview || subscribed || isStaff;
 
+  // Tuteur IA reserve au college et au lycee : au primaire, l'ecrit libre
+  // n'est pas adapte (lecture/clavier) ; quiz et videos suffisent.
+  const tutorEnabled = schoolClass?.levelSlug !== "primaire";
+
   // Sommaire du chapitre (barre laterale) : lecons soeurs, evaluations, examen.
   const [chapterLessons, subchapters, assessments, chapterList] =
     await Promise.all([
@@ -214,7 +218,7 @@ export default async function LessonPage({
         </div>
         <p className="mt-2 text-[var(--color-muted)]">{lesson.summary}</p>
 
-        {hasAccess && (
+        {hasAccess && tutorEnabled && (
           <a
             href="#tuteur"
             className="mt-4 inline-flex items-center gap-2 rounded-full border border-togo-green-500 bg-togo-green-50 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-100"
@@ -259,24 +263,25 @@ export default async function LessonPage({
               </Card>
             )}
 
-            {user ? (
-              <div id="tuteur" className="scroll-mt-24">
-                <TutorPanel lessonSlug={lesson.slug} />
-              </div>
-            ) : (
-              <Card className="bg-togo-yellow-100/50">
-                <p className="font-semibold">🤖 Besoin d&apos;aide ?</p>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">
-                  Connecte-toi pour discuter avec le tuteur IA : il explique
-                  autrement, donne des indices et propose des exercices.
-                </p>
-                <div className="mt-3">
-                  <Button href="/connexion" variant="outline">
-                    Se connecter
-                  </Button>
+            {tutorEnabled &&
+              (user ? (
+                <div id="tuteur" className="scroll-mt-24">
+                  <TutorPanel lessonSlug={lesson.slug} />
                 </div>
-              </Card>
-            )}
+              ) : (
+                <Card className="bg-togo-yellow-100/50">
+                  <p className="font-semibold">🤖 Besoin d&apos;aide ?</p>
+                  <p className="mt-1 text-sm text-[var(--color-muted)]">
+                    Connecte-toi pour discuter avec le tuteur IA : il explique
+                    autrement, donne des indices et propose des exercices.
+                  </p>
+                  <div className="mt-3">
+                    <Button href="/connexion" variant="outline">
+                      Se connecter
+                    </Button>
+                  </div>
+                </Card>
+              ))}
           </div>
         ) : (
           <Card className="mt-8 text-center">

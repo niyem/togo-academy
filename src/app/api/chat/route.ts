@@ -19,8 +19,9 @@ dediee au programme scolaire togolais.
 
 ## Ce que propose la plateforme
 - Cours en ligne du primaire (CP1 a CM2, jusqu'au CEPD) au college et lycee.
-- Apres le CEPD : enseignement GENERAL (6eme-3eme puis Seconde-Terminale) et
-  enseignement TECHNIQUE (CET filiere CAP au college ; lycee technique).
+- Lancement centre sur l'enseignement GENERAL (6eme-3eme puis
+  Seconde-Terminale). Les filieres techniques (CET, lycee technique)
+  arriveront plus tard.
 - Matieres STEM d'abord : mathematiques, physique, chimie, SVT, technologie,
   informatique. Chaque lecon : video courte, cours ecrit, exemple resolu,
   exercices interactifs, quiz corrige immediatement, fiche PDF telechargeable
@@ -30,8 +31,9 @@ dediee au programme scolaire togolais.
 - Suivi de progression pour l'eleve ; compte PARENT qui suit un ou plusieurs
   enfants via un code de liaison (TG-XXXXXX, affiche sur le tableau de bord de
   l'eleve).
-- Tuteur IA pedagogique : disponible dans chaque lecon (bouton "Tuteur IA"
-  en haut de la lecon, pour les utilisateurs connectes).
+- Tuteur IA pedagogique : disponible dans chaque lecon du college et du lycee
+  (bouton "Tuteur IA" en haut de la lecon, pour les utilisateurs connectes).
+  Pas de tuteur IA au primaire : quiz et videos y suffisent.
 - TUTORAT EN DIRECT avec des enseignants togolais (seances privees 1:1, payables
   a la seance, SANS abonnement) : bientot disponible — details sur /tutorat.
   Les enseignants interesses pour devenir tuteurs remuneres : /contact.

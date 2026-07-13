@@ -24,17 +24,22 @@ export default async function CataloguePage() {
     getSubjectsByClass(),
   ]);
 
-  const classes: ExplorerClass[] = allClasses.map((c) => {
-    const subjects = subjectsByClass[c.slug] ?? [];
-    return {
-      slug: c.slug,
-      name: c.name,
-      levelSlug: c.levelSlug,
-      track: c.track,
-      subjects,
-      hasContent: subjects.length > 0,
-    };
-  });
+  // Lancement centre sur l'enseignement GENERAL : les filieres techniques
+  // (CET, lycee technique) restent en base et reviendront au catalogue
+  // quand leur contenu sera pret.
+  const classes: ExplorerClass[] = allClasses
+    .filter((c) => c.track === "general")
+    .map((c) => {
+      const subjects = subjectsByClass[c.slug] ?? [];
+      return {
+        slug: c.slug,
+        name: c.name,
+        levelSlug: c.levelSlug,
+        track: c.track,
+        subjects,
+        hasContent: subjects.length > 0,
+      };
+    });
 
   return (
     <Container className="pb-20 pt-12 sm:pt-16">

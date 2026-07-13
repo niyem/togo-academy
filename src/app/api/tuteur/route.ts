@@ -4,7 +4,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getLesson } from "@/lib/content";
+import { getClass, getLesson } from "@/lib/content";
 import type { Lesson } from "@/lib/content/types";
 
 export const runtime = "nodejs";
@@ -83,6 +83,14 @@ export async function POST(req: Request) {
 
   const lesson = body.lessonSlug ? await getLesson(body.lessonSlug) : undefined;
   if (!lesson) return new Response("Leçon introuvable.", { status: 404 });
+
+  // Pas de tuteur IA au primaire (meme regle que l'affichage des lecons).
+  const schoolClass = await getClass(lesson.classSlug);
+  if (schoolClass?.levelSlug === "primaire") {
+    return new Response("Tuteur non disponible pour ce niveau.", {
+      status: 403,
+    });
+  }
 
   // Acces : lecon gratuite (offre IA limitee), abonnement actif, ou staff
   // (admin/enseignant : acces complet).

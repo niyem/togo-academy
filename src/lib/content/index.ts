@@ -142,10 +142,13 @@ export async function getSubjectsForClass(classSlug: string): Promise<Subject[]>
     );
     return subjects.filter((s) => keys.has(s.key));
   }
+  // Seuls les chapitres ayant au moins une lecon publiee comptent :
+  // un cours entierement depublie disparait du site public.
   const { data } = await db
     .from("chapters")
-    .select("subject_key")
-    .eq("class_slug", classSlug);
+    .select("subject_key,lessons!inner(status)")
+    .eq("class_slug", classSlug)
+    .eq("lessons.status", "published");
   const keys = new Set((data ?? []).map((r) => r.subject_key));
   return (await getSubjects()).filter((s) => keys.has(s.key));
 }
@@ -163,7 +166,11 @@ export async function getSubjectsByClass(): Promise<Record<string, string[]>> {
       pairs.push({ classSlug: ch.classSlug, subjectKey: ch.subjectKey }),
     );
   } else {
-    const { data } = await db.from("chapters").select("class_slug,subject_key");
+    // Meme regle que getSubjectsForClass : lecons publiees uniquement.
+    const { data } = await db
+      .from("chapters")
+      .select("class_slug,subject_key,lessons!inner(status)")
+      .eq("lessons.status", "published");
     (data ?? []).forEach((r) =>
       pairs.push({ classSlug: r.class_slug, subjectKey: r.subject_key }),
     );
