@@ -96,7 +96,7 @@ export interface Activity {
   title: string;
   // Rich, type-specific payload. Kept loose here; the seed fills what each type needs.
   body?: string; // markdown for lecture / exemple / exercice statements
-  videoProvider?: "youtube" | "bunny" | "cloudflare" | "placeholder";
+  videoProvider?: "youtube" | "bunny" | "cloudflare" | "supabase" | "placeholder";
   videoRef?: string; // provider id / url; provider-agnostic on purpose
   durationSec?: number;
   questions?: QuizQuestion[]; // for quiz

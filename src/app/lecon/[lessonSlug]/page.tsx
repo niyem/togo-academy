@@ -19,6 +19,7 @@ import {
 } from "@/lib/content";
 import { lessons } from "@/lib/content/seed";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Activity } from "@/lib/content/types";
 
 export function generateStaticParams() {
@@ -107,6 +108,23 @@ export default async function LessonPage({
     pdfUrl = data?.signedUrl ?? null;
   }
 
+  // Videos hebergees (bucket prive lesson-videos) : URL signee 3 h, emise
+  // seulement si l'acces est acquis (lecon gratuite ou abonnement actif).
+  const videoUrls = new Map<string, string>();
+  if (hasAccess) {
+    const admin = createSupabaseAdminClient();
+    if (admin) {
+      for (const a of lesson.activities) {
+        if (a.type === "video" && a.videoProvider === "supabase" && a.videoRef) {
+          const { data } = await admin.storage
+            .from("lesson-videos")
+            .createSignedUrl(a.videoRef, 3600 * 3);
+          if (data?.signedUrl) videoUrls.set(a.id, data.signedUrl);
+        }
+      }
+    }
+  }
+
   const sidebarData = chapter
     ? {
         chapter,
@@ -185,7 +203,11 @@ export default async function LessonPage({
                 <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-togo-green-600">
                   {activityLabels[activity.type]}
                 </h2>
-                <ActivityView activity={activity} lessonSlug={lesson.slug} />
+                <ActivityView
+                  activity={activity}
+                  lessonSlug={lesson.slug}
+                  videoUrl={videoUrls.get(activity.id) ?? null}
+                />
               </section>
             ))}
 
@@ -253,13 +275,15 @@ export default async function LessonPage({
 function ActivityView({
   activity,
   lessonSlug,
+  videoUrl,
 }: {
   activity: Activity;
   lessonSlug: string;
+  videoUrl: string | null;
 }) {
   switch (activity.type) {
     case "video":
-      return <VideoPlayer activity={activity} />;
+      return <VideoPlayer activity={activity} videoUrl={videoUrl} />;
     case "quiz":
       return <QuizBlock activity={activity} lessonSlug={lessonSlug} />;
     case "exercice":

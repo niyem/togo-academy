@@ -5,9 +5,10 @@
 // donne un retour immediat (correct / faux) et propose "Reessayer" ou
 // "Passer" avant de reprendre la lecture.
 //
-// Phase actuelle : horloge de demonstration (pas encore de fournisseur video).
-// Le moteur de checkpoints est independant du fournisseur : quand Bunny ou
-// Cloudflare sera branche, seuls play/pause/currentTime changeront de source.
+// Deux modes :
+// - videoUrl fourni : vrai lecteur HTML5 (controles natifs : volume, avance,
+//   plein ecran), checkpoints pilotes par timeupdate.
+// - sans videoUrl : horloge de demonstration (lecon sans video hebergee).
 
 import { useEffect, useRef, useState } from "react";
 import type { Activity, QuizQuestion } from "@/lib/content/types";
@@ -18,8 +19,17 @@ function fmt(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function VideoPlayer({ activity }: { activity: Activity }) {
-  const duration = activity.durationSec ?? 360;
+export function VideoPlayer({
+  activity,
+  videoUrl = null,
+}: {
+  activity: Activity;
+  videoUrl?: string | null;
+}) {
+  const real = !!videoUrl;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [realDuration, setRealDuration] = useState<number | null>(null);
+  const duration = realDuration ?? activity.durationSec ?? 360;
   const checkpoints = (activity.questions ?? [])
     .filter((q) => typeof q.atTimeSec === "number")
     .sort((a, b) => (a.atTimeSec ?? 0) - (b.atTimeSec ?? 0));
@@ -30,14 +40,14 @@ export function VideoPlayer({ activity }: { activity: Activity }) {
   const [selected, setSelected] = useState<string | null>(null);
   const done = useRef<Set<string>>(new Set());
 
-  // Horloge de demo (remplacee par les evenements du vrai lecteur en Phase 1).
+  // Horloge de demo (uniquement sans video hebergee).
   useEffect(() => {
-    if (!playing || active) return;
+    if (real || !playing || active) return;
     const id = setInterval(() => setTime((t) => Math.min(t + 1, duration)), 1000);
     return () => clearInterval(id);
-  }, [playing, active, duration]);
+  }, [real, playing, active, duration]);
 
-  // Declenchement des checkpoints.
+  // Declenchement des checkpoints (demo et reel).
   useEffect(() => {
     const hit = checkpoints.find(
       (q) => !done.current.has(q.id) && time >= (q.atTimeSec ?? 0),
@@ -46,12 +56,13 @@ export function VideoPlayer({ activity }: { activity: Activity }) {
       setActive(hit);
       setSelected(null);
       setPlaying(false);
+      videoRef.current?.pause();
     }
   }, [time, checkpoints, active]);
 
   useEffect(() => {
-    if (time >= duration) setPlaying(false);
-  }, [time, duration]);
+    if (!real && time >= duration) setPlaying(false);
+  }, [real, time, duration]);
 
   const isCorrect =
     active && selected
@@ -63,12 +74,36 @@ export function VideoPlayer({ activity }: { activity: Activity }) {
     setActive(null);
     setSelected(null);
     setPlaying(true);
+    videoRef.current?.play().catch(() => {});
   }
 
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--color-line)]">
-      <div className="relative flex aspect-video items-center justify-center bg-togo-green-900 text-center text-white">
-        {!active && (
+      <div
+        className={`relative bg-togo-green-900 text-center text-white ${
+          real ? "" : "flex aspect-video items-center justify-center"
+        }`}
+      >
+        {/* Vrai lecteur : controles natifs (volume, avance, plein ecran). */}
+        {real && (
+          <video
+            ref={videoRef}
+            src={videoUrl ?? undefined}
+            controls
+            playsInline
+            preload="metadata"
+            controlsList="nodownload"
+            className="block aspect-video w-full bg-black"
+            onLoadedMetadata={(e) =>
+              setRealDuration(e.currentTarget.duration || null)
+            }
+            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+          />
+        )}
+
+        {!real && !active && (
           <div>
             <button
               type="button"
