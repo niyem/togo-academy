@@ -5,6 +5,13 @@
 import Link from "next/link";
 import type { Assessment, Chapter, Lesson, Subchapter } from "@/lib/content/types";
 
+/** Autres modules du cours (PHY 1, PHY 2...) : lien vers leur 1re leçon. */
+export interface SidebarModule {
+  chapter: Chapter;
+  firstLessonSlug: string | null;
+  isCurrent: boolean;
+}
+
 export interface SidebarData {
   chapter: Chapter;
   subchapters: Subchapter[];
@@ -14,6 +21,8 @@ export interface SidebarData {
   completedSlugs: string[];
   hasAccess: boolean;
   classSlug: string;
+  /** Tous les modules du cours, dans l'ordre du programme. */
+  modules: SidebarModule[];
 }
 
 export function CourseSidebar({ data }: { data: SidebarData }) {
@@ -26,6 +35,7 @@ export function CourseSidebar({ data }: { data: SidebarData }) {
     completedSlugs,
     hasAccess,
     classSlug,
+    modules,
   } = data;
   const done = new Set(completedSlugs);
   const exam = assessments.find((a) => a.kind === "examen");
@@ -74,19 +84,55 @@ export function CourseSidebar({ data }: { data: SidebarData }) {
     );
   };
 
+  // Modules avant / apres le module courant (ordre du programme).
+  const before = modules.filter(
+    (m) => !m.isCurrent && m.chapter.order < chapter.order,
+  );
+  const after = modules.filter(
+    (m) => !m.isCurrent && m.chapter.order >= chapter.order,
+  );
+
+  const moduleRow = (m: SidebarModule) => (
+    <div key={m.chapter.slug}>
+      {m.firstLessonSlug ? (
+        <Link
+          href={`/lecon/${m.firstLessonSlug}`}
+          className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold text-ink hover:bg-white"
+        >
+          <span aria-hidden className="mt-0.5 flex-none text-xs">📦</span>
+          <span className="min-w-0">{m.chapter.title}</span>
+        </Link>
+      ) : (
+        <div className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--color-muted)]">
+          <span aria-hidden className="mt-0.5 flex-none text-xs">📦</span>
+          <span className="min-w-0">{m.chapter.title} · bientôt</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <nav
-      aria-label="Sommaire du chapitre"
+      aria-label="Sommaire du cours"
       className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-4"
     >
       <Link
         href={`/classes/${classSlug}`}
         className="block px-2.5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600 hover:text-togo-green-700"
       >
-        {chapter.title}
+        Sommaire du cours
       </Link>
 
-      <div className="mt-3 flex flex-col gap-4">
+      {before.length > 0 && (
+        <div className="mt-3 flex flex-col gap-0.5">{before.map(moduleRow)}</div>
+      )}
+
+      <div className="mt-3 rounded-xl border border-togo-green-500/40 bg-white/50 p-2">
+        <div className="px-2 pb-2 text-xs font-bold uppercase tracking-[0.12em] text-togo-green-700">
+          {chapter.title}
+        </div>
+
+      <div className="flex flex-col gap-4">
         {groups.map(({ sc, lessons: scLessons, evaluation }) => (
           <div key={sc.id}>
             <div className="px-2.5 pb-1 text-xs font-semibold text-[var(--color-muted)]">
@@ -139,6 +185,11 @@ export function CourseSidebar({ data }: { data: SidebarData }) {
           </Link>
         )}
       </div>
+      </div>
+
+      {after.length > 0 && (
+        <div className="mt-3 flex flex-col gap-0.5">{after.map(moduleRow)}</div>
+      )}
     </nav>
   );
 }

@@ -95,6 +95,22 @@ export default async function LessonPage({
     ]);
   const chapter = chapterList.find((c) => c.slug === lesson.chapterSlug);
 
+  // Tous les modules du cours (PHY 1, PHY 2...) pour la navigation laterale :
+  // le module courant est deplie, les autres pointent vers leur 1re lecon.
+  const modules = await Promise.all(
+    chapterList.map(async (c) => {
+      if (c.slug === lesson.chapterSlug) {
+        return { chapter: c, firstLessonSlug: null, isCurrent: true };
+      }
+      const first = (await getLessonsForChapter(c.slug))[0];
+      return {
+        chapter: c,
+        firstLessonSlug: first?.slug ?? null,
+        isCurrent: false,
+      };
+    }),
+  );
+
   // Lecons terminees par l'utilisateur (coches ✓ du sommaire).
   let completedSlugs: string[] = [];
   if (user) {
@@ -172,6 +188,7 @@ export default async function LessonPage({
         completedSlugs,
         hasAccess,
         classSlug: lesson.classSlug,
+        modules,
       }
     : null;
 
