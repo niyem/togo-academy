@@ -43,6 +43,67 @@ def md2html(md: str) -> str:
     return "\n".join(html)
 
 
+# QCM de renforcement (auto-correction) : ressources d'entrainement recyclees
+# de l'ancienne evaluation, par seance. (question, [options], index bonne rep)
+QCMS = {
+    1: [
+        ("Qu'est-ce qu'une onde mécanique ?",
+         ["Un transport de matière d'un point à un autre",
+          "La propagation d'une perturbation dans un milieu matériel, sans transport de matière",
+          "Un courant d'eau qui déplace les objets"], 1),
+        ("Pourquoi le son ne peut-il pas traverser l'espace vide ?",
+         ["Parce qu'il fait trop froid dans l'espace",
+          "Parce que c'est une onde mécanique qui a besoin d'un milieu matériel",
+          "Parce qu'il se propage trop lentement"], 1),
+        ("Koffi compte 3 secondes entre l'éclair et le tonnerre (son : 340 m/s). L'orage est à environ :",
+         ["340 m", "1 km", "3 km"], 1),
+    ],
+    2: [
+        ("Dans une onde transversale, la matière vibre...",
+         ["perpendiculairement à la direction de propagation",
+          "dans la même direction que la propagation",
+          "sans direction précise"], 0),
+        ("Le son dans l'air est une onde...",
+         ["transversale", "longitudinale", "électromagnétique"], 1),
+        ("Un son de 170 Hz dans l'air (célérité 340 m/s) a une longueur d'onde de :",
+         ["0,5 m", "2 m", "20 m"], 1),
+        ("La longueur d'onde λ est la distance...",
+         ["parcourue par l'onde en une seconde",
+          "entre deux motifs identiques successifs de l'onde",
+          "entre la source et le récepteur"], 1),
+        ("Chaque point du milieu touché par une onde périodique oscille...",
+         ["avec la même période que la source",
+          "deux fois plus vite que la source",
+          "de façon aléatoire"], 0),
+    ],
+    3: [
+        ("Dans le vide, la lumière se propage à environ :",
+         ["340 m/s", "3 × 10⁸ m/s", "1 500 m/s"], 1),
+        ("L'expérience des fentes de Young (apparition de franges) démontre...",
+         ["l'aspect ondulatoire de la lumière",
+          "l'aspect corpusculaire de la lumière",
+          "que la lumière est un son"], 0),
+    ],
+}
+
+
+def qcm_html(n: int) -> str:
+    items = QCMS.get(n, [])
+    if not items:
+        return ""
+    out = ["<h2>Pour s'entraîner : QCM de renforcement</h2>"]
+    for i, (q, opts, _) in enumerate(items, 1):
+        letters = "abc"
+        choices = " &nbsp; ".join(
+            f"{letters[j]}) {o}" for j, o in enumerate(opts))
+        out.append(f"<p><strong>{i}.</strong> {q}<br>{choices}</p>")
+    answers = " · ".join(
+        f"{i}. {'abc'[ans]}" for i, (_, _, ans) in enumerate(items, 1))
+    out.append(
+        f'<p style="font-size:9.5px;color:#5c6b66"><em>Réponses : {answers}</em></p>')
+    return "\n".join(out)
+
+
 TPL = """<!doctype html><html><head><meta charset="utf-8"><style>
 @page {{ size: A4; margin: 0; }}
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -72,6 +133,7 @@ strong {{ color: #065c3c; }}
 <h1>{title}</h1>
 <div class="sub">Fiche de leçon · Physique · Terminale · Séance {n} · Togo Academy, un département de Groupe BM</div>
 {body}
+{qcm}
 <p style="margin-top:14px">Retrouve la vidéo, les quiz intégrés et le tuteur IA sur <strong>academie.groupebm.net</strong></p>
 <div class="foot">Togo Academy · L'éducation de qualité, accessible partout au Togo<br>
 <span class="gbm">Un département de Groupe BM · groupebm.net</span></div>
@@ -106,7 +168,8 @@ def main() -> None:
     for n, title, body in rows:
         src = out / f"fiche-seance-{n}.html"
         src.write_text(
-            TPL.format(logo=logo, title=title, n=n, body=md2html(body)),
+            TPL.format(logo=logo, title=title, n=n, body=md2html(body),
+                       qcm=qcm_html(n)),
             encoding="utf-8",
         )
         dst = out / f"fiche-seance-{n}.pdf"

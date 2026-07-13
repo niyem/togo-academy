@@ -87,7 +87,7 @@ export default async function AssessmentPage({
         <div className="mt-2 flex items-start justify-between gap-3">
           <h1 className="text-3xl font-extrabold">{assessment.title}</h1>
           <Badge tone={assessment.kind === "examen" ? "red" : "yellow"}>
-            {assessment.kind === "examen" ? "Examen final" : "Évaluation"}
+            {assessment.kind === "examen" ? "Examen final" : "Quiz du module"}
           </Badge>
         </div>
         <p className="mt-2 text-[var(--color-muted)]">

@@ -310,6 +310,21 @@ export async function getAssessmentsForChapter(
   return [...(evals.data ?? []), ...(exams.data ?? [])].map(mapAssessment);
 }
 
+/** Examens finaux d'un cours (classe + matiere), passes apres tous les modules. */
+export async function getFinalExams(
+  classSlug: string,
+  subjectKey: SubjectKey,
+): Promise<Assessment[]> {
+  if (!db) return [];
+  const { data } = await db
+    .from("assessments")
+    .select(ASSESSMENT_SELECT)
+    .eq("class_slug", classSlug)
+    .eq("subject_key", subjectKey)
+    .order("sort_order");
+  return (data ?? []).map(mapAssessment);
+}
+
 export async function getAssessment(slug: string): Promise<Assessment | undefined> {
   if (!db) return undefined;
   const { data } = await db

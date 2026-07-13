@@ -10,7 +10,7 @@ import {
   type PDFFont,
   type PDFPage,
 } from "pdf-lib";
-import { getAssessmentsForChapter, getChapters, getClass, getSubject } from "@/lib/content";
+import { getAssessmentsForChapter, getChapters, getClass, getFinalExams, getSubject } from "@/lib/content";
 import type { SubjectKey } from "@/lib/content/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -40,15 +40,28 @@ export async function checkEligibility(
     return { eligible: false, reason: "Cours introuvable." };
   }
   const chapters = await getChapters(classSlug, subjectKey as SubjectKey);
-  const assessments = (
-    await Promise.all(chapters.map((c) => getAssessmentsForChapter(c.slug)))
-  ).flat();
-  if (assessments.length === 0) {
+  const [moduleAssessments, finals] = await Promise.all([
+    Promise.all(chapters.map((c) => getAssessmentsForChapter(c.slug))).then(
+      (a) => a.flat(),
+    ),
+    getFinalExams(classSlug, subjectKey as SubjectKey),
+  ]);
+  if (moduleAssessments.length === 0) {
     return {
       eligible: false,
       reason: "Ce cours n'a pas encore d'épreuves certifiantes.",
     };
   }
+  // Le certificat exige l'EXAMEN FINAL du cours, ouvert quand tous les
+  // modules (PHY 1..4, etc.) sont publies.
+  if (finals.length === 0) {
+    return {
+      eligible: false,
+      reason:
+        "L'examen final de ce cours ouvrira quand tous ses modules seront publiés.",
+    };
+  }
+  const assessments = [...moduleAssessments, ...finals];
 
   const supabase = await createSupabaseServerClient();
   const { data: attempts } = await supabase
@@ -70,7 +83,7 @@ export async function checkEligibility(
   if (failed.length > 0) {
     return {
       eligible: false,
-      reason: `Il reste ${failed.length} épreuve${failed.length > 1 ? "s" : ""} à valider (évaluations à 70 %, examens à 80 %).`,
+      reason: `Il reste ${failed.length} épreuve${failed.length > 1 ? "s" : ""} à valider (quiz de module à 70 %, examens finaux à 80 %).`,
     };
   }
   return {
@@ -200,7 +213,7 @@ export async function renderCertificatePdf(opts: {
   centered(page, opts.courseLabel, H - 330, serifBold, 22);
   centered(
     page,
-    `${opts.epreuves} épreuve${opts.epreuves > 1 ? "s" : ""} validée${opts.epreuves > 1 ? "s" : ""} · évaluations réussies à 70 % minimum · examens à 80 % minimum`,
+    `${opts.epreuves} épreuve${opts.epreuves > 1 ? "s" : ""} validée${opts.epreuves > 1 ? "s" : ""} · quiz de module réussis à 70 % minimum · examens finaux à 80 % minimum`,
     H - 356,
     sans,
     9,

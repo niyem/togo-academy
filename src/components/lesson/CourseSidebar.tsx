@@ -29,6 +29,10 @@ export function CourseSidebar({ data }: { data: SidebarData }) {
   } = data;
   const done = new Set(completedSlugs);
   const exam = assessments.find((a) => a.kind === "examen");
+  // Quiz du module (format APC, 70 %) : rattache au chapitre entier.
+  const moduleQuiz = assessments.find(
+    (a) => a.kind === "evaluation" && !a.subchapterId,
+  );
 
   const groups = subchapters.map((sc) => ({
     sc,
@@ -109,6 +113,18 @@ export function CourseSidebar({ data }: { data: SidebarData }) {
 
         {ungrouped.length > 0 && (
           <ul className="flex flex-col gap-0.5">{ungrouped.map(lessonRow)}</ul>
+        )}
+
+        {moduleQuiz && (
+          <Link
+            href={`/evaluation/${moduleQuiz.slug}`}
+            className="flex items-start gap-2 rounded-lg border border-togo-yellow-400/70 bg-white px-2.5 py-2 text-sm font-semibold text-ink hover:bg-togo-yellow-100/50"
+          >
+            <span aria-hidden className="mt-0.5 flex-none text-xs">📝</span>
+            <span className="min-w-0">
+              Quiz du module ({moduleQuiz.passPercent}%)
+            </span>
+          </Link>
         )}
 
         {exam && (
