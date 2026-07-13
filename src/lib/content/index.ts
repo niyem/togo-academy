@@ -56,6 +56,10 @@ function mapActivity(row: any): Activity {
         prompt: q.prompt,
         explanation: q.explanation ?? "",
         atTimeSec: q.at_time_sec ?? undefined,
+        qtype: q.qtype ?? "qcm",
+        payload: q.payload ?? undefined,
+        points: Number(q.points ?? 1),
+        section: q.section ?? undefined,
         options: (q.quiz_options ?? [])
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
           .map((o: any) => ({ id: o.id, label: o.label, correct: o.is_correct })),
@@ -270,6 +274,10 @@ function mapAssessment(row: any): Assessment {
         id: q.id,
         prompt: q.prompt,
         explanation: q.explanation ?? "",
+        qtype: q.qtype ?? "qcm",
+        payload: q.payload ?? undefined,
+        points: Number(q.points ?? 1),
+        section: q.section ?? undefined,
         options: (q.quiz_options ?? [])
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
           .map((o: any) => ({ id: o.id, label: o.label, correct: o.is_correct })),

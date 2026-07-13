@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Badge, Card, Container, Section } from "@/components/ui";
-import { AssessmentQuiz } from "@/components/assessment/AssessmentQuiz";
+import {
+  AssessmentExam,
+  type PublicQuestion,
+} from "@/components/assessment/AssessmentExam";
+import { examAttemptStatus } from "@/lib/assessments/grade";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAssessment } from "@/lib/content";
+import type { QuizQuestion } from "@/lib/content/types";
 
 export const revalidate = 60;
 
@@ -16,6 +21,27 @@ export async function generateMetadata({
   const { assessmentSlug } = await params;
   const a = await getAssessment(assessmentSlug);
   return { title: a?.title ?? "Évaluation" };
+}
+
+// Version PUBLIQUE d'une question : jamais les bonnes reponses (la correction
+// se fait cote serveur, dans gradeAssessment).
+function toPublic(q: QuizQuestion): PublicQuestion {
+  const p = (q.payload ?? {}) as Record<string, unknown>;
+  return {
+    id: q.id,
+    prompt: q.prompt,
+    qtype: q.qtype ?? "qcm",
+    points: q.points ?? 1,
+    section: q.section,
+    options: q.options.map((o) => ({ id: o.id, label: o.label })),
+    texte: typeof p.texte === "string" ? p.texte : undefined,
+    nbBlancs: Array.isArray(p.blancs) ? p.blancs.length : undefined,
+    gauche: Array.isArray(p.gauche) ? (p.gauche as string[]) : undefined,
+    droite: Array.isArray(p.droite) ? (p.droite as string[]) : undefined,
+    contexte: typeof p.contexte === "string" ? p.contexte : undefined,
+    consigne: typeof p.consigne === "string" ? p.consigne : undefined,
+    competence: typeof p.competence === "string" ? p.competence : undefined,
+  };
 }
 
 export default async function AssessmentPage({
@@ -41,6 +67,14 @@ export default async function AssessmentPage({
   const isStaff = profile?.role === "admin" || profile?.role === "teacher";
   if (subscribed !== true && !isStaff) redirect("/tarifs");
 
+  // Politique de repassage : 4 tentatives, 12 h d'intervalle (examens).
+  const initialStatus =
+    assessment.kind === "examen" && !isStaff
+      ? await examAttemptStatus(assessment.id, user.id)
+      : null;
+
+  const totalPoints = assessment.questions.reduce((s, q) => s + (q.points ?? 1), 0);
+
   return (
     <Section>
       <Container className="max-w-2xl">
@@ -57,14 +91,20 @@ export default async function AssessmentPage({
           </Badge>
         </div>
         <p className="mt-2 text-[var(--color-muted)]">
-          {assessment.questions.length} questions · Seuil de réussite :{" "}
-          {assessment.passPercent}%
+          Sujet sur {String(totalPoints).replace(".", ",")} points · Seuil de
+          réussite : {assessment.passPercent}%
           {assessment.kind === "examen" &&
-            " · Prends ton temps, c'est l'examen du chapitre !"}
+            " · Format officiel BAC · 4 tentatives, 12 h entre deux essais"}
         </p>
 
         <Card className="mt-6">
-          <AssessmentQuiz assessment={assessment} />
+          <AssessmentExam
+            slug={assessment.slug}
+            kind={assessment.kind}
+            passPercent={assessment.passPercent}
+            questions={assessment.questions.map(toPublic)}
+            initialStatus={initialStatus}
+          />
         </Card>
       </Container>
     </Section>

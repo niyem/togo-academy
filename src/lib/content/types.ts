@@ -62,6 +62,14 @@ export interface QuizOption {
   correct: boolean;
 }
 
+export type QuestionType =
+  | "qcm"
+  | "vrai_faux"
+  | "texte_trous"
+  | "appariement"
+  | "traditionnelle"
+  | "situation_probleme";
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
@@ -69,6 +77,14 @@ export interface QuizQuestion {
   explanation: string; // shown as immediate feedback
   /** Quiz dans la video : seconde a laquelle la video se met en pause. */
   atTimeSec?: number;
+  /** Format BAC : type de question (defaut qcm). */
+  qtype?: QuestionType;
+  /** Donnees propres au type (blancs, paires, reponses attendues...). */
+  payload?: Record<string, unknown>;
+  /** Bareme de la question (points, defaut 1). */
+  points?: number;
+  /** Exercice du sujet (ex1 situations, ex2 objectives, ex3 traditionnelles). */
+  section?: string;
 }
 
 /** Sous-chapitre : groupe de lecons, conclu par une evaluation. */

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Badge, Card, Container, Section } from "@/components/ui";
 import { PaymentQueue, type PendingItem } from "@/components/admin/PaymentQueue";
 import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
+import { GrantRetakeForm } from "@/components/admin/GrantRetakeForm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Administration" };
@@ -176,6 +177,17 @@ export default async function AdminPage() {
           </div>
           <div className="mt-3">
             <ContactInbox items={messages} />
+          </div>
+        </Card>
+
+        <Card className="mt-6">
+          <h2 className="font-bold">🎓 Tentatives d&apos;examen (après paiement)</h2>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            Un élève a droit à 4 tentatives par examen (12 h entre deux
+            essais). Après un paiement vérifié, rouvre 4 tentatives ici.
+          </p>
+          <div className="mt-3">
+            <GrantRetakeForm />
           </div>
         </Card>
 

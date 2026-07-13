@@ -95,3 +95,41 @@ export async function rejectSubscription(
   revalidatePath("/admin");
   return { ok: true };
 }
+
+// Rouvre des tentatives d'examen apres paiement : l'eleve a epuise ses
+// 4 tentatives, l'equipe encaisse le paiement puis accorde 4 tentatives
+// supplementaires ici (RLS : admin manages grants).
+export async function grantExamRetake(
+  _prev: AdminState,
+  formData: FormData,
+): Promise<AdminState> {
+  const { supabase, admin } = await requireAdmin();
+  if (!admin) return { error: "Réservé à l'administration." };
+
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const assessmentSlug = String(formData.get("assessment_slug") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim();
+  if (!email || !assessmentSlug) {
+    return { error: "Email de l'élève et épreuve requis." };
+  }
+
+  const [{ data: studentId }, { data: assessment }] = await Promise.all([
+    supabase.rpc("admin_user_id_by_email", { p_email: email }),
+    supabase.from("assessments").select("id,kind").eq("slug", assessmentSlug).single(),
+  ]);
+  if (!studentId) return { error: `Aucun compte pour ${email}.` };
+  if (!assessment) return { error: `Épreuve introuvable : ${assessmentSlug}.` };
+  if (assessment.kind !== "examen") {
+    return { error: "Les tentatives ne se rouvrent que pour un examen." };
+  }
+
+  const { error } = await supabase.from("exam_retake_grants").insert({
+    student_id: studentId,
+    assessment_id: assessment.id,
+    extra_attempts: 4,
+    note: note || `Paiement validé par l'administration`,
+  });
+  if (error) return { error: "Échec de l'enregistrement." };
+  revalidatePath("/admin");
+  return { ok: true };
+}
