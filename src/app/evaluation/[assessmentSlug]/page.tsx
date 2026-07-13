@@ -27,16 +27,19 @@ export default async function AssessmentPage({
   const assessment = await getAssessment(assessmentSlug);
   if (!assessment) notFound();
 
-  // Evaluations et examens : reserves aux abonnes connectes.
+  // Evaluations et examens : reserves aux abonnes connectes et au staff
+  // (admin/enseignant : acces complet, comme sur les lecons).
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
-  const { data: subscribed } = await supabase.rpc("has_active_subscription", {
-    uid: user.id,
-  });
-  if (subscribed !== true) redirect("/tarifs");
+  const [{ data: subscribed }, { data: profile }] = await Promise.all([
+    supabase.rpc("has_active_subscription", { uid: user.id }),
+    supabase.from("profiles").select("role").eq("id", user.id).single(),
+  ]);
+  const isStaff = profile?.role === "admin" || profile?.role === "teacher";
+  if (subscribed !== true && !isStaff) redirect("/tarifs");
 
   return (
     <Section>
