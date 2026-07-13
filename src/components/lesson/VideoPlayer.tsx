@@ -22,9 +22,11 @@ function fmt(sec: number): string {
 export function VideoPlayer({
   activity,
   videoUrl = null,
+  downloadUrl = null,
 }: {
   activity: Activity;
   videoUrl?: string | null;
+  downloadUrl?: string | null;
 }) {
   const real = !!videoUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -224,6 +226,21 @@ export function VideoPlayer({
           />
         ))}
       </div>
+
+      {/* Telechargement hors ligne (abonnes et staff). */}
+      {downloadUrl && (
+        <div className="flex items-center justify-between gap-2 border-t border-[var(--color-line)] bg-togo-green-50 px-3 py-2">
+          <p className="text-xs text-[var(--color-muted)]">
+            Regarde cette vidéo même sans connexion.
+          </p>
+          <a
+            href={downloadUrl}
+            className="flex-none rounded-full border border-togo-green-500 bg-white px-3 py-1.5 text-xs font-semibold text-togo-green-700 hover:bg-togo-green-100"
+          >
+            ⬇️ Télécharger la vidéo
+          </a>
+        </div>
+      )}
     </div>
   );
 }

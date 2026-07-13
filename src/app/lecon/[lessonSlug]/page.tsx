@@ -103,19 +103,23 @@ export default async function LessonPage({
       .filter((s): s is string => !!s);
   }
 
-  // Fiche PDF : URL signee (1 h). Abonnes via leur propre session (politique
-  // storage), staff via le client admin (pas d'abonnement requis).
+  // Fiche PDF : URL signee (1 h), telechargement force avec un nom de fichier
+  // propre. Abonnes via leur propre session (politique storage), staff via le
+  // client admin (pas d'abonnement requis).
   let pdfUrl: string | null = null;
   if (lesson.pdfPath && (subscribed || isStaff)) {
+    const pdfName = `${lesson.slug}-fiche.pdf`;
     if (subscribed) {
       const { data } = await supabase.storage
         .from("lesson-pdfs")
-        .createSignedUrl(lesson.pdfPath, 3600);
+        .createSignedUrl(lesson.pdfPath, 3600, { download: pdfName });
       pdfUrl = data?.signedUrl ?? null;
     } else {
       const admin = createSupabaseAdminClient();
       const { data } = admin
-        ? await admin.storage.from("lesson-pdfs").createSignedUrl(lesson.pdfPath, 3600)
+        ? await admin.storage
+            .from("lesson-pdfs")
+            .createSignedUrl(lesson.pdfPath, 3600, { download: pdfName })
         : { data: null };
       pdfUrl = data?.signedUrl ?? null;
     }
@@ -123,7 +127,9 @@ export default async function LessonPage({
 
   // Videos hebergees (bucket prive lesson-videos) : URL signee 3 h, emise
   // seulement si l'acces est acquis (lecon gratuite ou abonnement actif).
+  // Telechargement hors ligne : abonnes et staff uniquement (comme la fiche).
   const videoUrls = new Map<string, string>();
+  const videoDownloadUrls = new Map<string, string>();
   if (hasAccess) {
     const admin = createSupabaseAdminClient();
     if (admin) {
@@ -133,6 +139,14 @@ export default async function LessonPage({
             .from("lesson-videos")
             .createSignedUrl(a.videoRef, 3600 * 3);
           if (data?.signedUrl) videoUrls.set(a.id, data.signedUrl);
+          if (subscribed || isStaff) {
+            const { data: dl } = await admin.storage
+              .from("lesson-videos")
+              .createSignedUrl(a.videoRef, 3600 * 3, {
+                download: `${lesson.slug}.mp4`,
+              });
+            if (dl?.signedUrl) videoDownloadUrls.set(a.id, dl.signedUrl);
+          }
         }
       }
     }
@@ -220,6 +234,7 @@ export default async function LessonPage({
                   activity={activity}
                   lessonSlug={lesson.slug}
                   videoUrl={videoUrls.get(activity.id) ?? null}
+                  videoDownloadUrl={videoDownloadUrls.get(activity.id) ?? null}
                 />
               </section>
             ))}
@@ -289,14 +304,22 @@ function ActivityView({
   activity,
   lessonSlug,
   videoUrl,
+  videoDownloadUrl,
 }: {
   activity: Activity;
   lessonSlug: string;
   videoUrl: string | null;
+  videoDownloadUrl: string | null;
 }) {
   switch (activity.type) {
     case "video":
-      return <VideoPlayer activity={activity} videoUrl={videoUrl} />;
+      return (
+        <VideoPlayer
+          activity={activity}
+          videoUrl={videoUrl}
+          downloadUrl={videoDownloadUrl}
+        />
+      );
     case "quiz":
       return <QuizBlock activity={activity} lessonSlug={lessonSlug} />;
     case "exercice":
