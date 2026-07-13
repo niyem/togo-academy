@@ -63,19 +63,23 @@ export default async function LessonPage({
     getClass(lesson.classSlug),
   ]);
 
-  // Acces : lecon gratuite, ou abonnement actif du visiteur connecte.
+  // Acces : lecon gratuite, abonnement actif, ou compte staff
+  // (admin/enseignant : acces complet a tout le contenu du site).
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   let subscribed = false;
+  let isStaff = false;
   if (user) {
-    const { data } = await supabase.rpc("has_active_subscription", {
-      uid: user.id,
-    });
-    subscribed = data === true;
+    const [{ data: sub }, { data: profile }] = await Promise.all([
+      supabase.rpc("has_active_subscription", { uid: user.id }),
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
+    ]);
+    subscribed = sub === true;
+    isStaff = profile?.role === "admin" || profile?.role === "teacher";
   }
-  const hasAccess = lesson.isFreePreview || subscribed;
+  const hasAccess = lesson.isFreePreview || subscribed || isStaff;
 
   // Sommaire du chapitre (barre laterale) : lecons soeurs, evaluations, examen.
   const [chapterLessons, subchapters, assessments, chapterList] =
@@ -99,13 +103,22 @@ export default async function LessonPage({
       .filter((s): s is string => !!s);
   }
 
-  // Fiche PDF : URL signee (1 h), reservee aux abonnes (politique storage).
+  // Fiche PDF : URL signee (1 h). Abonnes via leur propre session (politique
+  // storage), staff via le client admin (pas d'abonnement requis).
   let pdfUrl: string | null = null;
-  if (lesson.pdfPath && subscribed) {
-    const { data } = await supabase.storage
-      .from("lesson-pdfs")
-      .createSignedUrl(lesson.pdfPath, 3600);
-    pdfUrl = data?.signedUrl ?? null;
+  if (lesson.pdfPath && (subscribed || isStaff)) {
+    if (subscribed) {
+      const { data } = await supabase.storage
+        .from("lesson-pdfs")
+        .createSignedUrl(lesson.pdfPath, 3600);
+      pdfUrl = data?.signedUrl ?? null;
+    } else {
+      const admin = createSupabaseAdminClient();
+      const { data } = admin
+        ? await admin.storage.from("lesson-pdfs").createSignedUrl(lesson.pdfPath, 3600)
+        : { data: null };
+      pdfUrl = data?.signedUrl ?? null;
+    }
   }
 
   // Videos hebergees (bucket prive lesson-videos) : URL signee 3 h, emise

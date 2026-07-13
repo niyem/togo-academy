@@ -84,12 +84,15 @@ export async function POST(req: Request) {
   const lesson = body.lessonSlug ? await getLesson(body.lessonSlug) : undefined;
   if (!lesson) return new Response("Leçon introuvable.", { status: 404 });
 
-  // Acces : lecon gratuite (offre IA limitee) ou abonnement actif.
+  // Acces : lecon gratuite (offre IA limitee), abonnement actif, ou staff
+  // (admin/enseignant : acces complet).
   if (!lesson.isFreePreview) {
-    const { data } = await supabase.rpc("has_active_subscription", {
-      uid: user.id,
-    });
-    if (data !== true) {
+    const [{ data: sub }, { data: profile }] = await Promise.all([
+      supabase.rpc("has_active_subscription", { uid: user.id }),
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
+    ]);
+    const isStaff = profile?.role === "admin" || profile?.role === "teacher";
+    if (sub !== true && !isStaff) {
       return new Response("Abonnement requis pour cette leçon.", {
         status: 403,
       });
