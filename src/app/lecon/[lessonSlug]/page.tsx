@@ -7,9 +7,14 @@ import { TutorPanel } from "@/components/lesson/TutorPanel";
 import { VideoPlayer } from "@/components/lesson/VideoPlayer";
 import { ExerciseBlock } from "@/components/lesson/ExerciseBlock";
 import { QuizBlock } from "@/components/lesson/QuizBlock";
+import { CourseSidebar } from "@/components/lesson/CourseSidebar";
 import {
+  getAssessmentsForChapter,
+  getChapters,
   getClass,
   getLesson,
+  getLessonsForChapter,
+  getSubchapters,
   getSubject,
 } from "@/lib/content";
 import { lessons } from "@/lib/content/seed";
@@ -71,6 +76,28 @@ export default async function LessonPage({
   }
   const hasAccess = lesson.isFreePreview || subscribed;
 
+  // Sommaire du chapitre (barre laterale) : lecons soeurs, evaluations, examen.
+  const [chapterLessons, subchapters, assessments, chapterList] =
+    await Promise.all([
+      getLessonsForChapter(lesson.chapterSlug),
+      getSubchapters(lesson.chapterSlug),
+      getAssessmentsForChapter(lesson.chapterSlug),
+      getChapters(lesson.classSlug, lesson.subjectKey),
+    ]);
+  const chapter = chapterList.find((c) => c.slug === lesson.chapterSlug);
+
+  // Lecons terminees par l'utilisateur (coches ✓ du sommaire).
+  let completedSlugs: string[] = [];
+  if (user) {
+    const { data } = await supabase
+      .from("lesson_progress")
+      .select("state, lessons(slug)")
+      .eq("state", "completed");
+    completedSlugs = (data ?? [])
+      .map((r) => (r.lessons as unknown as { slug: string } | null)?.slug)
+      .filter((s): s is string => !!s);
+  }
+
   // Fiche PDF : URL signee (1 h), reservee aux abonnes (politique storage).
   let pdfUrl: string | null = null;
   if (lesson.pdfPath && subscribed) {
@@ -80,9 +107,42 @@ export default async function LessonPage({
     pdfUrl = data?.signedUrl ?? null;
   }
 
+  const sidebarData = chapter
+    ? {
+        chapter,
+        subchapters,
+        lessons: chapterLessons,
+        assessments,
+        currentSlug: lesson.slug,
+        completedSlugs,
+        hasAccess,
+        classSlug: lesson.classSlug,
+      }
+    : null;
+
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container className="grid items-start gap-8 lg:grid-cols-[280px_1fr]">
+        {/* Sommaire : colonne fixe sur grand ecran */}
+        {sidebarData && (
+          <aside className="sticky top-24 hidden lg:block">
+            <CourseSidebar data={sidebarData} />
+          </aside>
+        )}
+
+        <div className="min-w-0 max-w-3xl">
+        {/* Sommaire repliable sur mobile */}
+        {sidebarData && (
+          <details className="mb-5 rounded-2xl border border-togo-green-100 bg-togo-green-50 px-4 py-3 lg:hidden">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-togo-green-700 [&::-webkit-details-marker]:hidden">
+              📚 Sommaire du chapitre
+            </summary>
+            <div className="mt-3 -mx-4 -mb-3">
+              <CourseSidebar data={sidebarData} />
+            </div>
+          </details>
+        )}
+
         <nav className="text-sm text-[var(--color-muted)]">
           <Link href="/catalogue" className="hover:text-togo-green-700">
             Catalogue
@@ -184,6 +244,7 @@ export default async function LessonPage({
             </div>
           </Card>
         )}
+        </div>
       </Container>
     </Section>
   );
