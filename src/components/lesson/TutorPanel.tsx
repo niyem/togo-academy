@@ -37,6 +37,13 @@ export function TutorPanel({ lessonSlug }: { lessonSlug: string }) {
         body: JSON.stringify({ lessonSlug, messages: history }),
       });
       if (res.status === 401) throw new Error("login");
+      if (res.status === 429) {
+        setMessages([
+          ...history,
+          { role: "assistant", content: await res.text() },
+        ]);
+        return;
+      }
       if (!res.ok || !res.body) throw new Error("http");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

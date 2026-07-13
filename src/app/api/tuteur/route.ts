@@ -5,6 +5,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getClass, getLesson } from "@/lib/content";
+import {
+  consumeQuota,
+  TUTOR_DAILY_LIMIT,
+  TUTOR_LIMIT_MESSAGE,
+} from "@/lib/ai/quota";
 import type { Lesson } from "@/lib/content/types";
 
 export const runtime = "nodejs";
@@ -94,16 +99,34 @@ export async function POST(req: Request) {
 
   // Acces : lecon gratuite (offre IA limitee), abonnement actif, ou staff
   // (admin/enseignant : acces complet).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const isAdmin = profile?.role === "admin";
+  const isStaff = isAdmin || profile?.role === "teacher";
   if (!lesson.isFreePreview) {
-    const [{ data: sub }, { data: profile }] = await Promise.all([
-      supabase.rpc("has_active_subscription", { uid: user.id }),
-      supabase.from("profiles").select("role").eq("id", user.id).single(),
-    ]);
-    const isStaff = profile?.role === "admin" || profile?.role === "teacher";
+    const { data: sub } = await supabase.rpc("has_active_subscription", {
+      uid: user.id,
+    });
     if (sub !== true && !isStaff) {
       return new Response("Abonnement requis pour cette leçon.", {
         status: 403,
       });
+    }
+  }
+
+  // Quota journalier (tout le monde sauf l'administrateur) : protege le
+  // credit API contre un usage intensif.
+  if (!isAdmin) {
+    const allowed = await consumeQuota(
+      `user:${user.id}`,
+      "tuteur",
+      TUTOR_DAILY_LIMIT,
+    );
+    if (!allowed) {
+      return new Response(TUTOR_LIMIT_MESSAGE, { status: 429 });
     }
   }
 

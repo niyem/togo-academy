@@ -5,6 +5,13 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { PAYMENT_METHODS } from "@/lib/payments";
 import { getCatalogueDigest, getPlans } from "@/lib/content";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  CHAT_DAILY_LIMIT,
+  CHAT_LIMIT_MESSAGE,
+  clientIdentity,
+  consumeQuota,
+} from "@/lib/ai/quota";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -94,6 +101,32 @@ export async function POST(req: Request) {
 
   if (messages.length === 0 || messages[messages.length - 1].role !== "user") {
     return new Response("Message manquant.", { status: 400 });
+  }
+
+  // Quota journalier : tout le monde sauf l'administrateur. Les visiteurs
+  // anonymes sont comptes par adresse IP.
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.role === "admin";
+  }
+  if (!isAdmin) {
+    const allowed = await consumeQuota(
+      clientIdentity(req, user?.id),
+      "chat",
+      CHAT_DAILY_LIMIT,
+    );
+    if (!allowed) {
+      return new Response(CHAT_LIMIT_MESSAGE, { status: 429 });
+    }
   }
 
   // Donnees fraiches pour ancrer les prix et le catalogue reel.

@@ -51,6 +51,13 @@ export function ChatWidget() {
         // Le message d'accueil n'est pas envoye au modele.
         body: JSON.stringify({ messages: history.slice(1) }),
       });
+      if (res.status === 429) {
+        setMessages([
+          ...history,
+          { role: "assistant", content: await res.text() },
+        ]);
+        return;
+      }
       if (!res.ok || !res.body) throw new Error("http");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
