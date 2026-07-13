@@ -23,10 +23,12 @@ export function VideoPlayer({
   activity,
   videoUrl = null,
   downloadUrl = null,
+  subtitlesUrl = null,
 }: {
   activity: Activity;
   videoUrl?: string | null;
   downloadUrl?: string | null;
+  subtitlesUrl?: string | null;
 }) {
   const real = !!videoUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -95,6 +97,7 @@ export function VideoPlayer({
             playsInline
             preload="metadata"
             controlsList="nodownload"
+            crossOrigin="anonymous"
             className="block aspect-video w-full bg-black"
             onLoadedMetadata={(e) =>
               setRealDuration(e.currentTarget.duration || null)
@@ -102,7 +105,17 @@ export function VideoPlayer({
             onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
-          />
+          >
+            {/* Sous-titres activables (bouton CC des controles natifs). */}
+            {subtitlesUrl && (
+              <track
+                kind="subtitles"
+                srcLang="fr"
+                label="Français"
+                src={subtitlesUrl}
+              />
+            )}
+          </video>
         )}
 
         {!real && !active && (

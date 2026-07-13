@@ -134,6 +134,7 @@ export default async function LessonPage({
   // Telechargement hors ligne : abonnes et staff uniquement (comme la fiche).
   const videoUrls = new Map<string, string>();
   const videoDownloadUrls = new Map<string, string>();
+  const videoSubtitleUrls = new Map<string, string>();
   if (hasAccess) {
     const admin = createSupabaseAdminClient();
     if (admin) {
@@ -143,6 +144,11 @@ export default async function LessonPage({
             .from("lesson-videos")
             .createSignedUrl(a.videoRef, 3600 * 3);
           if (data?.signedUrl) videoUrls.set(a.id, data.signedUrl);
+          // Sous-titres optionnels : fichier .vtt a cote de la video.
+          const { data: vtt } = await admin.storage
+            .from("lesson-videos")
+            .createSignedUrl(a.videoRef.replace(/\.mp4$/, ".vtt"), 3600 * 3);
+          if (vtt?.signedUrl) videoSubtitleUrls.set(a.id, vtt.signedUrl);
           if (subscribed || isStaff) {
             const { data: dl } = await admin.storage
               .from("lesson-videos")
@@ -239,6 +245,7 @@ export default async function LessonPage({
                   lessonSlug={lesson.slug}
                   videoUrl={videoUrls.get(activity.id) ?? null}
                   videoDownloadUrl={videoDownloadUrls.get(activity.id) ?? null}
+                  videoSubtitlesUrl={videoSubtitleUrls.get(activity.id) ?? null}
                 />
               </section>
             ))}
@@ -310,11 +317,13 @@ function ActivityView({
   lessonSlug,
   videoUrl,
   videoDownloadUrl,
+  videoSubtitlesUrl,
 }: {
   activity: Activity;
   lessonSlug: string;
   videoUrl: string | null;
   videoDownloadUrl: string | null;
+  videoSubtitlesUrl: string | null;
 }) {
   switch (activity.type) {
     case "video":
@@ -323,6 +332,7 @@ function ActivityView({
           activity={activity}
           videoUrl={videoUrl}
           downloadUrl={videoDownloadUrl}
+          subtitlesUrl={videoSubtitlesUrl}
         />
       );
     case "quiz":
