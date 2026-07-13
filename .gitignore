@@ -44,3 +44,9 @@ next-env.d.ts
 video/.venv/
 video/pilot/out/
 video/pilot/assets/
+
+# artefacts de production video (locaux uniquement)
+video/propagation/assets/
+video/propagation/out/
+video/pilot/assets/
+video/pilot/out/

@@ -1,6 +1,0 @@
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene1.mp4'
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene2.mp4'
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene3.mp4'
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene4.mp4'
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene5.mp4'
-file '/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/video/propagation/out/scene6.mp4'
