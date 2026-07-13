@@ -49,9 +49,9 @@ export default async function CataloguePage() {
           Trouvez votre classe.
         </h1>
         <p className="mt-4 text-[var(--color-muted)]">
-          Du primaire au lycée, enseignement général et technique. Cherchez une
-          matière ou choisissez directement votre classe pour découvrir ses
-          chapitres et ses leçons.
+          Du primaire au lycée, enseignement général. Cherchez une matière ou
+          choisissez directement votre classe pour découvrir ses chapitres et
+          ses leçons. Les filières techniques arrivent bientôt.
         </p>
       </div>
 

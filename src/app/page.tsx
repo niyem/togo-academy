@@ -156,7 +156,7 @@ export default async function HomePage() {
           </h2>
           <p className="mt-3 max-w-lg text-[var(--color-muted)]">
             Une plateforme pensée pour les élèves togolais, du CP1 à la
-            Terminale, enseignement général et technique.
+            Terminale de l&apos;enseignement général.
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (

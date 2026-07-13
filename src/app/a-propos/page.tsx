@@ -68,8 +68,9 @@ export default async function AboutPage() {
         </p>
         <p className="mt-4 text-lg leading-relaxed text-ink/90">
           Nous travaillons avec des enseignants togolais pour produire des
-          leçons fidèles au programme officiel, du CP1 à la Terminale,
-          enseignement général et technique. Une partie du contenu reste
+          leçons fidèles au programme officiel, du CP1 à la Terminale de
+          l&apos;enseignement général, avant d&apos;ouvrir les filières
+          techniques. Une partie du contenu reste
           gratuite, pour que l&apos;apprentissage ne s&apos;arrête jamais à une
           question d&apos;argent.
         </p>
