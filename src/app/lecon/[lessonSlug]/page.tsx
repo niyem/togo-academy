@@ -275,6 +275,32 @@ export default async function LessonPage({
                   videoDownloadUrl={videoDownloadUrls.get(activity.id) ?? null}
                   videoSubtitlesUrl={videoSubtitleUrls.get(activity.id) ?? null}
                 />
+                {/* Navigation collee au lecteur : passer a la video
+                    precedente / suivante sans faire defiler la page. */}
+                {activity.type === "video" && (prevLesson || nextLesson) && (
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    {prevLesson ? (
+                      <Link
+                        href={`/lecon/${prevLesson.slug}`}
+                        className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-white px-3.5 py-1.5 text-sm font-medium text-ink hover:border-togo-green-500 hover:text-togo-green-700"
+                      >
+                        <span aria-hidden>⏮</span>
+                        <span className="truncate">Vidéo précédente</span>
+                      </Link>
+                    ) : (
+                      <span />
+                    )}
+                    {nextLesson && (
+                      <Link
+                        href={`/lecon/${nextLesson.slug}`}
+                        className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-togo-green-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-togo-green-500"
+                      >
+                        <span className="truncate">Vidéo suivante</span>
+                        <span aria-hidden>⏭</span>
+                      </Link>
+                    )}
+                  </div>
+                )}
               </section>
             ))}
 
