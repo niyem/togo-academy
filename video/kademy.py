@@ -45,6 +45,29 @@ def font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(f"{FONT_DIR}/{name}", size)
 
 
+# Arial (Supplemental) n'a pas certains glyphes (⁴ ⁹ ⁻ ⊥ ✓...) : ils sortent
+# en "tofu". Arial Unicode les couvre tous mais n'existe qu'en un seul poids ;
+# le gras y est simule par un stroke_width.
+_ARIAL_CODEPOINTS = None
+
+
+def _arial_codepoints():
+    global _ARIAL_CODEPOINTS
+    if _ARIAL_CODEPOINTS is None:
+        from fontTools.ttLib import TTFont
+        _ARIAL_CODEPOINTS = set(
+            TTFont(f"{FONT_DIR}/Arial.ttf").getBestCmap().keys())
+    return _ARIAL_CODEPOINTS
+
+
+def font_for(text: str, size: int, bold: bool = True):
+    """(police, stroke_width) couvrant tous les caracteres de `text`."""
+    if all(ord(c) < 128 or ord(c) in _arial_codepoints() for c in text):
+        return font(size, bold), 0
+    uni = ImageFont.truetype(f"{FONT_DIR}/Arial Unicode.ttf", size)
+    return uni, (max(1, size // 28) if bold else 0)
+
+
 def ease(p: float) -> float:
     """Smoothstep : demarrage et fin en douceur."""
     p = max(0.0, min(1.0, p))
@@ -107,9 +130,11 @@ def dot_label(t0, t1, pos, label, offset=(14, -30), color=INK, r=7,
 
 def text_fade(t0, t1, pos, text, size=34, color=INK, bold=True,
               anchor="mm") -> Anim:
-    f = font(size, bold)
+    f, stroke = font_for(text, size, bold)
     def fn(img, d, p):
-        d.text(pos, text, font=f, fill=mix(BG, color, p), anchor=anchor)
+        c = mix(BG, color, p)
+        d.text(pos, text, font=f, fill=c, anchor=anchor,
+               stroke_width=stroke, stroke_fill=c)
     return Anim(t0, t1, fn)
 
 

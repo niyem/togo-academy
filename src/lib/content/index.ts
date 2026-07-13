@@ -311,6 +311,122 @@ export async function getPlans(): Promise<SubscriptionPlan[]> {
   return plans;
 }
 
+/**
+ * Inventaire compact du contenu publie (classes > matieres > chapitres >
+ * lecons + epreuves), destine a ancrer le chatbot visiteurs sur ce qui
+ * existe vraiment aujourd'hui.
+ */
+export async function getCatalogueDigest(): Promise<string> {
+  const [allClasses, allSubjects] = await Promise.all([
+    getClasses(),
+    getSubjects(),
+  ]);
+  const className = new Map(allClasses.map((c) => [c.slug, c.name]));
+  const subjectName = new Map(allSubjects.map((s) => [s.key as string, s.name]));
+
+  type Row = {
+    title: string;
+    isFree: boolean;
+    hasVideo: boolean;
+    chapterTitle: string;
+    classSlug: string;
+    subjectKey: string;
+  };
+  const rows: Row[] = [];
+  const assessmentRows: { kind: string; chapterTitle: string }[] = [];
+
+  if (!db) {
+    lessons
+      .filter((l) => l.status === "publie")
+      .forEach((l) => {
+        const ch = chapters.find((c) => c.slug === l.chapterSlug);
+        rows.push({
+          title: l.title,
+          isFree: l.isFreePreview,
+          hasVideo: l.activities.some((a) => a.type === "video"),
+          chapterTitle: ch?.title ?? l.chapterSlug,
+          classSlug: l.classSlug,
+          subjectKey: l.subjectKey,
+        });
+      });
+  } else {
+    const [{ data: ls }, { data: as }] = await Promise.all([
+      db
+        .from("lessons")
+        .select(
+          "title,is_free_preview,sort_order," +
+            "chapters!inner(title,class_slug,subject_key),activities(type)",
+        )
+        .eq("status", "published")
+        .order("sort_order"),
+      db
+        .from("assessments")
+        .select("kind,chapters!inner(title)"),
+    ]);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    (ls ?? []).forEach((r: any) =>
+      rows.push({
+        title: r.title,
+        isFree: r.is_free_preview,
+        hasVideo: (r.activities ?? []).some((a: any) => a.type === "video"),
+        chapterTitle: r.chapters.title,
+        classSlug: r.chapters.class_slug,
+        subjectKey: r.chapters.subject_key,
+      }),
+    );
+    (as ?? []).forEach((r: any) =>
+      assessmentRows.push({ kind: r.kind, chapterTitle: r.chapters.title }),
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+  }
+
+  const byCourse = new Map<string, Row[]>();
+  for (const r of rows) {
+    const key = `${r.classSlug}|${r.subjectKey}`;
+    (byCourse.get(key) ?? byCourse.set(key, []).get(key)!).push(r);
+  }
+
+  const lines: string[] = [];
+  for (const [key, courseRows] of byCourse) {
+    const [classSlug, subjectKey] = key.split("|");
+    lines.push(
+      `### ${className.get(classSlug) ?? classSlug} · ${
+        subjectName.get(subjectKey) ?? subjectKey
+      }`,
+    );
+    const byChapter = new Map<string, Row[]>();
+    for (const r of courseRows) {
+      (byChapter.get(r.chapterTitle) ??
+        byChapter.set(r.chapterTitle, []).get(r.chapterTitle)!).push(r);
+    }
+    for (const [chapterTitle, chRows] of byChapter) {
+      const epreuves = assessmentRows.filter(
+        (a) => a.chapterTitle === chapterTitle,
+      );
+      const suffix =
+        epreuves.length > 0
+          ? ` + ${epreuves.filter((e) => e.kind === "evaluation").length} évaluation(s) et ${epreuves.filter((e) => e.kind === "examen").length} examen`
+          : "";
+      lines.push(`Chapitre « ${chapterTitle} »${suffix} :`);
+      chRows.forEach((r, i) =>
+        lines.push(
+          `${i + 1}. ${r.title}${r.hasVideo ? " (vidéo + quiz intégrés)" : ""}${
+            r.isFree ? " — GRATUITE" : ""
+          }`,
+        ),
+      );
+    }
+  }
+  const total = rows.length;
+  const free = rows.filter((r) => r.isFree).length;
+  lines.push(
+    `\nTotal : ${byCourse.size} cours (classe + matière) ouverts, ` +
+      `${total} leçon(s) publiée(s) dont ${free} gratuite(s). ` +
+      `Le catalogue s'enrichit chaque semaine.`,
+  );
+  return lines.join("\n");
+}
+
 export async function getStats() {
   if (!db) {
     return {

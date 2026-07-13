@@ -4,7 +4,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { PAYMENT_METHODS } from "@/lib/payments";
-import { getPlans } from "@/lib/content";
+import { getCatalogueDigest, getPlans } from "@/lib/content";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -59,6 +59,11 @@ affiches sur la page de paiement /abonnement/[formule].
 - Ne promets rien qui n'est pas decrit ici. Si tu ne sais pas : propose
   /contact.
 - Reponses courtes (2-5 phrases), avec le lien utile.
+- La section "Contenu disponible aujourd'hui" ci-dessous est la SOURCE DE
+  VERITE sur le catalogue : sers-t'en pour repondre precisement aux questions
+  "combien de cours / quelles lecons / qu'est-ce qui est gratuit". Presente
+  toujours ces chiffres positivement : la plateforme est jeune et le catalogue
+  s'enrichit chaque semaine.
 `;
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -89,8 +94,11 @@ export async function POST(req: Request) {
     return new Response("Message manquant.", { status: 400 });
   }
 
-  // Donnees fraiches pour ancrer les prix.
-  const plans = await getPlans();
+  // Donnees fraiches pour ancrer les prix et le catalogue reel.
+  const [plans, catalogue] = await Promise.all([
+    getPlans(),
+    getCatalogueDigest(),
+  ]);
   const planText = plans
     .map((p) => `- ${p.name} : ${p.priceXof} FCFA / ${p.cadence} (${p.scope})`)
     .join("\n");
@@ -107,7 +115,8 @@ export async function POST(req: Request) {
         type: "text",
         text:
           SITE_CONTEXT +
-          `\n## Formules actuelles\n${planText}\n\n## Moyens de paiement\n${methodText}\n`,
+          `\n## Formules actuelles\n${planText}\n\n## Moyens de paiement\n${methodText}\n` +
+          `\n## Contenu disponible aujourd'hui (source de vérité)\n${catalogue}\n`,
         cache_control: { type: "ephemeral" },
       },
     ],
