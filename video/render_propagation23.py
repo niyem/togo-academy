@@ -5,7 +5,7 @@ Style Khan Academy : tableau blanc + voix Julian, sans avatar.
   python3 render_propagation23.py 2   -> video 2 (longueur d'onde)
   python3 render_propagation23.py 3   -> video 3 (nature de la lumiere)
 
-Prerequis : mp3 dans Desktop/COWORK/togo-academy-pilote/voix-julian{2,3}/segN.mp3
+Prerequis : mp3 dans Desktop/COWORK/TOGO-ACADEMY/pilote/voix-julian{2,3}/segN.mp3
 """
 
 import math
@@ -23,8 +23,8 @@ from render_propagation import (
     OUT, bobbing_cork, cloud_bolt, multi_text, ripples, title, waves,
 )
 
-VOIX2 = "/Users/nbawana/Desktop/COWORK/togo-academy-pilote/voix-julian2"
-VOIX3 = "/Users/nbawana/Desktop/COWORK/togo-academy-pilote/voix-julian3"
+VOIX2 = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/pilote/voix-julian2"
+VOIX3 = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/pilote/voix-julian3"
 
 VIOLET = (110, 60, 170)
 BLUE = (40, 90, 200)

@@ -13,9 +13,9 @@ La mascotte (a l'image du fondateur) vit dans le coin superieur droit :
 clip synchronise sur les scenes 1 et 6, image fixe sur les scenes 2 a 5.
 
 Prerequis :
-  - mp3 : Desktop/COWORK/togo-academy-pilote/voix-propagation/seg{1..6}-*.mp3
+  - mp3 : Desktop/COWORK/TOGO-ACADEMY/pilote/voix-propagation/seg{1..6}-*.mp3
   - clips mascotte : video/propagation/assets/{intro,outro}-clip.mp4
-  - image mascotte : Desktop/COWORK/togo-academy-mascot/mascotte-niyem-essai-2.png
+  - image mascotte : Desktop/COWORK/TOGO-ACADEMY/mascot/mascotte-niyem-essai-2.png
 """
 
 import glob
@@ -38,8 +38,8 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 PROP = os.path.join(BASE, "propagation")
 ASSETS = os.path.join(PROP, "assets")
 OUT = os.path.join(PROP, "out")
-VOIX = "/Users/nbawana/Desktop/COWORK/togo-academy-pilote/voix-julian"
-MASCOTTE = "/Users/nbawana/Desktop/COWORK/togo-academy-mascot/mascotte-niyem-essai-2.png"
+VOIX = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/pilote/voix-julian"
+MASCOTTE = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/mascot/mascotte-niyem-essai-2.png"
 
 for d in (ASSETS, OUT):
     os.makedirs(d, exist_ok=True)
