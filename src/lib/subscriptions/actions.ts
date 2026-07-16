@@ -19,12 +19,25 @@ export async function subscribe(
   const planSlug = String(formData.get("plan") ?? "");
   const method = String(formData.get("method") ?? "") as PaymentMethodId;
   const reference = String(formData.get("reference") ?? "").trim();
+  const classSlug = String(formData.get("class") ?? "").trim() || null;
+  const subjectKey = String(formData.get("subject") ?? "").trim() || null;
 
   const plan = (await getPlans()).find((p) => p.slug === planSlug);
   if (!plan || plan.priceXof <= 0) return { error: "Formule inconnue." };
   if (!METHOD_IDS.includes(method)) {
     return { error: "Choisissez un moyen de paiement." };
   }
+
+  // Perimetre de l'abonnement (voir has_lesson_access) :
+  //   matiere  -> une (classe, matiere) ; classe -> une classe ; plateforme -> tout.
+  if (plan.scope === "classe" && !classSlug) {
+    return { error: "Choisissez la classe concernée." };
+  }
+  if (plan.scope === "matiere" && (!classSlug || !subjectKey)) {
+    return { error: "Choisissez la classe et la matière." };
+  }
+  const targetClass = plan.scope === "plateforme" ? null : classSlug;
+  const targetSubject = plan.scope === "matiere" ? subjectKey : null;
   if (!reference) {
     return {
       error:
@@ -40,7 +53,13 @@ export async function subscribe(
 
   const { data: sub, error: subError } = await supabase
     .from("subscriptions")
-    .insert({ user_id: user.id, plan_slug: plan.slug, status: "pending" })
+    .insert({
+      user_id: user.id,
+      plan_slug: plan.slug,
+      status: "pending",
+      class_slug: targetClass,
+      subject_key: targetSubject,
+    })
     .select("id")
     .single();
   if (subError || !sub) return { error: "Erreur lors de la demande. Réessayez." };

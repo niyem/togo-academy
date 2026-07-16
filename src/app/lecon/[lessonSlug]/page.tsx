@@ -79,7 +79,12 @@ export default async function LessonPage({
   let isStaff = false;
   if (user) {
     const [{ data: sub }, { data: profile }] = await Promise.all([
-      supabase.rpc("has_active_subscription", { uid: user.id }),
+      // Acces selon le perimetre (matiere/classe/plateforme) de l'abonnement.
+      supabase.rpc("has_lesson_access", {
+        uid: user.id,
+        p_class: lesson.classSlug,
+        p_subject: lesson.subjectKey,
+      }),
       supabase.from("profiles").select("role").eq("id", user.id).single(),
     ]);
     subscribed = sub === true;

@@ -5,8 +5,22 @@ import { Button } from "@/components/ui";
 import { PAYMENT_METHODS, type PaymentMethodId } from "@/lib/payments";
 import { subscribe, type SubscribeState } from "@/lib/subscriptions/actions";
 
-// Choix du moyen de paiement -> instructions -> reference de paiement.
-export function SubscribeForm({ planSlug }: { planSlug: string }) {
+type Opt = { value: string; label: string };
+
+// Perimetre + moyen de paiement -> instructions -> reference de paiement.
+export function SubscribeForm({
+  planSlug,
+  scope,
+  classes,
+  subjects,
+  defaultClass,
+}: {
+  planSlug: string;
+  scope: string; // "plateforme" | "classe" | "matiere"
+  classes: Opt[];
+  subjects: Opt[];
+  defaultClass?: string | null;
+}) {
   const [method, setMethod] = useState<PaymentMethodId>("flooz");
   const [state, action, pending] = useActionState<SubscribeState, FormData>(
     subscribe,
@@ -14,6 +28,8 @@ export function SubscribeForm({ planSlug }: { planSlug: string }) {
   );
 
   const selected = PAYMENT_METHODS.find((m) => m.id === method)!;
+  const sel =
+    "w-full rounded-lg border border-[var(--color-line)] px-3 py-2 focus:border-togo-green-500";
 
   if (state.submitted) {
     return (
@@ -34,6 +50,49 @@ export function SubscribeForm({ planSlug }: { planSlug: string }) {
     <form action={action} className="space-y-5">
       <input type="hidden" name="plan" value={planSlug} />
       <input type="hidden" name="method" value={method} />
+
+      {scope === "plateforme" ? (
+        <p className="rounded-lg bg-togo-green-50 px-3 py-2 text-sm font-medium text-togo-green-700">
+          ✓ Accès à toutes les classes et à toutes les matières.
+        </p>
+      ) : (
+        <div>
+          <p className="mb-2 text-sm font-semibold">
+            {scope === "matiere"
+              ? "Classe et matière concernées"
+              : "Classe concernée"}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              name="class"
+              required
+              defaultValue={defaultClass ?? ""}
+              className={sel}
+            >
+              <option value="" disabled>
+                Choisir la classe
+              </option>
+              {classes.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            {scope === "matiere" && (
+              <select name="subject" required defaultValue="" className={sel}>
+                <option value="" disabled>
+                  Choisir la matière
+                </option>
+                {subjects.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+      )}
 
       <div>
         <p className="mb-2 text-sm font-semibold">1. Choisissez votre moyen de paiement</p>

@@ -107,8 +107,10 @@ export async function POST(req: Request) {
   const isAdmin = profile?.role === "admin";
   const isStaff = isAdmin || profile?.role === "teacher";
   if (!lesson.isFreePreview) {
-    const { data: sub } = await supabase.rpc("has_active_subscription", {
+    const { data: sub } = await supabase.rpc("has_lesson_access", {
       uid: user.id,
+      p_class: lesson.classSlug,
+      p_subject: lesson.subjectKey,
     });
     if (sub !== true && !isStaff) {
       return new Response("Abonnement requis pour cette leçon.", {
