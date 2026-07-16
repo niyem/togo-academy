@@ -98,10 +98,20 @@ export default async function AdminPage() {
   return (
     <Section>
       <Container>
-        <h1 className="text-3xl font-extrabold">Administration</h1>
-        <p className="mt-1 text-[var(--color-muted)]">
-          Vue d&apos;ensemble de Togo Academy.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-extrabold">Administration</h1>
+            <p className="mt-1 text-[var(--color-muted)]">
+              Vue d&apos;ensemble de Togo Academy.
+            </p>
+          </div>
+          <Link
+            href="/enseignant"
+            className="rounded-lg bg-togo-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-togo-green-700"
+          >
+            📚 Tout le contenu (leçons)
+          </Link>
+        </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-5">
           {kpis.map(([labelText, value]) => (
