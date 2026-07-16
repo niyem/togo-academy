@@ -11,6 +11,7 @@ export type SubjectKey =
   | "physique"
   | "chimie"
   | "svt" // Sciences de la Vie et de la Terre (biology / life sciences)
+  | "spt" // Sciences Physiques et Technologie (physique-chimie-techno, college)
   | "technologie"
   | "informatique";
 

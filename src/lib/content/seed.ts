@@ -87,6 +87,12 @@ export const subjects: Subject[] = [
     description: "Sciences de la vie et de la terre.",
   },
   {
+    key: "spt",
+    name: "Sciences physiques (SPT)",
+    icon: "🔬",
+    description: "Physique, chimie et technologie au collège.",
+  },
+  {
     key: "technologie",
     name: "Technologie",
     icon: "⚙️",
