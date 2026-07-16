@@ -42,15 +42,11 @@ export const classes: SchoolClass[] = [
   { slug: "ce2", name: "CE2", levelSlug: "primaire", order: 4, track: "general" },
   { slug: "cm1", name: "CM1", levelSlug: "primaire", order: 5, track: "general" },
   { slug: "cm2", name: "CM2", levelSlug: "primaire", order: 6, track: "general" },
-  // Collège : enseignement général (BEPC)
+  // Collège : enseignement général (BEPC). Pas de collège technique.
   { slug: "6eme", name: "6ème", levelSlug: "college", order: 1, track: "general" },
   { slug: "5eme", name: "5ème", levelSlug: "college", order: 2, track: "general" },
   { slug: "4eme", name: "4ème", levelSlug: "college", order: 3, track: "general" },
   { slug: "3eme", name: "3ème", levelSlug: "college", order: 4, track: "general" },
-  // Collège : enseignement technique (CET, filière CAP)
-  { slug: "cet1", name: "1ère année CET", levelSlug: "college", order: 11, track: "technique" },
-  { slug: "cet2", name: "2ème année CET", levelSlug: "college", order: 12, track: "technique" },
-  { slug: "cet3", name: "3ème année CET", levelSlug: "college", order: 13, track: "technique" },
   // Lycée : enseignement général (BAC). Pas de lycée technique.
   { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1, track: "general" },
   { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
