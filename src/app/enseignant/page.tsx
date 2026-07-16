@@ -54,10 +54,10 @@ export default async function TeacherHomePage() {
     lessons.push(...(data as unknown as LessonRow[]));
     if (data.length < PAGE) break;
   }
-  const { data: classRows } = await supabase
-    .from("classes")
-    .select("slug,name,sort_order")
-    .order("sort_order");
+  const [{ data: classRows }, { data: subjectRows }] = await Promise.all([
+    supabase.from("classes").select("slug,name,sort_order").order("sort_order"),
+    supabase.from("subjects").select("key,name"),
+  ]);
 
   const className = new Map(
     (classRows ?? []).map((c) => [c.slug as string, c.name as string]),
@@ -65,6 +65,23 @@ export default async function TeacherHomePage() {
   const classOrder = new Map(
     (classRows ?? []).map((c) => [c.slug as string, c.sort_order as number]),
   );
+  const subjectName = new Map(
+    (subjectRows ?? []).map((s) => [s.key as string, s.name as string]),
+  );
+  // Ordre d'affichage des matieres dans une classe.
+  const SUBJECT_ORDER = [
+    "mathematiques",
+    "physique",
+    "chimie",
+    "spt",
+    "svt",
+    "technologie",
+    "informatique",
+  ];
+  const subjectRank = (k: string) => {
+    const i = SUBJECT_ORDER.indexOf(k);
+    return i === -1 ? 99 : i;
+  };
 
   type Row = {
     slug: string;
@@ -81,15 +98,16 @@ export default async function TeacherHomePage() {
     ch: l.chapters as unknown as Row["ch"],
   }));
 
-  // classe -> chapitre -> lecons (ordonnees), avec compteurs de statut.
-  const byClass = new Map<
-    string,
-    Map<string, { title: string; order: number; lessons: Row[] }>
-  >();
+  // classe -> matiere -> chapitre -> lecons, avec compteurs de statut.
+  type Chap = { title: string; order: number; lessons: Row[] };
+  const byClass = new Map<string, Map<string, Map<string, Chap>>>();
   for (const r of rows) {
     const cls = r.ch?.class_slug ?? "(sans classe)";
+    const subj = r.ch?.subject_key ?? "(matiere)";
     const chKey = r.ch?.title ?? "(sans chapitre)";
-    const chapMap = byClass.get(cls) ?? byClass.set(cls, new Map()).get(cls)!;
+    const subjMap = byClass.get(cls) ?? byClass.set(cls, new Map()).get(cls)!;
+    const chapMap =
+      subjMap.get(subj) ?? subjMap.set(subj, new Map()).get(subj)!;
     const chap =
       chapMap.get(chKey) ??
       chapMap
@@ -130,19 +148,57 @@ export default async function TeacherHomePage() {
 
           <div className="mt-3 space-y-2">
             {sortedClasses.map((cls) => {
-              const chapMap = byClass.get(cls)!;
-              const chapters = [...chapMap.values()].sort(
-                (a, b) => a.order - b.order,
+              const subjMap = byClass.get(cls)!;
+              const subjects = [...subjMap.keys()].sort(
+                (a, b) =>
+                  subjectRank(a) - subjectRank(b) ||
+                  (subjectName.get(a) ?? a).localeCompare(
+                    subjectName.get(b) ?? b,
+                  ),
               );
-              const clsLessons = chapters.reduce(
+              const allChaps = subjects.flatMap((sk) => [
+                ...subjMap.get(sk)!.values(),
+              ]);
+              const clsLessons = allChaps.reduce(
                 (n, c) => n + c.lessons.length,
                 0,
               );
-              const clsPublished = chapters.reduce(
+              const clsPublished = allChaps.reduce(
                 (n, c) =>
                   n + c.lessons.filter((l) => l.status === "published").length,
                 0,
               );
+
+              const renderChapter = (chap: Chap) => (
+                <details key={chap.title} className="pl-1">
+                  <summary className="cursor-pointer py-2 text-sm font-medium text-togo-green-700">
+                    {chap.title}{" "}
+                    <span className="text-xs font-normal text-[var(--color-muted)]">
+                      ({chap.lessons.length})
+                    </span>
+                  </summary>
+                  <ul className="divide-y divide-[var(--color-line)] pl-2">
+                    {chap.lessons
+                      .slice()
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map((l) => {
+                        const s = statusBadge[l.status] ?? statusBadge.draft;
+                        return (
+                          <li key={l.slug}>
+                            <Link
+                              href={`/enseignant/lecon/${l.slug}`}
+                              className="flex items-center justify-between gap-3 py-2.5 hover:text-togo-green-700"
+                            >
+                              <span className="text-sm">{l.title}</span>
+                              <Badge tone={s.tone}>{s.label}</Badge>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </details>
+              );
+
               return (
                 <details
                   key={cls}
@@ -154,37 +210,22 @@ export default async function TeacherHomePage() {
                       · {clsPublished}/{clsLessons} publiées
                     </span>
                   </summary>
-                  <div className="space-y-3 px-4 pb-4">
-                    {chapters.map((chap) => (
-                      <details key={chap.title} className="pl-1">
-                        <summary className="cursor-pointer py-2 text-sm font-medium text-togo-green-700">
-                          {chap.title}{" "}
-                          <span className="text-xs font-normal text-[var(--color-muted)]">
-                            ({chap.lessons.length})
-                          </span>
-                        </summary>
-                        <ul className="divide-y divide-[var(--color-line)] pl-2">
-                          {chap.lessons
-                            .slice()
-                            .sort((a, b) => a.sort_order - b.sort_order)
-                            .map((l) => {
-                              const s =
-                                statusBadge[l.status] ?? statusBadge.draft;
-                              return (
-                                <li key={l.slug}>
-                                  <Link
-                                    href={`/enseignant/lecon/${l.slug}`}
-                                    className="flex items-center justify-between gap-3 py-2.5 hover:text-togo-green-700"
-                                  >
-                                    <span className="text-sm">{l.title}</span>
-                                    <Badge tone={s.tone}>{s.label}</Badge>
-                                  </Link>
-                                </li>
-                              );
-                            })}
-                        </ul>
-                      </details>
-                    ))}
+                  <div className="space-y-4 px-4 pb-4">
+                    {subjects.map((sk) => {
+                      const chapters = [...subjMap.get(sk)!.values()].sort(
+                        (a, b) => a.order - b.order,
+                      );
+                      return (
+                        <div key={sk}>
+                          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-ink">
+                            {subjectName.get(sk) ?? sk}
+                          </p>
+                          <div className="space-y-1">
+                            {chapters.map(renderChapter)}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </details>
               );
