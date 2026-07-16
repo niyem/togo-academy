@@ -10,9 +10,11 @@ import {
   getClasses,
   getLessonsForChapter,
   getLevels,
+  getPlans,
   getSubchapters,
   getSubjectsForClass,
 } from "@/lib/content";
+import { formatXof } from "@/lib/payments";
 
 export async function generateStaticParams() {
   return (await getClasses()).map((c) => ({ classSlug: c.slug }));
@@ -63,6 +65,12 @@ export default async function ClassPage({
   // Prefetch de tout l'arbre matiere -> chapitres -> lecons pour cette classe.
   const levels = await getLevels();
   const level = levels.find((l) => l.slug === schoolClass.levelSlug);
+
+  // Examen (niveau certifications) : formule annuelle dediee "{classe}-annuel".
+  const kitPlan =
+    schoolClass.levelSlug === "certifications"
+      ? (await getPlans()).find((p) => p.slug === `${classSlug}-annuel`)
+      : undefined;
   const subjectList = await getSubjectsForClass(classSlug);
   const subjects = await Promise.all(
     subjectList.map(async (subject) => ({
@@ -118,9 +126,9 @@ export default async function ClassPage({
               : "Le contenu de cette classe est en cours de préparation par nos enseignants."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            {classSlug === "toefl" ? (
-              <Button href="/abonnement/toefl-annuel" variant="primary">
-                Préparer le TOEFL — 8 000 F/an
+            {kitPlan ? (
+              <Button href={`/abonnement/${kitPlan.slug}`} variant="primary">
+                Débloquer ({formatXof(kitPlan.priceXof)} / an)
               </Button>
             ) : (
               <Button href="/tarifs" variant="primary">

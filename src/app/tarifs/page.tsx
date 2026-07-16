@@ -3,7 +3,7 @@
 
 import type { Metadata } from "next";
 import { Button, Card, Container, Eyebrow } from "@/components/ui";
-import { getPlans } from "@/lib/content";
+import { getClasses, getPlans } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Tarifs & abonnements",
@@ -29,10 +29,22 @@ const SCOPE_TAGLINE: Record<string, string> = {
 };
 
 export default async function PricingPage() {
-  const plans = await getPlans();
-  // Le TOEFL a sa propre formule (hors grille scolaire) : mis en avant a part.
-  const schoolPlans = plans.filter((p) => p.slug !== "toefl-annuel");
-  const toefl = plans.find((p) => p.slug === "toefl-annuel");
+  const [plans, allClasses] = await Promise.all([getPlans(), getClasses()]);
+  // Preparation aux examens : chaque kit a sa formule annuelle "{classe}-annuel",
+  // hors de la grille scolaire.
+  const examClasses = allClasses
+    .filter((c) => c.levelSlug === "certifications")
+    .sort((a, b) => a.order - b.order);
+  const examPlanSlugs = new Set(examClasses.map((c) => `${c.slug}-annuel`));
+  const schoolPlans = plans.filter((p) => !examPlanSlugs.has(p.slug));
+  const examKits = examClasses
+    .map((c) => ({
+      cls: c,
+      plan: plans.find((p) => p.slug === `${c.slug}-annuel`),
+    }))
+    .filter((k): k is { cls: typeof k.cls; plan: NonNullable<typeof k.plan> } =>
+      Boolean(k.plan),
+    );
 
   return (
     <Container className="pb-20 pt-14 sm:pt-16">
@@ -127,20 +139,43 @@ export default async function PricingPage() {
         </p>
       </div>
 
-      {toefl && (
-        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6">
-          <div className="max-w-md">
-            <p className="font-semibold text-ink">
-              🗣️ {toefl.name} — {formatXof(toefl.priceXof)} FCFA / an
-            </p>
-            <p className="mt-1 text-sm text-[var(--color-muted)]">
-              Reading, Listening, Speaking, Writing, grammaire et tests blancs.
-              Formule annuelle dédiée, à petit prix. Ouvrez-vous au monde.
+      {examKits.length > 0 && (
+        <div className="mx-auto mt-14 max-w-5xl">
+          <div className="text-center">
+            <h2 className="font-display text-3xl tracking-tight text-ink">
+              Préparation aux examens
+            </h2>
+            <p className="mx-auto mt-2 max-w-2xl text-[var(--color-muted)]">
+              Des kits ciblés problèmes : méthodologie, annales corrigées, sujets
+              types et épreuves blanches. Formule annuelle dédiée par examen (ou
+              incluse dans l&apos;abonnement annuel plateforme).
             </p>
           </div>
-          <Button href={`/abonnement/${toefl.slug}`} variant="primary">
-            Préparer le TOEFL
-          </Button>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {examKits.map(({ cls, plan }) => (
+              <div
+                key={cls.slug}
+                className="flex flex-col rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6"
+              >
+                <h3 className="text-lg font-semibold text-ink">{cls.name}</h3>
+                <div className="mb-4 mt-3 flex items-baseline gap-1">
+                  <span className="font-display text-3xl tracking-tight text-ink">
+                    {formatXof(plan.priceXof)}
+                  </span>
+                  <span className="text-sm text-[var(--color-muted)]">
+                    FCFA / an
+                  </span>
+                </div>
+                <Button
+                  href={`/abonnement/${plan.slug}`}
+                  variant="secondary"
+                  className="mt-auto w-full"
+                >
+                  Se préparer
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

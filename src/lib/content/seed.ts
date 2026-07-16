@@ -58,7 +58,13 @@ export const classes: SchoolClass[] = [
   { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
   { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3, track: "general" },
   // Préparation aux examens (hors cursus scolaire).
-  { slug: "toefl", name: "Préparation TOEFL", levelSlug: "certifications", order: 1, track: "general" },
+  { slug: "cepd", name: "CEPD", levelSlug: "certifications", order: 1, track: "general" },
+  { slug: "bepc", name: "BEPC", levelSlug: "certifications", order: 2, track: "general" },
+  { slug: "probatoire-c", name: "Probatoire C", levelSlug: "certifications", order: 3, track: "general" },
+  { slug: "probatoire-d", name: "Probatoire D", levelSlug: "certifications", order: 4, track: "general" },
+  { slug: "bac-c", name: "Baccalauréat C", levelSlug: "certifications", order: 5, track: "general" },
+  { slug: "bac-d", name: "Baccalauréat D", levelSlug: "certifications", order: 6, track: "general" },
+  { slug: "toefl", name: "Préparation TOEFL", levelSlug: "certifications", order: 7, track: "general" },
 ];
 
 export const subjects: Subject[] = [
@@ -310,7 +316,8 @@ export const plans: SubscriptionPlan[] = [
       "Tableau de bord parent + rapports",
     ],
   },
-  // Formule dediee TOEFL : uniquement annuelle, peu chere, hors grille scolaire.
+  // Formules de preparation aux examens : uniquement annuelles, hors grille
+  // scolaire (memes regles d'acces que le TOEFL).
   {
     slug: "toefl-annuel",
     name: "Préparation TOEFL",
@@ -324,4 +331,26 @@ export const plans: SubscriptionPlan[] = [
       "Un an d'accès, à petit prix",
     ],
   },
+  ...(
+    [
+      ["cepd-annuel", "Préparation CEPD"],
+      ["bepc-annuel", "Préparation BEPC"],
+      ["probatoire-c-annuel", "Préparation Probatoire C"],
+      ["probatoire-d-annuel", "Préparation Probatoire D"],
+      ["bac-c-annuel", "Préparation Baccalauréat C"],
+      ["bac-d-annuel", "Préparation Baccalauréat D"],
+    ] as const
+  ).map(([slug, name]) => ({
+    slug,
+    name,
+    priceXof: 8000,
+    cadence: "annuel" as const,
+    scope: "classe" as const,
+    highlights: [
+      "Méthodologie de chaque épreuve",
+      "Annales corrigées pas à pas",
+      "Sujets types et problèmes classés",
+      "Épreuves blanches chronométrées",
+    ],
+  })),
 ];

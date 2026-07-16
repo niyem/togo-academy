@@ -43,8 +43,12 @@ export default async function SubscribePage({
     .map((c) => ({ value: c.slug, label: c.name }));
   const subjectOpts = allSubjects.map((s) => ({ value: s.key, label: s.name }));
 
-  // La formule TOEFL est verrouillee sur la classe 'toefl' (pas de choix).
-  const lockedClass = plan.slug === "toefl-annuel" ? "toefl" : null;
+  // Formules d'examen (TOEFL, BAC, BEPC...) : verrouillees sur leur classe
+  // dediee (slug de plan = "{classe}-annuel" sous le niveau certifications).
+  const kitClass = allClasses.find(
+    (c) => c.levelSlug === "certifications" && plan.slug === `${c.slug}-annuel`,
+  );
+  const lockedClass = kitClass?.slug ?? null;
 
   return (
     <Section>
@@ -74,7 +78,7 @@ export default async function SubscribePage({
             subjects={subjectOpts}
             defaultClass={profile?.class_slug ?? null}
             lockedClass={lockedClass}
-            lockedClassLabel="Préparation TOEFL"
+            lockedClassLabel={kitClass?.name ?? "ce parcours"}
           />
         </Card>
       </Container>
