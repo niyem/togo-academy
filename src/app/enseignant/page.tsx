@@ -30,13 +30,34 @@ export default async function TeacherHomePage() {
   // RLS : lecons publiees + ses propres brouillons (tout pour l'admin).
   // Le catalogue de placeholders est volumineux : on groupe par classe puis
   // par chapitre (module) pour rester navigable et attacher les videos une a une.
-  const [{ data: lessons }, { data: classRows }] = await Promise.all([
-    supabase
+  // PostgREST plafonne a 1000 lignes par requete : on pagine par 'slug' (unique,
+  // donc pagination stable) pour tout recuperer, l'ordre d'affichage etant
+  // recalcule ensuite via sort_order.
+  const LESSON_SELECT =
+    "slug,title,status,sort_order,chapters(title,class_slug,subject_key,sort_order)";
+  type LessonRow = {
+    slug: string;
+    title: string;
+    status: string;
+    sort_order: number;
+    chapters: unknown;
+  };
+  const lessons: LessonRow[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
       .from("lessons")
-      .select("slug,title,status,sort_order,chapters(title,class_slug,subject_key,sort_order)")
-      .order("sort_order"),
-    supabase.from("classes").select("slug,name,sort_order").order("sort_order"),
-  ]);
+      .select(LESSON_SELECT)
+      .order("slug")
+      .range(from, from + PAGE - 1);
+    if (error || !data || data.length === 0) break;
+    lessons.push(...(data as unknown as LessonRow[]));
+    if (data.length < PAGE) break;
+  }
+  const { data: classRows } = await supabase
+    .from("classes")
+    .select("slug,name,sort_order")
+    .order("sort_order");
 
   const className = new Map(
     (classRows ?? []).map((c) => [c.slug as string, c.name as string]),
