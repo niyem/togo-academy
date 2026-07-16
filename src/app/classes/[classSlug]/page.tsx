@@ -137,17 +137,56 @@ export default async function ClassPage({
             </p>
           </Card>
         ) : (
-          <div className="mt-8 space-y-8">
-            {subjects.map((subject) => {
-              // Cote public : on masque les chapitres encore vides (placeholders
-              // sans lecon publiee ni epreuve). Ils reapparaissent des qu'une
-              // lecon est publiee (video attachee cote enseignant).
-              const chapters = subject.chapterList.filter(
+          (() => {
+            // Cote public : matieres ayant au moins un chapitre non vide
+            // (lecon publiee ou epreuve). Structure : classe -> matiere -> modules.
+            const visibleSubjects = subjects.filter((subject) =>
+              subject.chapterList.some(
                 (c) => c.lessonList.length > 0 || c.assessmentList.length > 0,
-              );
-              if (chapters.length === 0) return null;
+              ),
+            );
+            if (visibleSubjects.length === 0) {
               return (
-                <div key={subject.key}>
+                <Card className="mt-8 bg-togo-yellow-100/60">
+                  <p className="font-semibold">Bientôt disponible</p>
+                  <p className="mt-1 text-sm text-[var(--color-muted)]">
+                    Les leçons de cette classe sont en cours de préparation par
+                    nos enseignants.
+                  </p>
+                </Card>
+              );
+            }
+            return (
+              <div className="mt-8 space-y-8">
+                {/* Choisir sa matiere : chaque classe peut en compter plusieurs. */}
+                {visibleSubjects.length > 1 && (
+                  <nav
+                    aria-label="Matières de la classe"
+                    className="flex flex-wrap gap-2"
+                  >
+                    {visibleSubjects.map((s) => (
+                      <a
+                        key={s.key}
+                        href={`#matiere-${s.key}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-togo-green-200 bg-white px-4 py-1.5 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
+                      >
+                        <span aria-hidden>{s.icon}</span> {s.name}
+                      </a>
+                    ))}
+                  </nav>
+                )}
+                {visibleSubjects.map((subject) => {
+                  const chapters = subject.chapterList.filter(
+                    (c) =>
+                      c.lessonList.length > 0 || c.assessmentList.length > 0,
+                  );
+                  if (chapters.length === 0) return null;
+                  return (
+                    <div
+                      key={subject.key}
+                      id={`matiere-${subject.key}`}
+                      className="scroll-mt-24"
+                    >
                   <h2 className="flex items-center gap-2 font-display text-2xl tracking-tight text-ink">
                     <span aria-hidden className="text-xl">
                       {subject.icon}
@@ -319,7 +358,9 @@ export default async function ClassPage({
                 </div>
               );
             })}
-          </div>
+              </div>
+            );
+          })()
         )}
       </Container>
     </Section>
