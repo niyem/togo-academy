@@ -20,6 +20,11 @@ import {
 } from "@/lib/content";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  DEVICE_LIMIT,
+  DEVICE_WINDOW_MINUTES,
+  checkDeviceLimit,
+} from "@/lib/subscriptions/devices";
 import type { Activity } from "@/lib/content/types";
 
 // Rendu TOUJOURS dynamique : la page depend de la session (cookies) pour
@@ -81,6 +86,41 @@ export default async function LessonPage({
     isStaff = profile?.role === "admin" || profile?.role === "teacher";
   }
   const hasAccess = lesson.isFreePreview || subscribed || isStaff;
+
+  // Anti-partage de compte : les abonnes sont limites a DEVICE_LIMIT appareils
+  // actifs en meme temps. Le contenu gratuit et le staff ne sont pas limites.
+  if (user && subscribed && !isStaff && !lesson.isFreePreview) {
+    const device = await checkDeviceLimit(user.id);
+    if (!device.allowed) {
+      return (
+        <Section>
+          <Container className="py-16">
+            <Card className="mx-auto max-w-lg p-8 text-center">
+              <p aria-hidden className="text-4xl">🔒</p>
+              <h1 className="mt-3 font-display text-2xl text-ink">
+                Trop d&apos;appareils connectés en même temps
+              </h1>
+              <p className="mt-3 text-sm text-[var(--color-muted)]">
+                Ton compte est déjà utilisé sur {DEVICE_LIMIT} appareils en ce
+                moment. Ferme la leçon sur un autre appareil, attends environ{" "}
+                {DEVICE_WINDOW_MINUTES} minutes, puis réessaie ici.
+              </p>
+              <p className="mt-3 text-xs text-[var(--color-muted)]">
+                Chaque abonnement permet {DEVICE_LIMIT} appareils à la fois :
+                c&apos;est ce qui garde Togo Academy abordable pour tout le
+                monde. Merci de ta compréhension !
+              </p>
+              <div className="mt-6">
+                <Button href="/tableau-de-bord" variant="secondary">
+                  Retour au tableau de bord
+                </Button>
+              </div>
+            </Card>
+          </Container>
+        </Section>
+      );
+    }
+  }
 
   // Tuteur IA reserve au college et au lycee : au primaire, l'ecrit libre
   // n'est pas adapte (lecture/clavier) ; quiz et videos suffisent.

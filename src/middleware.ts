@@ -29,6 +29,18 @@ export async function middleware(request: NextRequest) {
   });
 
   await supabase.auth.getUser();
+
+  // Identifiant d'appareil (limite d'appareils simultanes par abonnement).
+  // Pose une seule fois par navigateur; httpOnly : non manipulable en JS.
+  if (!request.cookies.get("ta_device")) {
+    response.cookies.set("ta_device", crypto.randomUUID(), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+    });
+  }
   return response;
 }
 
