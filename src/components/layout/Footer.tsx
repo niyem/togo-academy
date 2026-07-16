@@ -54,6 +54,23 @@ export function Footer() {
             />
             Un département de Groupe BM
           </a>
+          <a
+            href="https://www.youtube.com/@TogoAcademy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-white/80 hover:text-togo-yellow-400"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="#FF0000"
+            >
+              <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z" />
+            </svg>
+            Chaîne YouTube
+          </a>
         </div>
         {columns.map((col) => (
           <div key={col.title}>
