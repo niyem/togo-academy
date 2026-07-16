@@ -54,16 +54,33 @@ export default async function TeacherHomePage() {
     lessons.push(...(data as unknown as LessonRow[]));
     if (data.length < PAGE) break;
   }
-  const [{ data: classRows }, { data: subjectRows }] = await Promise.all([
-    supabase.from("classes").select("slug,name,sort_order").order("sort_order"),
-    supabase.from("subjects").select("key,name"),
-  ]);
+  const [{ data: classRows }, { data: subjectRows }, { data: levelRows }] =
+    await Promise.all([
+      supabase
+        .from("classes")
+        .select("slug,name,sort_order,level_slug")
+        .order("sort_order"),
+      supabase.from("subjects").select("key,name"),
+      supabase
+        .from("education_levels")
+        .select("slug,name,sort_order")
+        .order("sort_order"),
+    ]);
 
   const className = new Map(
     (classRows ?? []).map((c) => [c.slug as string, c.name as string]),
   );
   const classOrder = new Map(
     (classRows ?? []).map((c) => [c.slug as string, c.sort_order as number]),
+  );
+  const classLevel = new Map(
+    (classRows ?? []).map((c) => [c.slug as string, c.level_slug as string]),
+  );
+  const levelName = new Map(
+    (levelRows ?? []).map((l) => [l.slug as string, l.name as string]),
+  );
+  const levelRank = new Map(
+    (levelRows ?? []).map((l) => [l.slug as string, l.sort_order as number]),
   );
   const subjectName = new Map(
     (subjectRows ?? []).map((s) => [s.key as string, s.name as string]),
@@ -116,8 +133,19 @@ export default async function TeacherHomePage() {
     chap.lessons.push(r);
   }
 
-  const sortedClasses = [...byClass.keys()].sort(
-    (a, b) => (classOrder.get(a) ?? 99) - (classOrder.get(b) ?? 99),
+  // Regroupement par niveau (Primaire / College / Lycee) -> classes ordonnees.
+  const classesByLevel = new Map<string, string[]>();
+  for (const cls of byClass.keys()) {
+    const lvl = classLevel.get(cls) ?? "(niveau)";
+    (
+      classesByLevel.get(lvl) ?? classesByLevel.set(lvl, []).get(lvl)!
+    ).push(cls);
+  }
+  for (const list of classesByLevel.values()) {
+    list.sort((a, b) => (classOrder.get(a) ?? 99) - (classOrder.get(b) ?? 99));
+  }
+  const sortedLevels = [...classesByLevel.keys()].sort(
+    (a, b) => (levelRank.get(a) ?? 99) - (levelRank.get(b) ?? 99),
   );
 
   const total = rows.length;
@@ -146,8 +174,14 @@ export default async function TeacherHomePage() {
             </p>
           </div>
 
-          <div className="mt-3 space-y-2">
-            {sortedClasses.map((cls) => {
+          <div className="mt-3 space-y-5">
+            {sortedLevels.map((lvl) => (
+              <div key={lvl}>
+                <p className="mb-2 border-b border-[var(--color-line)] pb-1 text-sm font-extrabold uppercase tracking-wide text-togo-green-700">
+                  {levelName.get(lvl) ?? lvl}
+                </p>
+                <div className="space-y-2">
+                  {classesByLevel.get(lvl)!.map((cls) => {
               const subjMap = byClass.get(cls)!;
               const subjects = [...subjMap.keys()].sort(
                 (a, b) =>
@@ -229,7 +263,10 @@ export default async function TeacherHomePage() {
                   </div>
                 </details>
               );
-            })}
+                  })}
+                </div>
+              </div>
+            ))}
             {total === 0 && (
               <p className="py-3 text-sm text-[var(--color-muted)]">
                 Aucune leçon visible. Créez votre première leçon !
