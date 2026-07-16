@@ -7,6 +7,7 @@ import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
 import { GrantRetakeForm } from "@/components/admin/GrantRetakeForm";
 import { TutorReview } from "@/components/tutor/forms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Administration" };
 
@@ -63,10 +64,32 @@ export default async function AdminPage() {
         .limit(50),
       supabase
         .from("tutor_profiles")
-        .select("user_id,full_name,headline,subject_keys,class_slugs,created_at")
+        .select(
+          "user_id,full_name,headline,subject_keys,class_slugs,created_at,cv_path,proof_path",
+        )
         .eq("status", "pending")
         .order("created_at", { ascending: true }),
     ]);
+
+  // URLs signees (1 h) des pieces justificatives des candidatures en attente.
+  const adminClient = createSupabaseAdminClient();
+  const tutorDocs = new Map<string, { cv?: string; proof?: string }>();
+  for (const t of tutorApps.data ?? []) {
+    const entry: { cv?: string; proof?: string } = {};
+    if (adminClient && t.cv_path) {
+      const { data } = await adminClient.storage
+        .from("tutor-docs")
+        .createSignedUrl(t.cv_path, 3600);
+      entry.cv = data?.signedUrl ?? undefined;
+    }
+    if (adminClient && t.proof_path) {
+      const { data } = await adminClient.storage
+        .from("tutor-docs")
+        .createSignedUrl(t.proof_path, 3600);
+      entry.proof = data?.signedUrl ?? undefined;
+    }
+    tutorDocs.set(t.user_id, entry);
+  }
 
   const messages: InboxItem[] = (inbox.data ?? []).map((m) => ({
     id: m.id,
@@ -209,6 +232,34 @@ export default async function AdminPage() {
                     <span className="block text-xs text-[var(--color-muted)]">
                       Matières : {(t.subject_keys ?? []).join(", ") || "—"} ·
                       Classes : {(t.class_slugs ?? []).join(", ") || "—"}
+                    </span>
+                    <span className="mt-1 flex flex-wrap gap-3 text-xs">
+                      {tutorDocs.get(t.user_id)?.cv ? (
+                        <a
+                          href={tutorDocs.get(t.user_id)!.cv}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-togo-green-700 hover:underline"
+                        >
+                          ↓ CV
+                        </a>
+                      ) : (
+                        <span className="text-[var(--color-muted)]">CV manquant</span>
+                      )}
+                      {tutorDocs.get(t.user_id)?.proof ? (
+                        <a
+                          href={tutorDocs.get(t.user_id)!.proof}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-togo-green-700 hover:underline"
+                        >
+                          ↓ Justificatif d&apos;emploi
+                        </a>
+                      ) : (
+                        <span className="text-[var(--color-muted)]">
+                          Justificatif manquant
+                        </span>
+                      )}
                     </span>
                   </div>
                   <TutorReview userId={t.user_id} />

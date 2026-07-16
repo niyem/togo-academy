@@ -133,6 +133,39 @@ export function TutorApplicationForm({
         </div>
       </div>
 
+      <div className="rounded-xl border border-togo-green-100 bg-white p-4">
+        <p className="text-sm font-semibold">Pièces justificatives</p>
+        <p className="mt-1 text-xs text-[var(--color-muted)]">
+          Obligatoires pour valider votre candidature. PDF, Word, JPG ou PNG
+          (8 Mo max par fichier).
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={label}>CV</label>
+            <input
+              name="cv"
+              type="file"
+              required
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-togo-green-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-togo-green-700"
+            />
+          </div>
+          <div>
+            <label className={label}>Justificatif d&apos;emploi</label>
+            <input
+              name="proof"
+              type="file"
+              required
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-togo-green-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-togo-green-700"
+            />
+            <p className="mt-1 text-xs text-[var(--color-muted)]">
+              Attestation de travail, contrat ou bulletin de salaire.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Err state={state} />
       <Button type="submit" className="w-fit">
         {pending ? "Envoi..." : "Envoyer ma candidature"}

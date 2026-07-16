@@ -17,6 +17,61 @@ export type TutorState = { error?: string; ok?: boolean };
 
 const now = () => new Date().toISOString();
 
+// Documents de candidature : CV + justificatif d'emploi.
+const DOC_MAX_BYTES = 8 * 1024 * 1024; // 8 Mo
+const DOC_ALLOWED = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+type UploadFile = {
+  name: string;
+  type: string;
+  size: number;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+};
+
+function asFile(v: FormDataEntryValue | null): UploadFile | null {
+  if (v && typeof v === "object" && "arrayBuffer" in v && "size" in v) {
+    return v as unknown as UploadFile;
+  }
+  return null;
+}
+
+/** Valide un fichier ; renvoie un message d'erreur ou null si OK. */
+function validateDoc(f: UploadFile | null, label: string): string | null {
+  if (!f || f.size === 0) return `Ajoutez votre ${label}.`;
+  if (f.size > DOC_MAX_BYTES) return `${label} : fichier trop lourd (8 Mo max).`;
+  if (f.type && !DOC_ALLOWED.includes(f.type)) {
+    return `${label} : format accepté PDF, Word, JPG ou PNG.`;
+  }
+  return null;
+}
+
+/** Televerse un document dans tutor-docs ; renvoie le chemin ou null. */
+async function uploadDoc(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+  file: UploadFile,
+  kind: string,
+): Promise<string | null> {
+  if (!admin) return null;
+  const ext = (file.name.split(".").pop() || "bin")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  const path = `${userId}/${kind}.${ext}`;
+  const { error } = await admin.storage
+    .from("tutor-docs")
+    .upload(path, await file.arrayBuffer(), {
+      contentType: file.type || "application/octet-stream",
+      upsert: true,
+    });
+  return error ? null : path;
+}
+
 export async function applyAsTutor(
   _prev: TutorState,
   formData: FormData,
@@ -31,6 +86,8 @@ export async function applyAsTutor(
   const rate = Number(formData.get("rate") ?? 0) || null;
   const subjectKeys = formData.getAll("subjects").map(String).filter(Boolean);
   const classSlugs = formData.getAll("classes").map(String).filter(Boolean);
+  const cv = asFile(formData.get("cv"));
+  const proof = asFile(formData.get("proof"));
 
   if (!email || !password || !fullName) {
     return { error: "Nom, e-mail et mot de passe sont obligatoires." };
@@ -41,6 +98,10 @@ export async function applyAsTutor(
   if (subjectKeys.length === 0) {
     return { error: "Choisissez au moins une matière que vous enseignez." };
   }
+  const cvErr = validateDoc(cv, "CV");
+  if (cvErr) return { error: cvErr };
+  const proofErr = validateDoc(proof, "justificatif d'emploi");
+  if (proofErr) return { error: proofErr };
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
@@ -55,6 +116,11 @@ export async function applyAsTutor(
 
   const admin = createSupabaseAdminClient();
   if (admin) {
+    // Documents deja valides ci-dessus ; upload via la cle service.
+    const cvPath = cv ? await uploadDoc(admin, userId, cv, "cv") : null;
+    const proofPath = proof
+      ? await uploadDoc(admin, userId, proof, "justificatif")
+      : null;
     const { error: pErr } = await admin.from("tutor_profiles").upsert({
       user_id: userId,
       status: "pending",
@@ -66,6 +132,8 @@ export async function applyAsTutor(
       class_slugs: classSlugs,
       availability,
       rate_xof: rate,
+      cv_path: cvPath,
+      proof_path: proofPath,
       updated_at: now(),
     });
     if (pErr) return { error: "Compte créé mais candidature non enregistrée." };
