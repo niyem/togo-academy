@@ -146,15 +146,32 @@ export async function getSubjectsForClass(classSlug: string): Promise<Subject[]>
     );
     return subjects.filter((s) => keys.has(s.key));
   }
-  // Seuls les chapitres ayant au moins une lecon publiee comptent :
-  // un cours entierement depublie disparait du site public.
+  // Matieres PROPOSEES (au moins un chapitre au programme), publiees ou non :
+  // le visiteur doit voir toute l'offre, meme si les videos arrivent encore.
   const { data } = await db
     .from("chapters")
-    .select("subject_key,lessons!inner(status)")
-    .eq("class_slug", classSlug)
-    .eq("lessons.status", "published");
+    .select("subject_key")
+    .eq("class_slug", classSlug);
   const keys = new Set((data ?? []).map((r) => r.subject_key));
   return (await getSubjects()).filter((s) => keys.has(s.key));
+}
+
+/** Slugs des classes ayant au moins une lecon publiee (contenu en ligne). */
+export async function getPublishedClassSlugs(): Promise<string[]> {
+  if (!db) {
+    return [
+      ...new Set(
+        lessons.filter((l) => l.status === "publie").map((l) => l.classSlug),
+      ),
+    ];
+  }
+  const { data } = await db
+    .from("lessons")
+    .select("chapters!inner(class_slug)")
+    .eq("status", "published");
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  return [...new Set((data ?? []).map((r: any) => r.chapters.class_slug))];
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
 /**
@@ -170,11 +187,10 @@ export async function getSubjectsByClass(): Promise<Record<string, string[]>> {
       pairs.push({ classSlug: ch.classSlug, subjectKey: ch.subjectKey }),
     );
   } else {
-    // Meme regle que getSubjectsForClass : lecons publiees uniquement.
+    // Matieres PROPOSEES (tout chapitre au programme), publiees ou non.
     const { data } = await db
       .from("chapters")
-      .select("class_slug,subject_key,lessons!inner(status)")
-      .eq("lessons.status", "published");
+      .select("class_slug,subject_key");
     (data ?? []).forEach((r) =>
       pairs.push({ classSlug: r.class_slug, subjectKey: r.subject_key }),
     );

@@ -265,7 +265,7 @@ export function CatalogueExplorer({
                                 </span>
                                 {c.hasContent ? (
                                   <span className="rounded-full border border-togo-green-100 bg-white px-2.5 py-0.5 text-xs font-semibold text-togo-green-700">
-                                    Gratuit
+                                    Disponible
                                   </span>
                                 ) : (
                                   <span className="rounded-full bg-togo-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-togo-yellow-600">
@@ -278,8 +278,8 @@ export function CatalogueExplorer({
                                   <div className="text-xs text-[var(--color-muted)]">
                                     {c.subjects.length}{" "}
                                     {c.subjects.length > 1
-                                      ? "matières disponibles"
-                                      : "matière disponible"}
+                                      ? "matières au programme"
+                                      : "matière au programme"}
                                   </div>
                                   <div className="flex flex-wrap gap-1.5">
                                     {c.subjects.slice(0, 3).map((s) => (

@@ -114,7 +114,7 @@ export default async function ClassPage({
           </h1>
           <p className="mt-3 max-w-lg text-[var(--color-muted)]">
             {subjects.length > 0
-              ? `${subjects.length} matière${subjects.length > 1 ? "s" : ""} disponible${subjects.length > 1 ? "s" : ""} · leçons, quiz, évaluations et examens alignés sur le programme officiel.`
+              ? `${subjects.length} matière${subjects.length > 1 ? "s" : ""} au programme · leçons, quiz, évaluations et examens alignés sur le programme officiel.`
               : "Le contenu de cette classe est en cours de préparation par nos enseignants."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -138,24 +138,10 @@ export default async function ClassPage({
           </Card>
         ) : (
           (() => {
-            // Cote public : matieres ayant au moins un chapitre non vide
-            // (lecon publiee ou epreuve). Structure : classe -> matiere -> modules.
-            const visibleSubjects = subjects.filter((subject) =>
-              subject.chapterList.some(
-                (c) => c.lessonList.length > 0 || c.assessmentList.length > 0,
-              ),
-            );
-            if (visibleSubjects.length === 0) {
-              return (
-                <Card className="mt-8 bg-togo-yellow-100/60">
-                  <p className="font-semibold">Bientôt disponible</p>
-                  <p className="mt-1 text-sm text-[var(--color-muted)]">
-                    Les leçons de cette classe sont en cours de préparation par
-                    nos enseignants.
-                  </p>
-                </Card>
-              );
-            }
+            // Toutes les matieres proposees (au programme), publiees ou non :
+            // le visiteur voit l'offre complete de la classe. Les modules dont
+            // les videos ne sont pas encore en ligne apparaissent en apercu.
+            const visibleSubjects = subjects;
             return (
               <div className="mt-8 space-y-8">
                 {/* Choisir sa matiere : chaque classe peut en compter plusieurs. */}
@@ -176,11 +162,7 @@ export default async function ClassPage({
                   </nav>
                 )}
                 {visibleSubjects.map((subject) => {
-                  const chapters = subject.chapterList.filter(
-                    (c) =>
-                      c.lessonList.length > 0 || c.assessmentList.length > 0,
-                  );
-                  if (chapters.length === 0) return null;
+                  const chapters = subject.chapterList; // tous les modules au programme
                   return (
                     <div
                       key={subject.key}
@@ -273,8 +255,13 @@ export default async function ClassPage({
 
                       return (
                         <Card key={chapter.slug}>
-                          <h3 className="font-bold text-togo-green-700">
+                          <h3 className="flex flex-wrap items-center gap-2 font-bold text-togo-green-700">
                             {chapter.title}
+                            {lessons.length === 0 && (
+                              <span className="rounded-full bg-togo-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-togo-yellow-600">
+                                Bientôt
+                              </span>
+                            )}
                           </h3>
 
                           {groups.map(({ sc, lessons: scLessons, evaluation }) => (
@@ -285,6 +272,11 @@ export default async function ClassPage({
                               <ul className="divide-y divide-[var(--color-line)]">
                                 {scLessons.map(lessonRow)}
                               </ul>
+                              {scLessons.length === 0 && (
+                                <p className="py-2 text-sm text-[var(--color-muted)]">
+                                  Vidéos bientôt disponibles.
+                                </p>
+                              )}
                               {evaluation && (
                                 <Link
                                   href={`/evaluation/${evaluation.slug}`}

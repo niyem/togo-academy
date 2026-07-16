@@ -7,7 +7,12 @@ import {
   CatalogueExplorer,
   type ExplorerClass,
 } from "@/components/catalogue/CatalogueExplorer";
-import { getClasses, getLevels, getSubjectsByClass } from "@/lib/content";
+import {
+  getClasses,
+  getLevels,
+  getPublishedClassSlugs,
+  getSubjectsByClass,
+} from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Catalogue",
@@ -18,28 +23,27 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function CataloguePage() {
-  const [levels, allClasses, subjectsByClass] = await Promise.all([
-    getLevels(),
-    getClasses(),
-    getSubjectsByClass(),
-  ]);
+  const [levels, allClasses, subjectsByClass, publishedSlugs] =
+    await Promise.all([
+      getLevels(),
+      getClasses(),
+      getSubjectsByClass(),
+      getPublishedClassSlugs(),
+    ]);
+  const liveClasses = new Set(publishedSlugs);
 
-  // Lancement centre sur l'enseignement GENERAL : les filieres techniques
-  // (CET, lycee technique) restent en base et reviendront au catalogue
-  // quand leur contenu sera pret.
+  // Toutes les classes (enseignement general) avec les matieres PROPOSEES.
+  // hasContent = des lecons sont deja EN LIGNE (sinon : au programme, a venir).
   const classes: ExplorerClass[] = allClasses
     .filter((c) => c.track === "general")
-    .map((c) => {
-      const subjects = subjectsByClass[c.slug] ?? [];
-      return {
-        slug: c.slug,
-        name: c.name,
-        levelSlug: c.levelSlug,
-        track: c.track,
-        subjects,
-        hasContent: subjects.length > 0,
-      };
-    });
+    .map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      levelSlug: c.levelSlug,
+      track: c.track,
+      subjects: subjectsByClass[c.slug] ?? [],
+      hasContent: liveClasses.has(c.slug),
+    }));
 
   return (
     <Container className="pb-20 pt-12 sm:pt-16">
