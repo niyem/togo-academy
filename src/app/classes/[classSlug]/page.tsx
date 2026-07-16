@@ -139,7 +139,13 @@ export default async function ClassPage({
         ) : (
           <div className="mt-8 space-y-8">
             {subjects.map((subject) => {
-              const chapters = subject.chapterList;
+              // Cote public : on masque les chapitres encore vides (placeholders
+              // sans lecon publiee ni epreuve). Ils reapparaissent des qu'une
+              // lecon est publiee (video attachee cote enseignant).
+              const chapters = subject.chapterList.filter(
+                (c) => c.lessonList.length > 0 || c.assessmentList.length > 0,
+              );
+              if (chapters.length === 0) return null;
               return (
                 <div key={subject.key}>
                   <h2 className="flex items-center gap-2 font-display text-2xl tracking-tight text-ink">

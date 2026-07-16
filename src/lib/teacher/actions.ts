@@ -117,6 +117,16 @@ export async function saveActivity(
   }
   const lessonSlug = String(formData.get("lesson_slug") ?? "");
   const id = String(formData.get("id") ?? "");
+  const videoRef = String(formData.get("video_ref") ?? "").trim() || null;
+  // Hebergeur choisi dans le formulaire. Vide + ref presente => 'placeholder'
+  // (video annoncee mais pas encore disponible) ; vide + pas de ref => null.
+  const providerRaw = String(formData.get("video_provider") ?? "").trim();
+  const allowedProviders = ["youtube", "supabase", "bunny", "cloudflare", "placeholder"];
+  const videoProvider = allowedProviders.includes(providerRaw)
+    ? providerRaw
+    : videoRef
+      ? "placeholder"
+      : null;
   const record = {
     type: String(formData.get("type") ?? "lecture"),
     title: String(formData.get("title") ?? "").trim(),
@@ -124,7 +134,8 @@ export async function saveActivity(
     body: String(formData.get("body") ?? "").trim() || null,
     hint: String(formData.get("hint") ?? "").trim() || null,
     solution: String(formData.get("solution") ?? "").trim() || null,
-    video_ref: String(formData.get("video_ref") ?? "").trim() || null,
+    video_ref: videoRef,
+    video_provider: videoProvider,
     duration_sec: Number(formData.get("duration_sec") ?? 0) || null,
   };
   if (!record.title) return { error: "Titre obligatoire." };
@@ -142,7 +153,6 @@ export async function saveActivity(
     const { error } = await supabase.from("activities").insert({
       ...record,
       lesson_id: lessonRows[0].id,
-      video_provider: record.video_ref ? "placeholder" : null,
     });
     if (error) return { error: "Erreur d'ajout." };
   }

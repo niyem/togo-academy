@@ -211,9 +211,23 @@ export function ActivityForm({
           <input name="solution" defaultValue={activity?.solution ?? ""} className={input} />
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className={label}>Réf. vidéo (fournisseur)</label>
+          <label className={label}>Hébergeur vidéo</label>
+          <select
+            name="video_provider"
+            defaultValue={activity?.videoProvider ?? ""}
+            className={input}
+          >
+            <option value="">Aucun (placeholder)</option>
+            <option value="youtube">YouTube (gratuit)</option>
+            <option value="supabase">Supabase (payant)</option>
+            <option value="bunny">Bunny</option>
+            <option value="cloudflare">Cloudflare</option>
+          </select>
+        </div>
+        <div>
+          <label className={label}>Réf. vidéo (ID / URL)</label>
           <input name="video_ref" defaultValue={activity?.videoRef ?? ""} className={input} />
         </div>
         <div>
