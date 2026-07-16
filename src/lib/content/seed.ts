@@ -32,6 +32,12 @@ export const levels: EducationLevel[] = [
     description: "Approfondir les sciences jusqu'au Baccalauréat.",
     order: 3,
   },
+  {
+    slug: "certifications",
+    name: "Préparation aux examens",
+    description: "Certifications d'anglais et concours : ouvrez-vous au monde.",
+    order: 4,
+  },
 ];
 
 export const classes: SchoolClass[] = [
@@ -51,6 +57,8 @@ export const classes: SchoolClass[] = [
   { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1, track: "general" },
   { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
   { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3, track: "general" },
+  // Préparation aux examens (hors cursus scolaire).
+  { slug: "toefl", name: "Préparation TOEFL", levelSlug: "certifications", order: 1, track: "general" },
 ];
 
 export const subjects: Subject[] = [
@@ -83,6 +91,12 @@ export const subjects: Subject[] = [
     name: "Sciences physiques (SPT)",
     icon: "🔬",
     description: "Physique, chimie et technologie au collège.",
+  },
+  {
+    key: "anglais",
+    name: "Anglais",
+    icon: "🗣️",
+    description: "Anglais du primaire au lycée, et préparation au TOEFL.",
   },
   {
     key: "technologie",

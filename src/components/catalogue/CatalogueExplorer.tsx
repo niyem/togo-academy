@@ -164,7 +164,7 @@ export function CatalogueExplorer({
                     {lvl.name}
                   </h2>
                   <span className="text-sm text-[var(--color-muted)]">
-                    {inLevel.length} classes
+                    {inLevel.length} classe{inLevel.length > 1 ? "s" : ""}
                   </span>
                 </div>
                 <p className="mb-6 pl-[22px] text-sm text-[var(--color-muted)]">

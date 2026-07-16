@@ -4,7 +4,11 @@
 // and the Supabase-backed data layer (production). The SQL migration in
 // supabase/migrations mirrors this shape.
 
-export type LevelStage = "primaire" | "college" | "lycee";
+export type LevelStage =
+  | "primaire"
+  | "college"
+  | "lycee"
+  | "certifications"; // hors cursus scolaire (TOEFL, concours)
 
 export type SubjectKey =
   | "mathematiques"
@@ -12,6 +16,7 @@ export type SubjectKey =
   | "chimie"
   | "svt" // Sciences de la Vie et de la Terre (biology / life sciences)
   | "spt" // Sciences Physiques et Technologie (physique-chimie-techno, college)
+  | "anglais" // English (school subject + primary songs + TOEFL prep)
   | "technologie"
   | "informatique";
 
