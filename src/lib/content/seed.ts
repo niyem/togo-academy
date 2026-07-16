@@ -51,14 +51,10 @@ export const classes: SchoolClass[] = [
   { slug: "cet1", name: "1ère année CET", levelSlug: "college", order: 11, track: "technique" },
   { slug: "cet2", name: "2ème année CET", levelSlug: "college", order: 12, track: "technique" },
   { slug: "cet3", name: "3ème année CET", levelSlug: "college", order: 13, track: "technique" },
-  // Lycée : enseignement général (BAC)
+  // Lycée : enseignement général (BAC). Pas de lycée technique.
   { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1, track: "general" },
   { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
   { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3, track: "general" },
-  // Lycée : enseignement technique (séries F, G, E, Ti précisées plus tard)
-  { slug: "seconde-technique", name: "Seconde technique", levelSlug: "lycee", order: 11, track: "technique" },
-  { slug: "premiere-technique", name: "Première technique", levelSlug: "lycee", order: 12, track: "technique" },
-  { slug: "terminale-technique", name: "Terminale technique", levelSlug: "lycee", order: 13, track: "technique" },
 ];
 
 export const subjects: Subject[] = [
