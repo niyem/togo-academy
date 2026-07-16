@@ -314,7 +314,7 @@ export const plans: SubscriptionPlan[] = [
   {
     slug: "toefl-annuel",
     name: "Préparation TOEFL",
-    priceXof: 5000,
+    priceXof: 8000,
     cadence: "annuel",
     scope: "classe",
     highlights: [

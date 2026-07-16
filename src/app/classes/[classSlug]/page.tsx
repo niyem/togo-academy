@@ -120,7 +120,7 @@ export default async function ClassPage({
           <div className="mt-6 flex flex-wrap gap-3">
             {classSlug === "toefl" ? (
               <Button href="/abonnement/toefl-annuel" variant="primary">
-                Préparer le TOEFL — 5 000 F/an
+                Préparer le TOEFL — 8 000 F/an
               </Button>
             ) : (
               <Button href="/tarifs" variant="primary">
