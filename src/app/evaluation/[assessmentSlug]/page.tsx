@@ -62,7 +62,11 @@ export default async function AssessmentPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
   const [{ data: subscribed }, { data: profile }] = await Promise.all([
-    supabase.rpc("has_active_subscription", { uid: user.id }),
+    // Acces selon le perimetre : la (classe, matiere) de l'epreuve.
+    supabase.rpc("has_assessment_access", {
+      uid: user.id,
+      p_assessment: assessment.id,
+    }),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
   ]);
   const isStaff = profile?.role === "admin" || profile?.role === "teacher";

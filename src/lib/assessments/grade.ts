@@ -265,7 +265,11 @@ export async function gradeAssessment(input: {
   if (!user) return { ok: false, error: "Connexion requise." };
 
   const [{ data: sub }, { data: profile }] = await Promise.all([
-    supabase.rpc("has_active_subscription", { uid: user.id }),
+    // Acces selon le perimetre de l'epreuve (classe + matiere).
+    supabase.rpc("has_assessment_access", {
+      uid: user.id,
+      p_assessment: assessment.id,
+    }),
     supabase.from("profiles").select("role").eq("id", user.id).single(),
   ]);
   const isStaff = profile?.role === "admin" || profile?.role === "teacher";
