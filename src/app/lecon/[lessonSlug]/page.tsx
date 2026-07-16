@@ -161,7 +161,15 @@ export default async function LessonPage({
   const videoUrls = new Map<string, string>();
   const videoDownloadUrls = new Map<string, string>();
   const videoSubtitleUrls = new Map<string, string>();
+  // Videos YouTube (niveaux gratuits, ex. primaire) : pas d'URL signee,
+  // l'iframe utilise directement l'identifiant de la video.
+  const videoYoutubeIds = new Map<string, string>();
   if (hasAccess) {
+    for (const a of lesson.activities) {
+      if (a.type === "video" && a.videoProvider === "youtube" && a.videoRef) {
+        videoYoutubeIds.set(a.id, a.videoRef);
+      }
+    }
     const admin = createSupabaseAdminClient();
     if (admin) {
       for (const a of lesson.activities) {
@@ -274,6 +282,7 @@ export default async function LessonPage({
                   videoUrl={videoUrls.get(activity.id) ?? null}
                   videoDownloadUrl={videoDownloadUrls.get(activity.id) ?? null}
                   videoSubtitlesUrl={videoSubtitleUrls.get(activity.id) ?? null}
+                  videoYoutubeId={videoYoutubeIds.get(activity.id) ?? null}
                 />
                 {/* Navigation collee au lecteur : passer a la video
                     precedente / suivante sans faire defiler la page. */}
@@ -412,12 +421,14 @@ function ActivityView({
   videoUrl,
   videoDownloadUrl,
   videoSubtitlesUrl,
+  videoYoutubeId,
 }: {
   activity: Activity;
   lessonSlug: string;
   videoUrl: string | null;
   videoDownloadUrl: string | null;
   videoSubtitlesUrl: string | null;
+  videoYoutubeId: string | null;
 }) {
   switch (activity.type) {
     case "video":
@@ -427,6 +438,7 @@ function ActivityView({
           videoUrl={videoUrl}
           downloadUrl={videoDownloadUrl}
           subtitlesUrl={videoSubtitlesUrl}
+          youtubeId={videoYoutubeId}
         />
       );
     case "quiz":

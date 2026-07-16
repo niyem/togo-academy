@@ -48,10 +48,13 @@ export async function activateSubscription(
 
   const cadence =
     (sub.plans as unknown as { cadence: string } | null)?.cadence ?? "monthly";
-  const months = MONTHS[cadence] ?? 1;
   const start = new Date();
   const end = new Date(start);
-  end.setMonth(end.getMonth() + months);
+  if (cadence === "weekly") {
+    end.setDate(end.getDate() + 7);
+  } else {
+    end.setMonth(end.getMonth() + (MONTHS[cadence] ?? 1));
+  }
   const iso = (d: Date) => d.toISOString().slice(0, 10);
 
   const { error: e1 } = await supabase

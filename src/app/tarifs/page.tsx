@@ -15,6 +15,13 @@ function formatXof(n: number) {
   return n === 0 ? "0" : n.toLocaleString("fr-FR");
 }
 
+const CADENCE_UNIT: Record<string, string> = {
+  hebdomadaire: "semaine",
+  mensuel: "mois",
+  trimestriel: "trimestre",
+  annuel: "an",
+};
+
 const SCOPE_TAGLINE: Record<string, string> = {
   plateforme: "Accès à toute la plateforme.",
   classe: "Toutes les matières d'une classe.",
@@ -37,13 +44,13 @@ export default async function PricingPage() {
         </p>
       </div>
 
-      <div className="grid items-start gap-5 md:grid-cols-3">
+      <div className="grid items-start gap-5 md:grid-cols-3 xl:grid-cols-5">
         {plans.map((plan) => {
           const featured = plan.recommended;
           return (
             <div
               key={plan.slug}
-              className={`flex flex-col rounded-2xl bg-togo-green-50 p-8 ${
+              className={`flex flex-col rounded-2xl bg-togo-green-50 p-6 ${
                 featured
                   ? "border-2 border-togo-green-600 shadow-md"
                   : "border border-togo-green-100"
@@ -65,7 +72,7 @@ export default async function PricingPage() {
                   {formatXof(plan.priceXof)}
                 </span>
                 <span className="text-sm text-[var(--color-muted)]">
-                  FCFA{plan.priceXof > 0 && ` / ${plan.cadence}`}
+                  FCFA{plan.priceXof > 0 && ` / ${CADENCE_UNIT[plan.cadence]}`}
                 </span>
               </div>
               <ul className="mb-7 space-y-2.5 text-sm">
@@ -104,6 +111,17 @@ export default async function PricingPage() {
             </div>
           );
         })}
+      </div>
+
+      <div className="mx-auto mt-10 max-w-3xl rounded-2xl border-2 border-togo-yellow-400 bg-togo-yellow-400/10 p-6 text-center">
+        <p className="font-semibold text-ink">
+          🎁 Le primaire (CP1 → CM1) sera entièrement gratuit.
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          Pour tous, sans abonnement : les leçons du primaire arrivent sur la
+          plateforme et sur notre chaîne YouTube. L&apos;éducation de base est
+          notre mission sociale.
+        </p>
       </div>
 
       <p className="mt-8 text-center text-sm text-[var(--color-muted)]">

@@ -24,11 +24,14 @@ export function VideoPlayer({
   videoUrl = null,
   downloadUrl = null,
   subtitlesUrl = null,
+  youtubeId = null,
 }: {
   activity: Activity;
   videoUrl?: string | null;
   downloadUrl?: string | null;
   subtitlesUrl?: string | null;
+  /** Video hebergee sur YouTube (niveaux gratuits) : identifiant de la video. */
+  youtubeId?: string | null;
 }) {
   const real = !!videoUrl;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -72,6 +75,29 @@ export function VideoPlayer({
     active && selected
       ? active.options.find((o) => o.id === selected)?.correct === true
       : null;
+
+  // Mode YouTube : lecteur embarque (youtube-nocookie), sans questions
+  // integrees (les checkpoints ne s'appliquent qu'aux videos hebergees).
+  if (youtubeId) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-[var(--color-line)]">
+        <iframe
+          className="block aspect-video w-full bg-black"
+          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&hl=fr&cc_lang_pref=fr`}
+          title={activity.title}
+          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          loading="lazy"
+        />
+        <div className="flex items-center justify-between gap-2 border-t border-[var(--color-line)] bg-togo-green-50 px-3 py-2">
+          <p className="text-xs text-[var(--color-muted)]">
+            Cette leçon est aussi sur notre chaîne YouTube, gratuitement.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   function resume(markDone: boolean) {
     if (active && markDone) done.current.add(active.id);

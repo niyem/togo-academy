@@ -139,7 +139,7 @@ export interface SubscriptionPlan {
   slug: string;
   name: string;
   priceXof: number; // West African CFA franc
-  cadence: "mensuel" | "trimestriel" | "annuel";
+  cadence: "hebdomadaire" | "mensuel" | "trimestriel" | "annuel";
   scope: "plateforme" | "classe" | "matiere";
   highlights: string[];
   recommended?: boolean;
