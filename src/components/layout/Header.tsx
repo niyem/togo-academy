@@ -60,12 +60,17 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { authed, role } = useSessionRole();
 
-  const roleLink =
+  // L'admin gere aussi le contenu : on lui donne les deux acces (le tableau
+  // d'administration et la bibliotheque de lecons /enseignant).
+  const roleLinks =
     role === "admin"
-      ? { href: "/admin", label: "Administration" }
+      ? [
+          { href: "/admin", label: "Administration" },
+          { href: "/enseignant", label: "Contenu" },
+        ]
       : role === "teacher"
-        ? { href: "/enseignant", label: "Espace enseignant" }
-        : null;
+        ? [{ href: "/enseignant", label: "Espace enseignant" }]
+        : [];
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -102,14 +107,15 @@ export function Header() {
         <div className="hidden items-center gap-3 md:flex">
           {authed ? (
             <>
-              {roleLink && (
+              {roleLinks.map((rl) => (
                 <Link
-                  href={roleLink.href}
+                  key={rl.href}
+                  href={rl.href}
                   className="text-sm font-semibold text-togo-yellow-400 hover:text-white"
                 >
-                  {roleLink.label}
+                  {rl.label}
                 </Link>
-              )}
+              ))}
               <Button
                 href="/tableau-de-bord"
                 className="bg-white !text-forest hover:bg-togo-yellow-400"
@@ -173,15 +179,16 @@ export function Header() {
             ))}
             {authed ? (
               <>
-                {roleLink && (
+                {roleLinks.map((rl) => (
                   <Link
-                    href={roleLink.href}
+                    key={rl.href}
+                    href={rl.href}
                     onClick={() => setOpen(false)}
-                    className="py-3 text-base font-semibold text-togo-yellow-400"
+                    className="border-b border-white/10 py-3 text-base font-semibold text-togo-yellow-400"
                   >
-                    {roleLink.label}
+                    {rl.label}
                   </Link>
-                )}
+                ))}
                 <div className="mt-3">
                   <Button
                     href="/tableau-de-bord"
