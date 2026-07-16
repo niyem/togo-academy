@@ -70,7 +70,9 @@ export function Header() {
         ]
       : role === "teacher"
         ? [{ href: "/enseignant", label: "Espace enseignant" }]
-        : [];
+        : role === "tutor"
+          ? [{ href: "/tuteur", label: "Espace tuteur" }]
+          : [];
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");

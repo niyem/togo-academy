@@ -5,6 +5,7 @@ import { Badge, Card, Container, Section } from "@/components/ui";
 import { PaymentQueue, type PendingItem } from "@/components/admin/PaymentQueue";
 import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
 import { GrantRetakeForm } from "@/components/admin/GrantRetakeForm";
+import { TutorReview } from "@/components/tutor/forms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Administration" };
@@ -31,6 +32,7 @@ export default async function AdminPage() {
     pendingSubs,
     review,
     inbox,
+    tutorApps,
   ] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true })
         .eq("role", "student"),
@@ -59,6 +61,11 @@ export default async function AdminPage() {
         .eq("status", "nouveau")
         .order("created_at", { ascending: true })
         .limit(50),
+      supabase
+        .from("tutor_profiles")
+        .select("user_id,full_name,headline,subject_keys,class_slugs,created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: true }),
     ]);
 
   const messages: InboxItem[] = (inbox.data ?? []).map((m) => ({
@@ -177,6 +184,39 @@ export default async function AdminPage() {
             </ul>
           </Card>
         </div>
+
+        {(tutorApps.data ?? []).length > 0 && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold">🎓 Candidatures tuteurs</h2>
+              <Badge tone="yellow">{(tutorApps.data ?? []).length}</Badge>
+            </div>
+            <ul className="mt-3 divide-y divide-[var(--color-line)]">
+              {(tutorApps.data ?? []).map((t) => (
+                <li
+                  key={t.user_id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3"
+                >
+                  <div>
+                    <span className="font-medium">
+                      {t.full_name ?? "Candidat"}
+                    </span>
+                    {t.headline && (
+                      <span className="block text-xs text-[var(--color-muted)]">
+                        {t.headline}
+                      </span>
+                    )}
+                    <span className="block text-xs text-[var(--color-muted)]">
+                      Matières : {(t.subject_keys ?? []).join(", ") || "—"} ·
+                      Classes : {(t.class_slugs ?? []).join(", ") || "—"}
+                    </span>
+                  </div>
+                  <TutorReview userId={t.user_id} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         <Card className="mt-6">
           <div className="flex items-center justify-between">

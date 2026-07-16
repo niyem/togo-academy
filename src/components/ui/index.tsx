@@ -155,27 +155,13 @@ export function BrandMark({
 }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/togo-academy-logo.png"
+        alt=""
         aria-hidden
-        className={`inline-flex items-center justify-center rounded-lg ${
-          onDark ? "bg-white text-forest" : "bg-togo-green-600 text-white"
-        } ${small ? "h-7 w-7" : "h-8 w-8"}`}
-      >
-        <svg
-          width={small ? 16 : 18}
-          height={small ? 16 : 18}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M2 8.5 L12 4 L22 8.5 L12 13 Z" />
-          <path d="M6 10.6 V15.2 C6 15.2 8.4 17.2 12 17.2 C15.6 17.2 18 15.2 18 15.2 V10.6" />
-          <path d="M22 8.5 V13.5" />
-        </svg>
-      </span>
+        className={`rounded-lg object-cover ${small ? "h-7 w-7" : "h-8 w-8"}`}
+      />
       <span
         className={`font-display tracking-tight ${small ? "text-lg" : "text-xl"} ${
           onDark ? "text-white" : ""

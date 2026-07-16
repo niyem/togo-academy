@@ -132,6 +132,15 @@ export default function RegisterPage() {
               Connexion
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-[var(--color-muted)]">
+            Vous êtes enseignant(e) ?{" "}
+            <Link
+              href="/devenir-tuteur"
+              className="font-semibold text-togo-green-700 hover:underline"
+            >
+              Devenir tuteur
+            </Link>
+          </p>
         </div>
 
         {/* Panneau clair : inclus dès l'inscription */}
