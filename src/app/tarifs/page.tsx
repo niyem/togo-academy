@@ -30,6 +30,9 @@ const SCOPE_TAGLINE: Record<string, string> = {
 
 export default async function PricingPage() {
   const plans = await getPlans();
+  // Le TOEFL a sa propre formule (hors grille scolaire) : mis en avant a part.
+  const schoolPlans = plans.filter((p) => p.slug !== "toefl-annuel");
+  const toefl = plans.find((p) => p.slug === "toefl-annuel");
 
   return (
     <Container className="pb-20 pt-14 sm:pt-16">
@@ -45,7 +48,7 @@ export default async function PricingPage() {
       </div>
 
       <div className="grid items-start gap-5 md:grid-cols-3 xl:grid-cols-5">
-        {plans.map((plan) => {
+        {schoolPlans.map((plan) => {
           const featured = plan.recommended;
           return (
             <div
@@ -115,7 +118,7 @@ export default async function PricingPage() {
 
       <div className="mx-auto mt-10 max-w-3xl rounded-2xl border-2 border-togo-yellow-400 bg-togo-yellow-400/10 p-6 text-center">
         <p className="font-semibold text-ink">
-          🎁 Le primaire (CP1 → CM1) sera entièrement gratuit.
+          🎁 Le primaire (CP1 → CM2) est entièrement gratuit.
         </p>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
           Pour tous, sans abonnement : les leçons du primaire arrivent sur la
@@ -123,6 +126,23 @@ export default async function PricingPage() {
           notre mission sociale.
         </p>
       </div>
+
+      {toefl && (
+        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6">
+          <div className="max-w-md">
+            <p className="font-semibold text-ink">
+              🗣️ {toefl.name} — {formatXof(toefl.priceXof)} FCFA / an
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-muted)]">
+              Reading, Listening, Speaking, Writing, grammaire et tests blancs.
+              Formule annuelle dédiée, à petit prix. Ouvrez-vous au monde.
+            </p>
+          </div>
+          <Button href={`/abonnement/${toefl.slug}`} variant="primary">
+            Préparer le TOEFL
+          </Button>
+        </div>
+      )}
 
       <p className="mt-8 text-center text-sm text-[var(--color-muted)]">
         Prix en francs CFA (FCFA). Paiement par Flooz (Moov Money) ou virement

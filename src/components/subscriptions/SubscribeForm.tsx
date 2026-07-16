@@ -14,12 +14,16 @@ export function SubscribeForm({
   classes,
   subjects,
   defaultClass,
+  lockedClass = null,
+  lockedClassLabel,
 }: {
   planSlug: string;
   scope: string; // "plateforme" | "classe" | "matiere"
   classes: Opt[];
   subjects: Opt[];
   defaultClass?: string | null;
+  lockedClass?: string | null; // classe imposee (ex : formule TOEFL)
+  lockedClassLabel?: string;
 }) {
   const [method, setMethod] = useState<PaymentMethodId>("flooz");
   const [state, action, pending] = useActionState<SubscribeState, FormData>(
@@ -51,7 +55,14 @@ export function SubscribeForm({
       <input type="hidden" name="plan" value={planSlug} />
       <input type="hidden" name="method" value={method} />
 
-      {scope === "plateforme" ? (
+      {lockedClass ? (
+        <>
+          <input type="hidden" name="class" value={lockedClass} />
+          <p className="rounded-lg bg-togo-green-50 px-3 py-2 text-sm font-medium text-togo-green-700">
+            ✓ Accès complet à {lockedClassLabel ?? "ce parcours"} pendant un an.
+          </p>
+        </>
+      ) : scope === "plateforme" ? (
         <p className="rounded-lg bg-togo-green-50 px-3 py-2 text-sm font-medium text-togo-green-700">
           ✓ Accès à toutes les classes et à toutes les matières.
         </p>

@@ -31,10 +31,20 @@ export default async function SubscribePage({
     getClasses(),
     getSubjects(),
   ]);
+  // Le primaire est gratuit et le TOEFL a sa propre formule : on ne les
+  // propose pas dans le selecteur de classe des abonnements scolaires.
   const classOpts = allClasses
-    .filter((c) => c.track === "general" && c.levelSlug !== "primaire")
+    .filter(
+      (c) =>
+        c.track === "general" &&
+        c.levelSlug !== "primaire" &&
+        c.levelSlug !== "certifications",
+    )
     .map((c) => ({ value: c.slug, label: c.name }));
   const subjectOpts = allSubjects.map((s) => ({ value: s.key, label: s.name }));
+
+  // La formule TOEFL est verrouillee sur la classe 'toefl' (pas de choix).
+  const lockedClass = plan.slug === "toefl-annuel" ? "toefl" : null;
 
   return (
     <Section>
@@ -63,6 +73,8 @@ export default async function SubscribePage({
             classes={classOpts}
             subjects={subjectOpts}
             defaultClass={profile?.class_slug ?? null}
+            lockedClass={lockedClass}
+            lockedClassLabel="Préparation TOEFL"
           />
         </Card>
       </Container>

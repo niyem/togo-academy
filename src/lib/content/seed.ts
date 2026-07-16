@@ -310,4 +310,18 @@ export const plans: SubscriptionPlan[] = [
       "Tableau de bord parent + rapports",
     ],
   },
+  // Formule dediee TOEFL : uniquement annuelle, peu chere, hors grille scolaire.
+  {
+    slug: "toefl-annuel",
+    name: "Préparation TOEFL",
+    priceXof: 5000,
+    cadence: "annuel",
+    scope: "classe",
+    highlights: [
+      "Accès complet à la préparation TOEFL",
+      "Reading, Listening, Speaking, Writing",
+      "Grammaire, vocabulaire et tests blancs",
+      "Un an d'accès, à petit prix",
+    ],
+  },
 ];

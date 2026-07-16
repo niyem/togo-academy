@@ -38,6 +38,11 @@ export async function subscribe(
   }
   const targetClass = plan.scope === "plateforme" ? null : classSlug;
   const targetSubject = plan.scope === "matiere" ? subjectKey : null;
+
+  // La preparation TOEFL n'est accessible que via sa formule annuelle dediee.
+  if (targetClass === "toefl" && plan.slug !== "toefl-annuel") {
+    return { error: "La préparation TOEFL a sa propre formule annuelle." };
+  }
   if (!reference) {
     return {
       error:

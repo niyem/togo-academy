@@ -118,9 +118,15 @@ export default async function ClassPage({
               : "Le contenu de cette classe est en cours de préparation par nos enseignants."}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button href="/tarifs" variant="primary">
-              S&apos;abonner pour tout débloquer
-            </Button>
+            {classSlug === "toefl" ? (
+              <Button href="/abonnement/toefl-annuel" variant="primary">
+                Préparer le TOEFL — 5 000 F/an
+              </Button>
+            ) : (
+              <Button href="/tarifs" variant="primary">
+                S&apos;abonner pour tout débloquer
+              </Button>
+            )}
             <Button href="/catalogue" variant="secondary">
               Voir d&apos;autres classes
             </Button>
