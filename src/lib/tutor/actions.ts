@@ -196,15 +196,21 @@ export async function reviewTutor(
   if (!["approved", "rejected"].includes(decision) || !userId) {
     return { error: "Action invalide." };
   }
-  const admin = createSupabaseAdminClient();
-  if (!admin) return { error: "Service indisponible." };
 
-  await admin
+  // On agit avec la session admin authentifiee : le role guard et les RLS
+  // (is_admin()) l'autorisent, alors que la cle service n'a pas d'auth.uid().
+  const { error: sErr } = await supabase
     .from("tutor_profiles")
     .update({ status: decision, updated_at: now() })
     .eq("user_id", userId);
+  if (sErr) return { error: "Erreur lors de la mise à jour de la candidature." };
+
   if (decision === "approved") {
-    await admin.from("profiles").update({ role: "tutor" }).eq("id", userId);
+    const { error: rErr } = await supabase
+      .from("profiles")
+      .update({ role: "tutor" })
+      .eq("id", userId);
+    if (rErr) return { error: "Candidature validée mais rôle non accordé." };
   }
   revalidatePath("/admin");
   return { ok: true };
