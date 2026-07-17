@@ -92,7 +92,7 @@ def run_rhubarb(rhubarb, wav, out_json, recognizer, extended):
     # pocketSphinx ne comprend que l'anglais).
     cmd = [rhubarb, "--recognizer", recognizer,
            "--extendedShapes", extended, "-f", "json", "-o", out_json, wav]
-    print("  rhubarb", " ".join(cmd[1:]))
+    print("  rhubarb", " ".join(str(c) for c in cmd[1:]))
     r = run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"Rhubarb a echoue :\n{r.stderr[-800:]}")

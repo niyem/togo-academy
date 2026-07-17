@@ -43,6 +43,23 @@ assets/prof-ama/
 Fond transparent (alpha). Les formes manquantes retombent sur la plus proche
 (au pire A). A-F suffisent.
 
+### Preparer les assets (fond transparent)
+
+Les PNG de ChatGPT arrivent souvent avec un fond BLANC opaque (pas de vraie
+transparence). `make_transparent.py` retire le fond blanc + les poches blanches
+piegees entre les bras et le corps, tout en gardant les blancs internes (dents
+des bouches ouvertes, blanc des yeux) :
+
+```
+video/.venv/bin/python scripts/mascot/make_transparent.py \
+  --src ~/Downloads --dst assets/mascotte-homme
+```
+
+Il etiquette les regions blanches (scipy) et retire celles qui touchent un bord
+(fond) ou qui sont grandes (poches) ; il conserve les petites regions enfermees.
+Regler `--big-frac` si une poche subsiste (baisser) ou si des dents disparaissent
+(monter). Deps : `pip install pillow numpy scipy` (deja dans `video/.venv`).
+
 ## Utilisation
 
 Verifier le cablage (aucun asset requis) :
