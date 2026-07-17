@@ -50,3 +50,6 @@ video/propagation/assets/
 video/propagation/out/
 video/pilot/assets/
 video/pilot/out/
+
+# Contenu pédagogique (syllabi, scripts, examens) — hors dépôt
+/content/
