@@ -226,9 +226,9 @@ export function CatalogueExplorer({
                                             </span>
                                           )}
                                         </span>
-                                        <span className="mt-0.5 block truncate text-xs text-[var(--color-muted)]">
+                                        <span className="mt-0.5 block text-xs text-[var(--color-muted)]">
                                           {c.subjects.length > 0
-                                            ? c.subjects.slice(0, 4).join(" · ")
+                                            ? c.subjects.join(" · ")
                                             : "Contenu en préparation"}
                                         </span>
                                       </span>
