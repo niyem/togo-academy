@@ -9,7 +9,7 @@ Pilote video : "Decouvrir le theoreme de Thales" (3eme, Mathematiques).
   5. Outro mascotte (encouragement)
 
 Prerequis : les mp3 de narration dans video/pilot/audio/seg{1..5}.mp3
-et les images mascotte dans Desktop/COWORK/CLAUDE-CODE/togo-academy/livrables/mascot/.
+et les images mascotte dans Desktop/COWORK/TOGO-ACADEMY/mascot/.
 """
 
 import os
@@ -31,7 +31,7 @@ PILOT = os.path.join(BASE, "pilot")
 AUDIO = os.path.join(PILOT, "audio")
 ASSETS = os.path.join(PILOT, "assets")
 OUT = os.path.join(PILOT, "out")
-MASCOT_DIR = "/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/livrables/mascot"
+MASCOT_DIR = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/mascot"
 
 for d in (ASSETS, OUT):
     os.makedirs(d, exist_ok=True)
