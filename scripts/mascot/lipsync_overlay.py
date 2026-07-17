@@ -38,6 +38,11 @@ from pathlib import Path
 FALLBACK = {"A": "A", "B": "B", "C": "C", "D": "D", "E": "E", "F": "F",
             "G": "F", "H": "B", "X": "A"}
 
+# Mode "bold" : petite incrustation -> seules les formes tres lisibles de loin
+# (fermee / ouverte / grande ouverte / arrondie), comme en animation limitee
+# classique. Les formes subtiles (B teeth, E mi-ouverte, G f/v) y sont remappees.
+BOLD_REMAP = {"B": "C", "E": "C", "G": "C", "H": "C", "X": "A"}
+
 CORNER_POS = {
     "bottom-right": "W-w-{m}:H-h-{m}",
     "bottom-left": "{m}:H-h-{m}",
@@ -107,6 +112,19 @@ def load_cues(path):
             merged[-1]["end"] = c["end"]
         else:
             merged.append(dict(c))
+    return merged
+
+
+def remap_cues(cues, mouth_set):
+    if mouth_set != "bold":
+        return cues
+    out = [dict(c, value=BOLD_REMAP.get(c["value"], c["value"])) for c in cues]
+    merged = []
+    for c in out:
+        if merged and merged[-1]["value"] == c["value"]:
+            merged[-1]["end"] = c["end"]
+        else:
+            merged.append(c)
     return merged
 
 
@@ -245,6 +263,8 @@ def main():
     ap.add_argument("--extended", default="GX", help="formes etendues Rhubarb (ex 'GX'), '' = A-F seules")
     ap.add_argument("--min-dur", type=float, default=0.10,
                     help="duree minimale d'une forme de bouche en s (anti-scintillement ; 0 = off)")
+    ap.add_argument("--mouth-set", default="full", choices=["full", "bold"],
+                    help="bold = formes tres lisibles seulement (A/C/D/F), pour une petite incrustation")
     ap.add_argument("--height-frac", type=float, default=0.42, help="hauteur mascotte / hauteur video")
     ap.add_argument("--margin", type=int, default=24)
     ap.add_argument("--corner", default="bottom-right", choices=list(CORNER_POS))
@@ -280,8 +300,8 @@ def main():
             print("2/3 lip-sync Rhubarb")
             cues_path = td / "cues.json"
             run_rhubarb(rhubarb, wav, cues_path, args.recognizer, args.extended)
-        cues = smooth_cues(load_cues(cues_path), args.min_dur)
-        print(f"3/3 composite ({len(cues)} cues apres lissage {args.min_dur}s)")
+        cues = smooth_cues(remap_cues(load_cues(cues_path), args.mouth_set), args.min_dur)
+        print(f"3/3 composite ({len(cues)} cues apres lissage {args.min_dur}s, set={args.mouth_set})")
         build(ffmpeg, video, mascot_dir, cues, args.out,
               args.height_frac, args.margin, args.corner)
     print(f"OK -> {args.out}")
