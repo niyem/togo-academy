@@ -57,14 +57,16 @@ export const classes: SchoolClass[] = [
   { slug: "seconde", name: "Seconde", levelSlug: "lycee", order: 1, track: "general" },
   { slug: "premiere", name: "Première", levelSlug: "lycee", order: 2, track: "general" },
   { slug: "terminale", name: "Terminale", levelSlug: "lycee", order: 3, track: "general" },
-  // Préparation aux examens (hors cursus scolaire).
+  // Préparation aux examens (hors cursus scolaire). Groupés par examen : A/C/D.
   { slug: "cepd", name: "CEPD", levelSlug: "certifications", order: 1, track: "general" },
   { slug: "bepc", name: "BEPC", levelSlug: "certifications", order: 2, track: "general" },
-  { slug: "probatoire-c", name: "Probatoire C", levelSlug: "certifications", order: 3, track: "general" },
-  { slug: "probatoire-d", name: "Probatoire D", levelSlug: "certifications", order: 4, track: "general" },
-  { slug: "bac-c", name: "Baccalauréat C", levelSlug: "certifications", order: 5, track: "general" },
-  { slug: "bac-d", name: "Baccalauréat D", levelSlug: "certifications", order: 6, track: "general" },
-  { slug: "toefl", name: "Préparation TOEFL", levelSlug: "certifications", order: 7, track: "general" },
+  { slug: "probatoire-a", name: "Probatoire A", levelSlug: "certifications", order: 3, track: "general" },
+  { slug: "probatoire-c", name: "Probatoire C", levelSlug: "certifications", order: 4, track: "general" },
+  { slug: "probatoire-d", name: "Probatoire D", levelSlug: "certifications", order: 5, track: "general" },
+  { slug: "bac-a", name: "Baccalauréat A", levelSlug: "certifications", order: 6, track: "general" },
+  { slug: "bac-c", name: "Baccalauréat C", levelSlug: "certifications", order: 7, track: "general" },
+  { slug: "bac-d", name: "Baccalauréat D", levelSlug: "certifications", order: 8, track: "general" },
+  { slug: "toefl", name: "Préparation TOEFL", levelSlug: "certifications", order: 9, track: "general" },
 ];
 
 export const subjects: Subject[] = [
@@ -336,8 +338,10 @@ export const plans: SubscriptionPlan[] = [
       // CEPD 8000, BEPC 10000, Probatoire (BAC1) 15000, BAC (BAC2) 20000.
       ["cepd-annuel", "Préparation CEPD", 8000],
       ["bepc-annuel", "Préparation BEPC", 10000],
+      ["probatoire-a-annuel", "Préparation Probatoire A", 15000],
       ["probatoire-c-annuel", "Préparation Probatoire C", 15000],
       ["probatoire-d-annuel", "Préparation Probatoire D", 15000],
+      ["bac-a-annuel", "Préparation Baccalauréat A", 20000],
       ["bac-c-annuel", "Préparation Baccalauréat C", 20000],
       ["bac-d-annuel", "Préparation Baccalauréat D", 20000],
     ] as const
