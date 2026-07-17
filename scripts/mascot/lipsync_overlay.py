@@ -110,6 +110,28 @@ def load_cues(path):
     return merged
 
 
+def smooth_cues(cues, min_dur):
+    """Anti-scintillement : Rhubarb (phonetic) change de forme toutes les ~40 ms,
+    ce qui donne une bouche qui claque au hasard. On impose une duree minimale
+    par forme : toute cue plus courte que min_dur est absorbee par la precedente,
+    puis on fusionne les formes identiques adjacentes."""
+    if min_dur <= 0:
+        return cues
+    out = []
+    for c in cues:
+        if out and (c["end"] - c["start"]) < min_dur:
+            out[-1]["end"] = c["end"]
+        else:
+            out.append(dict(c))
+    merged = []
+    for c in out:
+        if merged and merged[-1]["value"] == c["value"]:
+            merged[-1]["end"] = c["end"]
+        else:
+            merged.append(dict(c))
+    return merged
+
+
 def coalesce(wins, eps=0.02):
     wins = sorted(wins)
     out = []
@@ -220,7 +242,9 @@ def main():
     ap.add_argument("--rhubarb", help="chemin du binaire rhubarb")
     ap.add_argument("--ffmpeg", help="chemin du binaire ffmpeg")
     ap.add_argument("--recognizer", default="phonetic", choices=["phonetic", "pocketSphinx"])
-    ap.add_argument("--extended", default="", help="formes etendues Rhubarb (ex 'GX'), '' = A-F seules")
+    ap.add_argument("--extended", default="GX", help="formes etendues Rhubarb (ex 'GX'), '' = A-F seules")
+    ap.add_argument("--min-dur", type=float, default=0.10,
+                    help="duree minimale d'une forme de bouche en s (anti-scintillement ; 0 = off)")
     ap.add_argument("--height-frac", type=float, default=0.42, help="hauteur mascotte / hauteur video")
     ap.add_argument("--margin", type=int, default=24)
     ap.add_argument("--corner", default="bottom-right", choices=list(CORNER_POS))
@@ -256,8 +280,8 @@ def main():
             print("2/3 lip-sync Rhubarb")
             cues_path = td / "cues.json"
             run_rhubarb(rhubarb, wav, cues_path, args.recognizer, args.extended)
-        cues = load_cues(cues_path)
-        print(f"3/3 composite ({len(cues)} cues)")
+        cues = smooth_cues(load_cues(cues_path), args.min_dur)
+        print(f"3/3 composite ({len(cues)} cues apres lissage {args.min_dur}s)")
         build(ffmpeg, video, mascot_dir, cues, args.out,
               args.height_frac, args.margin, args.corner)
     print(f"OK -> {args.out}")
