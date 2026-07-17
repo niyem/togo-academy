@@ -18,8 +18,8 @@ from kademy import (
 from render_propagation import multi_text, title
 from render_propagation23 import arrow, double_arrow
 
-VOIX = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/pilote/voix-phy1"
-LIVRAISON = "/Users/nbawana/Desktop/COWORK/TOGO-ACADEMY/pilote"
+VOIX = "/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/livrables/pilote/voix-phy1"
+LIVRAISON = "/Users/nbawana/Desktop/COWORK/CLAUDE-CODE/togo-academy/livrables/pilote"
 PHY1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "phy1")
 OUT = os.path.join(PHY1, "out")
 os.makedirs(OUT, exist_ok=True)

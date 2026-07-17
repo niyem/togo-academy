@@ -53,3 +53,6 @@ video/pilot/out/
 
 # Contenu pédagogique (syllabi, scripts, examens) — hors dépôt
 /content/
+
+# Livrables (voix, vidéos, mascottes, designs) — hors dépôt
+/livrables/
