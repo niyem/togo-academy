@@ -40,6 +40,36 @@ const FEATURES: [string, string][] = [
   ],
 ];
 
+const STIM: [string, string, string][] = [
+  [
+    "S",
+    "Sciences",
+    "Physique, Chimie et SVT : comprendre comment fonctionne le monde naturel.",
+  ],
+  [
+    "T",
+    "Technologie",
+    "Programmation Python, informatique et robotique : créer avec les outils d'aujourd'hui.",
+  ],
+  [
+    "I",
+    "Ingénierie",
+    "Concevoir et résoudre des problèmes concrets, du raisonnement jusqu'au projet.",
+  ],
+  [
+    "M",
+    "Mathématiques",
+    "Le langage commun de toutes les sciences et de la vie quotidienne.",
+  ],
+];
+
+const STIM_TILE = [
+  "bg-togo-green-600 text-white",
+  "bg-togo-yellow-400 text-ink",
+  "bg-togo-red-500 text-white",
+  "bg-togo-green-700 text-white",
+];
+
 export default async function AboutPage() {
   const stats = await getStats();
   const statItems = [
@@ -75,6 +105,51 @@ export default async function AboutPage() {
           question d&apos;argent.
         </p>
       </Container>
+
+      {/* ── Identité STIM ─────────────────────────────────── */}
+      <section className="border-y border-togo-green-100 bg-togo-green-50">
+        <Container className="py-14">
+          <div className="mx-auto max-w-3xl text-center">
+            <Eyebrow>Notre identité</Eyebrow>
+            <h2 className="mt-4 font-display text-3xl tracking-tight text-ink sm:text-4xl">
+              Togo Academy est une plateforme{" "}
+              <span className="text-togo-green-700">STIM</span>
+            </h2>
+            <p className="mt-3 text-[var(--color-muted)]">
+              STIM, l&apos;équivalent français de STEM, réunit les quatre
+              piliers de l&apos;éducation qui préparent le mieux à l&apos;avenir.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {STIM.map(([letter, name, body], i) => (
+              <div
+                key={name}
+                className="rounded-2xl border border-togo-green-100 bg-white p-6 text-center"
+              >
+                <div
+                  className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl text-2xl font-extrabold ${STIM_TILE[i]}`}
+                >
+                  {letter}
+                </div>
+                <h3 className="mt-4 font-semibold text-ink">{name}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">
+                  {body}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mx-auto mt-10 max-w-2xl text-center leading-relaxed text-ink/90">
+            <strong className="text-ink">Pourquoi la STIM change tout.</strong>{" "}
+            Les métiers de demain, ici comme ailleurs, reposent sur les sciences,
+            la technologie et l&apos;ingénierie. En donnant aux élèves togolais un
+            socle STIM solide, complété par l&apos;anglais et la programmation,
+            Togo Academy les met au même niveau que les meilleurs et transforme un
+            désavantage historique en atout pour toute une génération.
+          </p>
+        </Container>
+      </section>
 
       {/* ── Ce que vous trouvez ici ──────────────────────── */}
       <Container className="pb-12 pt-4">
