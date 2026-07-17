@@ -312,7 +312,7 @@ export const plans: SubscriptionPlan[] = [
     highlights: [
       "Accès à TOUTES les classes et matières",
       "Idéal pour les familles (plusieurs enfants)",
-      "Toute l'année scolaire, examens compris",
+      "1 kit d'examen de votre choix à moitié prix",
       "Tableau de bord parent + rapports",
     ],
   },
@@ -333,24 +333,25 @@ export const plans: SubscriptionPlan[] = [
   },
   ...(
     [
-      ["cepd-annuel", "Préparation CEPD"],
-      ["bepc-annuel", "Préparation BEPC"],
-      ["probatoire-c-annuel", "Préparation Probatoire C"],
-      ["probatoire-d-annuel", "Préparation Probatoire D"],
-      ["bac-c-annuel", "Préparation Baccalauréat C"],
-      ["bac-d-annuel", "Préparation Baccalauréat D"],
+      // CEPD 8000, BEPC 10000, Probatoire (BAC1) 15000, BAC (BAC2) 20000.
+      ["cepd-annuel", "Préparation CEPD", 8000],
+      ["bepc-annuel", "Préparation BEPC", 10000],
+      ["probatoire-c-annuel", "Préparation Probatoire C", 15000],
+      ["probatoire-d-annuel", "Préparation Probatoire D", 15000],
+      ["bac-c-annuel", "Préparation Baccalauréat C", 20000],
+      ["bac-d-annuel", "Préparation Baccalauréat D", 20000],
     ] as const
-  ).map(([slug, name]) => ({
+  ).map(([slug, name, priceXof]) => ({
     slug,
     name,
-    priceXof: 8000,
+    priceXof,
     cadence: "annuel" as const,
     scope: "classe" as const,
     highlights: [
       "Méthodologie de chaque épreuve",
       "Annales corrigées pas à pas",
       "Sujets types et problèmes classés",
-      "Épreuves blanches chronométrées",
+      "Moitié prix pour les abonnés annuels plateforme",
     ],
   })),
 ];

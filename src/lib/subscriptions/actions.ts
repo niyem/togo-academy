@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPlans } from "@/lib/content";
+import { examKitCheckout } from "@/lib/subscriptions/kit-discount";
 import type { PaymentMethodId } from "@/lib/payments";
 
 const METHOD_IDS: PaymentMethodId[] = ["flooz", "orabank", "zelle", "wells"];
@@ -61,6 +62,10 @@ export async function subscribe(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Connectez-vous pour vous abonner." };
 
+  // Remise "abonne annuel" sur un kit d'examen : montant reel a facturer.
+  // Calcule AVANT l'insertion (sinon le kit en cours compterait comme deja pris).
+  const checkout = await examKitCheckout(supabase, user.id, plan);
+
   const { data: sub, error: subError } = await supabase
     .from("subscriptions")
     .insert({
@@ -79,7 +84,7 @@ export async function subscribe(
     subscription_id: sub.id,
     method,
     status: "pending",
-    amount_xof: plan.priceXof,
+    amount_xof: checkout.priceXof,
     reference,
   });
   if (payError) return { error: "Erreur lors de l'enregistrement du paiement." };

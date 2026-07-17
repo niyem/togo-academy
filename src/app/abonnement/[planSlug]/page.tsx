@@ -6,6 +6,7 @@ import { SubscribeForm } from "@/components/subscriptions/SubscribeForm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getClasses, getPlans, getSubjects } from "@/lib/content";
 import { formatXof } from "@/lib/payments";
+import { examKitCheckout } from "@/lib/subscriptions/kit-discount";
 
 export const metadata: Metadata = { title: "S'abonner" };
 
@@ -50,6 +51,9 @@ export default async function SubscribePage({
   );
   const lockedClass = kitClass?.slug ?? null;
 
+  // Remise "abonne annuel" sur un kit d'examen (calculee cote serveur).
+  const checkout = await examKitCheckout(supabase, user.id, plan);
+
   return (
     <Section>
       <Container className="max-w-2xl">
@@ -63,12 +67,29 @@ export default async function SubscribePage({
           S&apos;abonner : {plan.name}
         </h1>
         <p className="mt-2 text-2xl font-extrabold text-togo-green-600">
-          {formatXof(plan.priceXof)}
+          {formatXof(checkout.priceXof)}
+          {checkout.discounted && (
+            <span className="ml-2 text-base font-normal text-[var(--color-muted)] line-through">
+              {formatXof(checkout.listPriceXof)}
+            </span>
+          )}
           <span className="text-sm font-normal text-[var(--color-muted)]">
             {" "}
             / {plan.cadence}
           </span>
         </p>
+        {checkout.discounted && (
+          <p className="mt-2 inline-block rounded-full bg-togo-green-50 px-3 py-1 text-sm font-semibold text-togo-green-700">
+            🎉 50 % offerts : votre kit d&apos;examen inclus dans l&apos;offre
+            abonné annuel plateforme.
+          </p>
+        )}
+        {checkout.isKit && !checkout.discounted && (
+          <p className="mt-2 text-sm text-[var(--color-muted)]">
+            Astuce : avec un abonnement annuel plateforme, votre premier kit
+            d&apos;examen est à moitié prix.
+          </p>
+        )}
 
         <Card className="mt-6">
           <SubscribeForm

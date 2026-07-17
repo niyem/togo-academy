@@ -147,8 +147,9 @@ export default async function PricingPage() {
             </h2>
             <p className="mx-auto mt-2 max-w-2xl text-[var(--color-muted)]">
               Des kits ciblés problèmes : méthodologie, annales corrigées, sujets
-              types et épreuves blanches. Formule annuelle dédiée par examen (ou
-              incluse dans l&apos;abonnement annuel plateforme).
+              types et épreuves blanches. Formule annuelle dédiée par examen.
+              Abonné annuel plateforme ? Ajoutez un examen de votre choix à
+              moitié prix.
             </p>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -158,7 +159,7 @@ export default async function PricingPage() {
                 className="flex flex-col rounded-2xl border border-togo-green-100 bg-togo-green-50 p-6"
               >
                 <h3 className="text-lg font-semibold text-ink">{cls.name}</h3>
-                <div className="mb-4 mt-3 flex items-baseline gap-1">
+                <div className="mb-1 mt-3 flex items-baseline gap-1">
                   <span className="font-display text-3xl tracking-tight text-ink">
                     {formatXof(plan.priceXof)}
                   </span>
@@ -166,6 +167,10 @@ export default async function PricingPage() {
                     FCFA / an
                   </span>
                 </div>
+                <p className="mb-4 text-xs font-medium text-togo-green-700">
+                  {formatXof(Math.round(plan.priceXof / 2))} FCFA/an pour les
+                  abonnés annuels plateforme
+                </p>
                 <Button
                   href={`/abonnement/${plan.slug}`}
                   variant="secondary"
