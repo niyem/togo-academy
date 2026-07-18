@@ -6,6 +6,7 @@ import { PaymentQueue, type PendingItem } from "@/components/admin/PaymentQueue"
 import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
 import { GrantRetakeForm } from "@/components/admin/GrantRetakeForm";
 import { TutorReview } from "@/components/tutor/forms";
+import { CollabReview } from "@/components/admin/CollabReview";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -70,6 +71,12 @@ export default async function AdminPage() {
         .eq("status", "pending")
         .order("created_at", { ascending: true }),
     ]);
+
+  const collabApps = await supabase
+    .from("collab_applications")
+    .select("user_id, desired_role, full_name, headline, phone, subject_keys, created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
 
   // URLs signees (1 h) des pieces justificatives des candidatures en attente.
   const adminClient = createSupabaseAdminClient();
@@ -280,6 +287,34 @@ export default async function AdminPage() {
                     </span>
                   </div>
                   <TutorReview userId={t.user_id} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
+        {(collabApps.data ?? []).length > 0 && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold">🏭 Candidatures production (concepteurs / inspecteurs)</h2>
+              <Badge tone="yellow">{(collabApps.data ?? []).length}</Badge>
+            </div>
+            <ul className="mt-3 divide-y divide-[var(--color-line)]">
+              {(collabApps.data ?? []).map((c) => (
+                <li key={c.user_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div>
+                    <span className="font-medium">{c.full_name ?? "Candidat"}</span>
+                    <Badge tone="neutral">
+                      {c.desired_role === "concepteur" ? "concepteur" : "inspecteur"}
+                    </Badge>
+                    {c.headline && (
+                      <span className="block text-xs text-[var(--color-muted)]">{c.headline}</span>
+                    )}
+                    <span className="block text-xs text-[var(--color-muted)]">
+                      Matières : {(c.subject_keys ?? []).join(", ") || "—"} · {c.phone ?? ""}
+                    </span>
+                  </div>
+                  <CollabReview userId={c.user_id} desiredRole={c.desired_role} />
                 </li>
               ))}
             </ul>

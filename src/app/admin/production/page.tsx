@@ -24,12 +24,23 @@ export default async function ProductionPage() {
     .single();
   if (profile?.role !== "admin") redirect("/tableau-de-bord");
 
-  const { data } = await supabase
-    .from("content_production")
-    .select(
-      "*, lessons(slug, title, chapters(title, class_slug, subject_key))",
-    )
-    .order("created_at", { ascending: true });
+  const [{ data }, { data: concepteurRows }] = await Promise.all([
+    supabase
+      .from("content_production")
+      .select("*, lessons(slug, title, chapters(title, class_slug, subject_key))")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "concepteur")
+      .order("full_name"),
+  ]);
+
+  const concepteurs = (concepteurRows ?? []).map((c: any) => ({
+    id: c.id,
+    name: c.full_name ?? "Concepteur",
+  }));
+  const nameById = new Map(concepteurs.map((c) => [c.id, c.name]));
 
   const rows: ProdRow[] = (data ?? []).map((p: any) => ({
     lessonId: p.lesson_id,
@@ -42,6 +53,8 @@ export default async function ProductionPage() {
     mode: p.mode,
     teacher: p.teacher_name,
     inspector: p.inspector_name,
+    concepteurId: p.concepteur_id ?? null,
+    concepteurName: p.concepteur_id ? nameById.get(p.concepteur_id) ?? null : null,
     n_examples: p.n_examples,
     n_exercises: p.n_exercises,
     n_figures: p.n_figures,
@@ -68,7 +81,7 @@ export default async function ProductionPage() {
           chapitre, mesurer, puis planifier le déploiement complet.
         </p>
         <div className="mt-6">
-          <ProductionBoard rows={rows} />
+          <ProductionBoard rows={rows} concepteurs={concepteurs} />
         </div>
       </Container>
     </Section>

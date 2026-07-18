@@ -20,6 +20,9 @@ import {
   type Stage,
 } from "@/lib/production/stages";
 import { lessonPrice, inspectorPrice } from "@/lib/production/bareme";
+import { assignConcepteur, type CollabState } from "@/lib/collab/actions";
+
+export type Concepteur = { id: string; name: string };
 
 export type ProdRow = {
   lessonId: string;
@@ -32,6 +35,8 @@ export type ProdRow = {
   mode: "creation" | "adaptation";
   teacher: string | null;
   inspector: string | null;
+  concepteurId: string | null;
+  concepteurName: string | null;
   n_examples: number;
   n_exercises: number;
   n_figures: number;
@@ -49,6 +54,35 @@ const fmt = (n: number) => n.toLocaleString("fr-FR");
 function daysBetween(a: string, b: string | null): number {
   const end = b ? new Date(b).getTime() : Date.now();
   return Math.max(0, Math.round((end - new Date(a).getTime()) / 86400000));
+}
+
+const collabInit: CollabState = {};
+
+function AssignForm({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) {
+  const [state, action, pending] = useActionState(assignConcepteur, collabInit);
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="lesson_id" value={row.lessonId} />
+      <label className="text-xs font-semibold text-[var(--color-muted)]">
+        Concepteur attribué
+      </label>
+      <select name="concepteur_id" defaultValue={row.concepteurId ?? ""} className={input}>
+        <option value="">— Aucun —</option>
+        {concepteurs.map((c) => (
+          <option key={c.id} value={c.id}>{c.name}</option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-full border border-[var(--color-line)] px-3 py-1.5 text-xs font-semibold hover:border-togo-green-500 disabled:opacity-40"
+      >
+        Attribuer
+      </button>
+      {state.ok && <span className="text-xs text-togo-green-700">✓</span>}
+      {state.error && <span className="text-xs text-togo-red-700">{state.error}</span>}
+    </form>
+  );
 }
 
 function StageForm({ row }: { row: ProdRow }) {
@@ -176,7 +210,7 @@ function RemoveForm({ lessonId }: { lessonId: string }) {
   );
 }
 
-function Row({ row }: { row: ProdRow }) {
+function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) {
   const [open, setOpen] = useState(false);
   const suggested = lessonPrice(row.classSlug);
   const insp = inspectorPrice(row.classSlug);
@@ -195,6 +229,9 @@ function Row({ row }: { row: ProdRow }) {
           <div className="mt-1 text-xs text-[var(--color-muted)]">
             Enseignant : {row.teacher ?? "—"} · Inspecteur : {row.inspector ?? "—"} ·{" "}
             {row.atEnLigne ? `${days} j au total` : `${days} j en cours`}
+          </div>
+          <div className="mt-1 text-xs text-[var(--color-muted)]">
+            Concepteur (compte) : {row.concepteurName ?? "non attribué"}
           </div>
           <div className="mt-1 text-xs text-[var(--color-muted)]">
             {row.n_examples} ex. résolus · {row.n_exercises} exercices ·{" "}
@@ -228,6 +265,9 @@ function Row({ row }: { row: ProdRow }) {
           <RemoveForm lessonId={row.lessonId} />
         </div>
       </div>
+      <div className="mt-2">
+        <AssignForm row={row} concepteurs={concepteurs} />
+      </div>
       {open && <EditPanel row={row} />}
     </li>
   );
@@ -257,7 +297,13 @@ function AddForm() {
   );
 }
 
-export function ProductionBoard({ rows }: { rows: ProdRow[] }) {
+export function ProductionBoard({
+  rows,
+  concepteurs,
+}: {
+  rows: ProdRow[];
+  concepteurs: Concepteur[];
+}) {
   const published = rows.filter((r) => r.atEnLigne);
   const avgDays = published.length
     ? Math.round(
@@ -318,7 +364,7 @@ export function ProductionBoard({ rows }: { rows: ProdRow[] }) {
 
       <ul className="divide-y divide-[var(--color-line)]">
         {rows.map((r) => (
-          <Row key={r.lessonId} row={r} />
+          <Row key={r.lessonId} row={r} concepteurs={concepteurs} />
         ))}
         {rows.length === 0 && (
           <li className="py-6 text-sm text-[var(--color-muted)]">
