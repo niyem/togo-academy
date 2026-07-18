@@ -137,6 +137,12 @@ export default async function AdminPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/admin/presentations"
+              className="rounded-lg border border-togo-green-500 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
+            >
+              🎤 Présentations
+            </Link>
+            <Link
               href="/admin/production"
               className="rounded-lg border border-togo-green-500 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
             >
