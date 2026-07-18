@@ -1,7 +1,8 @@
 "use client";
 
-// Tableau de bord editorial : suit chaque lecon dans la chaine de production et
-// mesure le temps par lecon. Alimente le calcul de cout par le bareme.
+// Tableau de bord editorial : suit chaque MODULE (chapitre) dans la chaine de
+// production, mesure le temps par module et estime le cout par le bareme (prix
+// de la classe). Un module contient plusieurs lecons/capacites.
 
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui";
@@ -19,34 +20,29 @@ import {
   nextStage,
   type Stage,
 } from "@/lib/production/stages";
-import { lessonPrice, inspectorPrice } from "@/lib/production/bareme";
+import { modulePrice, inspectorPrice } from "@/lib/production/bareme";
 import { assignConcepteur, type CollabState } from "@/lib/collab/actions";
 
 export type Concepteur = { id: string; name: string };
 
 export type ProdRow = {
-  lessonId: string;
-  title: string;
+  moduleId: string; // chapter_id
+  title: string; // titre du module (chapitre)
   slug: string;
-  chapterTitle: string;
-  classSlug: string;
   subjectKey: string;
+  classSlug: string;
+  lessonCount: number;
   stage: Stage;
-  mode: "creation" | "adaptation";
-  teacher: string | null;
   inspector: string | null;
   concepteurId: string | null;
   concepteurName: string | null;
-  n_examples: number;
-  n_exercises: number;
-  n_figures: number;
-  n_quiz: number;
   costXof: number | null;
   createdAt: string;
   atEnLigne: string | null;
 };
 
 const initial: ProdState = {};
+const collabInit: CollabState = {};
 const input =
   "rounded-lg border border-[var(--color-line)] px-3 py-2 text-sm focus:border-togo-green-500 focus:outline-none";
 const fmt = (n: number) => n.toLocaleString("fr-FR");
@@ -56,13 +52,11 @@ function daysBetween(a: string, b: string | null): number {
   return Math.max(0, Math.round((end - new Date(a).getTime()) / 86400000));
 }
 
-const collabInit: CollabState = {};
-
 function AssignForm({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) {
   const [state, action, pending] = useActionState(assignConcepteur, collabInit);
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
-      <input type="hidden" name="lesson_id" value={row.lessonId} />
+      <input type="hidden" name="chapter_id" value={row.moduleId} />
       <label className="text-xs font-semibold text-[var(--color-muted)]">
         Concepteur attribué
       </label>
@@ -92,7 +86,7 @@ function StageForm({ row }: { row: ProdRow }) {
     <div className="flex flex-wrap items-center gap-2">
       {next && (
         <form action={action}>
-          <input type="hidden" name="lesson_id" value={row.lessonId} />
+          <input type="hidden" name="chapter_id" value={row.moduleId} />
           <input type="hidden" name="stage" value={next} />
           <button
             type="submit"
@@ -104,12 +98,10 @@ function StageForm({ row }: { row: ProdRow }) {
         </form>
       )}
       <form action={action} className="flex items-center gap-1">
-        <input type="hidden" name="lesson_id" value={row.lessonId} />
+        <input type="hidden" name="chapter_id" value={row.moduleId} />
         <select name="stage" defaultValue={row.stage} className={input}>
           {STAGES.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
+            <option key={s.key} value={s.key}>{s.label}</option>
           ))}
         </select>
         <button
@@ -120,9 +112,7 @@ function StageForm({ row }: { row: ProdRow }) {
           Fixer
         </button>
       </form>
-      {state.error && (
-        <span className="text-xs text-togo-red-700">{state.error}</span>
-      )}
+      {state.error && <span className="text-xs text-togo-red-700">{state.error}</span>}
     </div>
   );
 }
@@ -131,48 +121,15 @@ function EditPanel({ row }: { row: ProdRow }) {
   const [state, action, pending] = useActionState(updateProduction, initial);
   return (
     <form action={action} className="mt-3 space-y-3 border-t border-[var(--color-line)] pt-3">
-      <input type="hidden" name="lesson_id" value={row.lessonId} />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <input type="hidden" name="chapter_id" value={row.moduleId} />
+      <div className="grid gap-3 sm:grid-cols-3">
         <label className="text-xs font-semibold text-[var(--color-muted)]">
-          Enseignant
-          <input name="teacher_name" defaultValue={row.teacher ?? ""} className={`${input} mt-1 w-full`} />
-        </label>
-        <label className="text-xs font-semibold text-[var(--color-muted)]">
-          Inspecteur
+          Inspecteur (nom)
           <input name="inspector_name" defaultValue={row.inspector ?? ""} className={`${input} mt-1 w-full`} />
         </label>
-      </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {(
-          [
-            ["n_examples", "Exemples", row.n_examples],
-            ["n_exercises", "Exercices", row.n_exercises],
-            ["n_figures", "Figures", row.n_figures],
-            ["n_quiz", "Quiz (Q)", row.n_quiz],
-          ] as const
-        ).map(([name, label, val]) => (
-          <label key={name} className="text-xs font-semibold text-[var(--color-muted)]">
-            {label}
-            <input
-              type="number"
-              min={0}
-              name={name}
-              defaultValue={val}
-              className={`${input} mt-1 w-full`}
-            />
-          </label>
-        ))}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs font-semibold text-[var(--color-muted)]">
           Coût final retenu (FCFA, vide = prix de la classe)
-          <input
-            type="number"
-            min={0}
-            name="cost_xof"
-            defaultValue={row.costXof ?? ""}
-            className={`${input} mt-1 w-full`}
-          />
+          <input type="number" min={0} name="cost_xof" defaultValue={row.costXof ?? ""} className={`${input} mt-1 w-full`} />
         </label>
         <label className="text-xs font-semibold text-[var(--color-muted)]">
           Notes
@@ -194,11 +151,11 @@ function EditPanel({ row }: { row: ProdRow }) {
   );
 }
 
-function RemoveForm({ lessonId }: { lessonId: string }) {
+function RemoveForm({ moduleId }: { moduleId: string }) {
   const [, action, pending] = useActionState(stopTracking, initial);
   return (
     <form action={action}>
-      <input type="hidden" name="lesson_id" value={lessonId} />
+      <input type="hidden" name="chapter_id" value={moduleId} />
       <button
         type="submit"
         disabled={pending}
@@ -212,7 +169,7 @@ function RemoveForm({ lessonId }: { lessonId: string }) {
 
 function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) {
   const [open, setOpen] = useState(false);
-  const suggested = lessonPrice(row.classSlug);
+  const suggested = modulePrice(row.classSlug);
   const insp = inspectorPrice(row.classSlug);
   const days = daysBetween(row.createdAt, row.atEnLigne);
   return (
@@ -224,18 +181,11 @@ function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) 
             <span className="font-semibold">{row.title}</span>
           </div>
           <div className="mt-1 text-xs text-[var(--color-muted)]">
-            [{row.classSlug}] {row.chapterTitle} · {row.subjectKey}
+            [{row.classSlug}] {row.subjectKey} · {row.lessonCount} leçon(s) dans le module
           </div>
           <div className="mt-1 text-xs text-[var(--color-muted)]">
-            Enseignant : {row.teacher ?? "—"} · Inspecteur : {row.inspector ?? "—"} ·{" "}
+            Concepteur : {row.concepteurName ?? "non attribué"} · Inspecteur : {row.inspector ?? "—"} ·{" "}
             {row.atEnLigne ? `${days} j au total` : `${days} j en cours`}
-          </div>
-          <div className="mt-1 text-xs text-[var(--color-muted)]">
-            Concepteur (compte) : {row.concepteurName ?? "non attribué"}
-          </div>
-          <div className="mt-1 text-xs text-[var(--color-muted)]">
-            {row.n_examples} ex. résolus · {row.n_exercises} exercices ·{" "}
-            {row.n_figures} figures · {row.n_quiz} Q quiz
           </div>
         </div>
         <div className="text-right">
@@ -243,13 +193,9 @@ function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) 
             {fmt(row.costXof ?? suggested)} FCFA
           </div>
           <div className="text-[11px] text-[var(--color-muted)]">
-            {row.costXof != null
-              ? `grille : ${fmt(suggested)}`
-              : "prix de la classe"}
+            {row.costXof != null ? `grille : ${fmt(suggested)}` : "prix du module"}
           </div>
-          <div className="text-[11px] text-[var(--color-muted)]">
-            inspecteur ~ {fmt(insp)}
-          </div>
+          <div className="text-[11px] text-[var(--color-muted)]">inspecteur ~ {fmt(insp)}</div>
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -262,7 +208,7 @@ function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) 
           >
             {open ? "Fermer" : "Modifier"}
           </button>
-          <RemoveForm lessonId={row.lessonId} />
+          <RemoveForm moduleId={row.moduleId} />
         </div>
       </div>
       <div className="mt-2">
@@ -278,9 +224,8 @@ function AddForm() {
   return (
     <form action={action} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <input name="slug" required placeholder="Slug de la leçon" className={input} />
-        <input name="teacher_name" placeholder="Enseignant" className={input} />
-        <input name="inspector_name" placeholder="Inspecteur" className={input} />
+        <input name="slug" required placeholder="Slug du module (chapitre)" className={input} />
+        <input name="inspector_name" placeholder="Inspecteur (facultatif)" className={input} />
       </div>
       <div className="flex items-center gap-3">
         <button
@@ -288,9 +233,9 @@ function AddForm() {
           disabled={pending}
           className="rounded-full bg-togo-green-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-40"
         >
-          {pending ? "Ajout..." : "Suivre cette leçon"}
+          {pending ? "Ajout..." : "Suivre ce module"}
         </button>
-        {state.ok && <span className="text-sm font-medium text-togo-green-700">✓ Ajoutée.</span>}
+        {state.ok && <span className="text-sm font-medium text-togo-green-700">✓ Ajouté.</span>}
         {state.error && <span className="text-sm text-togo-red-700">{state.error}</span>}
       </div>
     </form>
@@ -312,7 +257,7 @@ export function ProductionBoard({
       )
     : null;
   const totalCost = rows.reduce(
-    (s, r) => s + (r.costXof ?? lessonPrice(r.classSlug)),
+    (s, r) => s + (r.costXof ?? modulePrice(r.classSlug)),
     0,
   );
   const perStage = STAGES.map((s) => ({
@@ -325,7 +270,7 @@ export function ProductionBoard({
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-[var(--radius-card)] border border-togo-green-100 bg-white p-4 text-center">
           <div className="text-2xl font-extrabold text-togo-green-600">{rows.length}</div>
-          <div className="text-xs text-[var(--color-muted)]">leçons suivies</div>
+          <div className="text-xs text-[var(--color-muted)]">modules suivis</div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-togo-green-100 bg-white p-4 text-center">
           <div className="text-2xl font-extrabold text-togo-green-600">{published.length}</div>
@@ -335,7 +280,7 @@ export function ProductionBoard({
           <div className="text-2xl font-extrabold text-togo-green-600">
             {avgDays == null ? "—" : `${avgDays} j`}
           </div>
-          <div className="text-xs text-[var(--color-muted)]">temps moyen / leçon</div>
+          <div className="text-xs text-[var(--color-muted)]">temps moyen / module</div>
         </div>
         <div className="rounded-[var(--radius-card)] border border-togo-green-100 bg-white p-4 text-center">
           <div className="text-2xl font-extrabold text-togo-green-600">{fmt(totalCost)}</div>
@@ -352,10 +297,10 @@ export function ProductionBoard({
       </div>
 
       <div className="rounded-[var(--radius-card)] border border-togo-green-100 bg-togo-green-50 p-5">
-        <h2 className="font-bold">➕ Suivre une nouvelle leçon</h2>
+        <h2 className="font-bold">➕ Suivre un nouveau module</h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Entre le slug d&apos;une leçon existante pour la faire entrer dans la
-          chaîne de production.
+          Entre le slug d&apos;un module (chapitre, ex. « PHY 1 ») pour le faire
+          entrer dans la chaîne de production.
         </p>
         <div className="mt-3">
           <AddForm />
@@ -364,11 +309,11 @@ export function ProductionBoard({
 
       <ul className="divide-y divide-[var(--color-line)]">
         {rows.map((r) => (
-          <Row key={r.lessonId} row={r} concepteurs={concepteurs} />
+          <Row key={r.moduleId} row={r} concepteurs={concepteurs} />
         ))}
         {rows.length === 0 && (
           <li className="py-6 text-sm text-[var(--color-muted)]">
-            Aucune leçon suivie pour l&apos;instant. Ajoute-en une ci-dessus pour
+            Aucun module suivi pour l&apos;instant. Ajoute-en un ci-dessus pour
             lancer le pilote.
           </li>
         )}

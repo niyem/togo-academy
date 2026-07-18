@@ -5,11 +5,11 @@ import { submitVersion, type CollabState } from "@/lib/collab/actions";
 
 const initial: CollabState = {};
 
-export function SubmissionForm({ lessonId }: { lessonId: string }) {
+export function SubmissionForm({ moduleId }: { moduleId: string }) {
   const [state, action, pending] = useActionState(submitVersion, initial);
   return (
     <form action={action} className="mt-3 space-y-3 rounded-xl border border-togo-green-100 bg-white p-4">
-      <input type="hidden" name="lesson_id" value={lessonId} />
+      <input type="hidden" name="chapter_id" value={moduleId} />
       <div>
         <label className="mb-1 block text-xs font-semibold text-[var(--color-muted)]">
           Fichier du cours (PDF, Word, PowerPoint, images ou ZIP · 25 Mo max)

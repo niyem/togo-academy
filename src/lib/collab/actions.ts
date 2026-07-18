@@ -159,7 +159,7 @@ export async function reviewCollaborator(
   return { ok: true };
 }
 
-// ---- Attribution d'une lecon a un concepteur ----
+// ---- Attribution d'un module a un concepteur ----
 export async function assignConcepteur(
   _prev: CollabState,
   formData: FormData,
@@ -167,22 +167,22 @@ export async function assignConcepteur(
   const { supabase, ok } = await requireRole("admin");
   if (!ok) return { error: "Réservé à l'administration." };
 
-  const lessonId = String(formData.get("lesson_id") ?? "");
+  const chapterId = String(formData.get("chapter_id") ?? "");
   const concepteurId = String(formData.get("concepteur_id") ?? "");
-  if (!lessonId) return { error: "Leçon manquante." };
+  if (!chapterId) return { error: "Module manquant." };
   const { error } = await supabase
     .from("content_production")
     .update({
       concepteur_id: concepteurId || null,
       updated_at: now(),
     })
-    .eq("lesson_id", lessonId);
+    .eq("chapter_id", chapterId);
   if (error) return { error: "Échec de l'attribution." };
   revalidatePath("/admin/production");
   return { ok: true };
 }
 
-// ---- Soumission d'une version par le concepteur ----
+// ---- Soumission d'une version (module) par le concepteur ----
 export async function submitVersion(
   _prev: CollabState,
   formData: FormData,
@@ -190,24 +190,24 @@ export async function submitVersion(
   const { supabase, user, ok } = await requireRole("concepteur");
   if (!ok || !user) return { error: "Réservé aux concepteurs." };
 
-  const lessonId = String(formData.get("lesson_id") ?? "");
+  const chapterId = String(formData.get("chapter_id") ?? "");
   const note = String(formData.get("note") ?? "").trim() || null;
   const file = asFile(formData.get("file"));
-  if (!lessonId) return { error: "Leçon manquante." };
+  if (!chapterId) return { error: "Module manquant." };
   if (!file || file.size === 0) return { error: "Ajoutez votre fichier." };
   if (file.size > DOC_MAX) return { error: "Fichier trop lourd (25 Mo max)." };
   if (file.type && !DOC_TYPES.includes(file.type)) {
     return { error: "Format accepté : PDF, Word, PowerPoint, images ou ZIP." };
   }
 
-  // La lecon doit bien etre attribuee a ce concepteur.
+  // Le module doit bien etre attribue a ce concepteur.
   const { data: prod } = await supabase
     .from("content_production")
-    .select("lesson_id")
-    .eq("lesson_id", lessonId)
+    .select("chapter_id")
+    .eq("chapter_id", chapterId)
     .eq("concepteur_id", user.id)
     .single();
-  if (!prod) return { error: "Cette leçon ne vous est pas attribuée." };
+  if (!prod) return { error: "Ce module ne vous est pas attribué." };
 
   const admin = createSupabaseAdminClient();
   if (!admin) return { error: "Service indisponible." };
@@ -215,13 +215,13 @@ export async function submitVersion(
   const { data: last } = await admin
     .from("content_submissions")
     .select("version")
-    .eq("lesson_id", lessonId)
+    .eq("chapter_id", chapterId)
     .order("version", { ascending: false })
     .limit(1);
   const version = (last?.[0]?.version ?? 0) + 1;
 
   const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const path = `${lessonId}/v${version}-${user.id}.${ext}`;
+  const path = `${chapterId}/v${version}-${user.id}.${ext}`;
   const { error: uErr } = await admin.storage
     .from("collab-docs")
     .upload(path, await file.arrayBuffer(), {
@@ -231,7 +231,7 @@ export async function submitVersion(
   if (uErr) return { error: "Échec du téléversement." };
 
   const { error: iErr } = await supabase.from("content_submissions").insert({
-    lesson_id: lessonId,
+    chapter_id: chapterId,
     version,
     submitted_by: user.id,
     file_path: path,
@@ -240,11 +240,11 @@ export async function submitVersion(
   });
   if (iErr) return { error: "Fichier envoyé mais version non enregistrée." };
 
-  // La lecon passe en relecture (l'admin routera vers un inspecteur).
+  // Le module passe en relecture (l'admin routera vers un inspecteur).
   await supabase
     .from("content_production")
     .update({ stage: "en_relecture", at_en_relecture: now(), updated_at: now() })
-    .eq("lesson_id", lessonId);
+    .eq("chapter_id", chapterId);
 
   revalidatePath("/espace-concepteur");
   return { ok: true };

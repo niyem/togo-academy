@@ -27,7 +27,9 @@ export default async function ProductionPage() {
   const [{ data }, { data: concepteurRows }] = await Promise.all([
     supabase
       .from("content_production")
-      .select("*, lessons(slug, title, chapters(title, class_slug, subject_key))")
+      .select(
+        "*, chapters(slug, title, class_slug, subject_key, lessons(count))",
+      )
       .order("created_at", { ascending: true }),
     supabase
       .from("profiles")
@@ -43,22 +45,16 @@ export default async function ProductionPage() {
   const nameById = new Map(concepteurs.map((c) => [c.id, c.name]));
 
   const rows: ProdRow[] = (data ?? []).map((p: any) => ({
-    lessonId: p.lesson_id,
-    title: p.lessons?.title ?? "(leçon supprimée)",
-    slug: p.lessons?.slug ?? "",
-    chapterTitle: p.lessons?.chapters?.title ?? "",
-    classSlug: p.lessons?.chapters?.class_slug ?? "",
-    subjectKey: p.lessons?.chapters?.subject_key ?? "",
+    moduleId: p.chapter_id,
+    title: p.chapters?.title ?? "(module supprimé)",
+    slug: p.chapters?.slug ?? "",
+    classSlug: p.chapters?.class_slug ?? "",
+    subjectKey: p.chapters?.subject_key ?? "",
+    lessonCount: p.chapters?.lessons?.[0]?.count ?? 0,
     stage: p.stage,
-    mode: p.mode,
-    teacher: p.teacher_name,
     inspector: p.inspector_name,
     concepteurId: p.concepteur_id ?? null,
     concepteurName: p.concepteur_id ? nameById.get(p.concepteur_id) ?? null : null,
-    n_examples: p.n_examples,
-    n_exercises: p.n_exercises,
-    n_figures: p.n_figures,
-    n_quiz: p.n_quiz,
     costXof: p.cost_xof,
     createdAt: p.created_at,
     atEnLigne: p.at_en_ligne,
@@ -75,10 +71,11 @@ export default async function ProductionPage() {
         </Link>
         <h1 className="mt-2 text-3xl font-extrabold">Production de contenu</h1>
         <p className="mt-1 max-w-2xl text-[var(--color-muted)]">
-          Suit chaque leçon dans la chaîne enseignant → inspecteur → ingénierie →
-          mise en ligne, mesure le temps par leçon et estime le coût par le
-          barème (création vs adaptation). Idéal pour piloter d&apos;abord un
-          chapitre, mesurer, puis planifier le déploiement complet.
+          Suit chaque module (chapitre, ex. « PHY 1 », qui contient plusieurs
+          leçons) dans la chaîne concepteur → inspecteur → ingénierie → mise en
+          ligne. Mesure le temps par module et estime le coût par le barème (prix
+          de la classe). Idéal pour piloter d&apos;abord un module, mesurer, puis
+          planifier le déploiement complet.
         </p>
         <div className="mt-6">
           <ProductionBoard rows={rows} concepteurs={concepteurs} />

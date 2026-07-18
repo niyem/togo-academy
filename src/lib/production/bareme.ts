@@ -1,8 +1,11 @@
 // Bareme de remuneration de la production de contenu.
 //
+// UNITE = LE MODULE (chapitre : ex. "PHY 1 · Energie electrique..."), qui
+// contient plusieurs lecons/capacites. On attribue et on tarife par module.
+//
 // Principe (Niyem, 18/07/2026) : on ne recrute que des enseignants assermentes
 // qui ont DEJA leurs cours -> tout est de l'ADAPTATION en format APC + plateforme.
-// Le prix ne depend donc pas d'un decompte d'elements, mais de la CLASSE / SERIE.
+// Le prix depend de la CLASSE / SERIE du module, pas d'un decompte d'elements.
 //
 // Echelle 3 000 (primaire, plancher) -> 7 000 FCFA (Terminale C/D, plafond),
 // par regression selon le niveau. Les series litteraires (A) sont plafonnees au
@@ -49,12 +52,12 @@ export const LESSON_PRICE: Record<string, number> = {
 
 export const DEFAULT_PRICE = 5000; // classe inconnue : repli prudent
 
-/** Prix enseignant (FCFA) d'une lecon selon sa classe. */
-export function lessonPrice(classSlug: string): number {
+/** Prix enseignant (FCFA) d'un MODULE selon sa classe. */
+export function modulePrice(classSlug: string): number {
   return LESSON_PRICE[classSlug] ?? DEFAULT_PRICE;
 }
 
-/** Prix inspecteur (FCFA) pour la relecture, arrondi a 50. */
+/** Prix inspecteur (FCFA) pour la relecture d'un module, arrondi a 50. */
 export function inspectorPrice(classSlug: string): number {
-  return Math.round((lessonPrice(classSlug) * INSPECTOR_FACTOR) / 50) * 50;
+  return Math.round((modulePrice(classSlug) * INSPECTOR_FACTOR) / 50) * 50;
 }
