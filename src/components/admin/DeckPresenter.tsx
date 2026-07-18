@@ -58,12 +58,16 @@ export function DeckPresenter({
 
   return (
     <div className="space-y-4">
-      {/* Scene plein ecran : la vraie diapo, en 16:9, sur fond noir */}
-      <div ref={stageRef} className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-black">
-        <div className="aspect-[16/9] w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} alt={`${deckName} — diapo ${i + 1}`} className="h-full w-full object-contain" draggable={false} />
-        </div>
+      {/* Scene : la vraie diapo sur fond noir. En plein ecran, l'image tient
+          entiere (object-contain sur tout l'ecran), jamais rognee. */}
+      <div
+        ref={stageRef}
+        className={`relative flex items-center justify-center overflow-hidden bg-black ${
+          fs ? "h-screen w-screen rounded-none" : "aspect-[16/9] w-full rounded-2xl"
+        }`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={`${deckName} — diapo ${i + 1}`} className="max-h-full max-w-full object-contain" draggable={false} />
 
         {/* Précharge la diapo suivante */}
         {i + 1 < count && (
