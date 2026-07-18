@@ -36,6 +36,7 @@ export type Module = {
   classSlug: string;
   className: string;
   subjectKey: string;
+  tracked: boolean;
 };
 
 export type ProdRow = {
@@ -331,7 +332,9 @@ function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Con
           <select name="slug" required disabled={!cls} className={`${input} mt-1 w-full`}>
             <option value="">{cls ? "— choisir —" : "choisir une classe"}</option>
             {filtered.map((m) => (
-              <option key={m.slug} value={m.slug}>{m.title}</option>
+              <option key={m.slug} value={m.slug} disabled={m.tracked}>
+                {m.title}{m.tracked ? " (déjà suivi)" : ""}
+              </option>
             ))}
           </select>
         </label>

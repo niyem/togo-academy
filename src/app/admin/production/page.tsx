@@ -53,14 +53,15 @@ export default async function ProductionPage() {
   const trackedSlugs = new Set(
     (data ?? []).map((p: any) => p.chapters?.slug).filter(Boolean),
   );
+  // On garde TOUS les modules ; ceux deja suivis sont marques (affiches grises).
   const modules = (chapterRows ?? [])
-    .filter((c: any) => !trackedSlugs.has(c.slug))
     .map((c: any) => ({
       slug: c.slug,
       title: c.title,
       classSlug: c.class_slug,
       className: classInfo.get(c.class_slug)?.name ?? c.class_slug,
       subjectKey: c.subject_key,
+      tracked: trackedSlugs.has(c.slug),
       _rank: classInfo.get(c.class_slug)?.rank ?? 9999,
       _sort: c.sort_order ?? 0,
     }))
