@@ -30,6 +30,7 @@ import {
 
 export type Person = { id: string; name: string };
 export type Concepteur = Person;
+export type Module = { slug: string; title: string; classSlug: string; subjectKey: string };
 
 export type ProdRow = {
   moduleId: string; // chapter_id
@@ -294,13 +295,41 @@ function Row({
   );
 }
 
-function AddForm() {
+function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Concepteur[] }) {
   const [state, action, pending] = useActionState(startTracking, initial);
+  const [cls, setCls] = useState("");
+  const classes = Array.from(new Set(modules.map((m) => m.classSlug))).sort();
+  const filtered = cls ? modules.filter((m) => m.classSlug === cls) : [];
   return (
     <form action={action} className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input name="slug" required placeholder="Slug du module (chapitre)" className={input} />
-        <input name="inspector_name" placeholder="Inspecteur (facultatif)" className={input} />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <label className="text-xs font-semibold text-[var(--color-muted)]">
+          1. Classe
+          <select value={cls} onChange={(e) => setCls(e.target.value)} className={`${input} mt-1 w-full`}>
+            <option value="">— choisir —</option>
+            {classes.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs font-semibold text-[var(--color-muted)]">
+          2. Module
+          <select name="slug" required disabled={!cls} className={`${input} mt-1 w-full`}>
+            <option value="">{cls ? "— choisir —" : "choisir une classe"}</option>
+            {filtered.map((m) => (
+              <option key={m.slug} value={m.slug}>{m.title}</option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs font-semibold text-[var(--color-muted)]">
+          3. Concepteur (enseignant)
+          <select name="concepteur_id" className={`${input} mt-1 w-full`}>
+            <option value="">— attribuer plus tard —</option>
+            {concepteurs.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </label>
       </div>
       <div className="flex items-center gap-3">
         <button
@@ -308,8 +337,13 @@ function AddForm() {
           disabled={pending}
           className="rounded-full bg-togo-green-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-40"
         >
-          {pending ? "Ajout..." : "Suivre ce module"}
+          {pending ? "Ajout..." : "Ajouter et attribuer ce module"}
         </button>
+        {concepteurs.length === 0 && (
+          <span className="text-xs text-togo-red-700">
+            Aucun concepteur approuvé — approuvez d&apos;abord une candidature.
+          </span>
+        )}
         {state.ok && <span className="text-sm font-medium text-togo-green-700">✓ Ajouté.</span>}
         {state.error && <span className="text-sm text-togo-red-700">{state.error}</span>}
       </div>
@@ -321,10 +355,12 @@ export function ProductionBoard({
   rows,
   concepteurs,
   inspectors,
+  modules,
 }: {
   rows: ProdRow[];
   concepteurs: Concepteur[];
   inspectors: Person[];
+  modules: Module[];
 }) {
   const published = rows.filter((r) => r.atEnLigne);
   const avgDays = published.length
@@ -374,13 +410,14 @@ export function ProductionBoard({
       </div>
 
       <div className="rounded-[var(--radius-card)] border border-togo-green-100 bg-togo-green-50 p-5">
-        <h2 className="font-bold">➕ Suivre un nouveau module</h2>
+        <h2 className="font-bold">➕ Attribuer un module à un concepteur</h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Entre le slug d&apos;un module (chapitre, ex. « PHY 1 ») pour le faire
-          entrer dans la chaîne de production.
+          Choisissez une classe, puis le module (ex. « PHY 1 »), puis
+          l&apos;enseignant qui le développera. Il apparaîtra aussitôt dans son
+          espace. (Vous pouvez aussi attribuer plus tard depuis la ligne du module.)
         </p>
         <div className="mt-3">
-          <AddForm />
+          <AddForm modules={modules} concepteurs={concepteurs} />
         </div>
       </div>
 

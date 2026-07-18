@@ -24,16 +24,38 @@ export default async function ProductionPage() {
     .single();
   if (profile?.role !== "admin") redirect("/tableau-de-bord");
 
-  const [{ data }, { data: concepteurRows }, { data: inspectorRows }, { data: miRows }] =
-    await Promise.all([
-      supabase
-        .from("content_production")
-        .select("*, chapters(slug, title, class_slug, subject_key, lessons(count))")
-        .order("created_at", { ascending: true }),
-      supabase.from("profiles").select("id, full_name").eq("role", "concepteur").order("full_name"),
-      supabase.from("profiles").select("id, full_name").eq("role", "inspecteur").order("full_name"),
-      supabase.from("module_inspectors").select("chapter_id, inspector_id, profiles(full_name)"),
-    ]);
+  const [
+    { data },
+    { data: concepteurRows },
+    { data: inspectorRows },
+    { data: miRows },
+    { data: chapterRows },
+  ] = await Promise.all([
+    supabase
+      .from("content_production")
+      .select("*, chapters(slug, title, class_slug, subject_key, lessons(count))")
+      .order("created_at", { ascending: true }),
+    supabase.from("profiles").select("id, full_name").eq("role", "concepteur").order("full_name"),
+    supabase.from("profiles").select("id, full_name").eq("role", "inspecteur").order("full_name"),
+    supabase.from("module_inspectors").select("chapter_id, inspector_id, profiles(full_name)"),
+    supabase
+      .from("chapters")
+      .select("slug, title, class_slug, subject_key")
+      .order("class_slug")
+      .order("sort_order"),
+  ]);
+
+  const trackedSlugs = new Set(
+    (data ?? []).map((p: any) => p.chapters?.slug).filter(Boolean),
+  );
+  const modules = (chapterRows ?? [])
+    .filter((c: any) => !trackedSlugs.has(c.slug))
+    .map((c: any) => ({
+      slug: c.slug,
+      title: c.title,
+      classSlug: c.class_slug,
+      subjectKey: c.subject_key,
+    }));
 
   const concepteurs = (concepteurRows ?? []).map((c: any) => ({
     id: c.id,
@@ -88,7 +110,12 @@ export default async function ProductionPage() {
           planifier le déploiement complet.
         </p>
         <div className="mt-6">
-          <ProductionBoard rows={rows} concepteurs={concepteurs} inspectors={inspectors} />
+          <ProductionBoard
+            rows={rows}
+            concepteurs={concepteurs}
+            inspectors={inspectors}
+            modules={modules}
+          />
         </div>
       </Container>
     </Section>

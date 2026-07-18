@@ -47,9 +47,11 @@ export async function startTracking(
     .single();
   if (!chapter) return { error: `Aucun module pour le slug « ${slug} ».` };
 
+  const concepteurId = String(formData.get("concepteur_id") ?? "").trim();
   const { error } = await supabase.from("content_production").insert({
     chapter_id: chapter.id,
     mode: "adaptation",
+    concepteur_id: concepteurId || null,
     inspector_name: String(formData.get("inspector_name") ?? "").trim() || null,
   });
   if (error) {
