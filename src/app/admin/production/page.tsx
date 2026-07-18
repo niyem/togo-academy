@@ -24,25 +24,33 @@ export default async function ProductionPage() {
     .single();
   if (profile?.role !== "admin") redirect("/tableau-de-bord");
 
-  const [{ data }, { data: concepteurRows }] = await Promise.all([
-    supabase
-      .from("content_production")
-      .select(
-        "*, chapters(slug, title, class_slug, subject_key, lessons(count))",
-      )
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("profiles")
-      .select("id, full_name")
-      .eq("role", "concepteur")
-      .order("full_name"),
-  ]);
+  const [{ data }, { data: concepteurRows }, { data: inspectorRows }, { data: miRows }] =
+    await Promise.all([
+      supabase
+        .from("content_production")
+        .select("*, chapters(slug, title, class_slug, subject_key, lessons(count))")
+        .order("created_at", { ascending: true }),
+      supabase.from("profiles").select("id, full_name").eq("role", "concepteur").order("full_name"),
+      supabase.from("profiles").select("id, full_name").eq("role", "inspecteur").order("full_name"),
+      supabase.from("module_inspectors").select("chapter_id, inspector_id, profiles(full_name)"),
+    ]);
 
   const concepteurs = (concepteurRows ?? []).map((c: any) => ({
     id: c.id,
     name: c.full_name ?? "Concepteur",
   }));
+  const inspectors = (inspectorRows ?? []).map((c: any) => ({
+    id: c.id,
+    name: c.full_name ?? "Inspecteur",
+  }));
   const nameById = new Map(concepteurs.map((c) => [c.id, c.name]));
+
+  const inspByModule = new Map<string, { id: string; name: string }[]>();
+  for (const mi of miRows ?? []) {
+    const arr = inspByModule.get((mi as any).chapter_id) ?? [];
+    arr.push({ id: (mi as any).inspector_id, name: (mi as any).profiles?.full_name ?? "Inspecteur" });
+    inspByModule.set((mi as any).chapter_id, arr);
+  }
 
   const rows: ProdRow[] = (data ?? []).map((p: any) => ({
     moduleId: p.chapter_id,
@@ -55,7 +63,9 @@ export default async function ProductionPage() {
     inspector: p.inspector_name,
     concepteurId: p.concepteur_id ?? null,
     concepteurName: p.concepteur_id ? nameById.get(p.concepteur_id) ?? null : null,
+    inspectors: inspByModule.get(p.chapter_id) ?? [],
     costXof: p.cost_xof,
+    inspectorCostXof: p.inspector_cost_xof ?? null,
     createdAt: p.created_at,
     atEnLigne: p.at_en_ligne,
   }));
@@ -78,7 +88,7 @@ export default async function ProductionPage() {
           planifier le déploiement complet.
         </p>
         <div className="mt-6">
-          <ProductionBoard rows={rows} concepteurs={concepteurs} />
+          <ProductionBoard rows={rows} concepteurs={concepteurs} inspectors={inspectors} />
         </div>
       </Container>
     </Section>

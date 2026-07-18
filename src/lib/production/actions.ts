@@ -72,11 +72,13 @@ export async function updateProduction(
   if (!chapterId) return { error: "Module manquant." };
 
   const costRaw = String(formData.get("cost_xof") ?? "").trim();
+  const inspCostRaw = String(formData.get("inspector_cost_xof") ?? "").trim();
   const { error } = await supabase
     .from("content_production")
     .update({
       inspector_name: String(formData.get("inspector_name") ?? "").trim() || null,
       cost_xof: costRaw === "" ? null : num(formData.get("cost_xof")),
+      inspector_cost_xof: inspCostRaw === "" ? null : num(formData.get("inspector_cost_xof")),
       notes: String(formData.get("notes") ?? "").trim() || null,
       updated_at: new Date().toISOString(),
     })

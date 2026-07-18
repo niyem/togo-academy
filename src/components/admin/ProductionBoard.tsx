@@ -21,9 +21,15 @@ import {
   type Stage,
 } from "@/lib/production/stages";
 import { modulePrice, inspectorPrice } from "@/lib/production/bareme";
-import { assignConcepteur, type CollabState } from "@/lib/collab/actions";
+import {
+  assignConcepteur,
+  assignInspector,
+  unassignInspector,
+  type CollabState,
+} from "@/lib/collab/actions";
 
-export type Concepteur = { id: string; name: string };
+export type Person = { id: string; name: string };
+export type Concepteur = Person;
 
 export type ProdRow = {
   moduleId: string; // chapter_id
@@ -36,7 +42,9 @@ export type ProdRow = {
   inspector: string | null;
   concepteurId: string | null;
   concepteurName: string | null;
+  inspectors: Person[]; // inspecteurs attribues (comptes)
   costXof: number | null;
+  inspectorCostXof: number | null;
   createdAt: string;
   atEnLigne: string | null;
 };
@@ -76,6 +84,55 @@ function AssignForm({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteu
       {state.ok && <span className="text-xs text-togo-green-700">✓</span>}
       {state.error && <span className="text-xs text-togo-red-700">{state.error}</span>}
     </form>
+  );
+}
+
+function InspectorAssign({ row, inspectors }: { row: ProdRow; inspectors: Person[] }) {
+  const [addState, addAction, addPending] = useActionState(assignInspector, collabInit);
+  const [, removeAction] = useActionState(unassignInspector, collabInit);
+  const assignedIds = new Set(row.inspectors.map((i) => i.id));
+  const available = inspectors.filter((i) => !assignedIds.has(i.id));
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-semibold text-[var(--color-muted)]">
+        Inspecteurs attribués :
+      </span>
+      {row.inspectors.length === 0 && (
+        <span className="text-xs text-[var(--color-muted)]">aucun</span>
+      )}
+      {row.inspectors.map((ins) => (
+        <form key={ins.id} action={removeAction} className="inline-flex">
+          <input type="hidden" name="chapter_id" value={row.moduleId} />
+          <input type="hidden" name="inspector_id" value={ins.id} />
+          <button
+            type="submit"
+            title="Retirer"
+            className="inline-flex items-center gap-1 rounded-full bg-togo-green-100 px-2.5 py-1 text-xs font-semibold text-togo-green-700 hover:bg-togo-red-100 hover:text-togo-red-700"
+          >
+            {ins.name} ✕
+          </button>
+        </form>
+      ))}
+      {available.length > 0 && (
+        <form action={addAction} className="flex items-center gap-1">
+          <input type="hidden" name="chapter_id" value={row.moduleId} />
+          <select name="inspector_id" defaultValue="" className={input} required>
+            <option value="" disabled>+ ajouter…</option>
+            {available.map((i) => (
+              <option key={i.id} value={i.id}>{i.name}</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={addPending}
+            className="rounded-full border border-[var(--color-line)] px-3 py-1.5 text-xs font-semibold hover:border-togo-green-500 disabled:opacity-40"
+          >
+            Attribuer
+          </button>
+        </form>
+      )}
+      {addState.error && <span className="text-xs text-togo-red-700">{addState.error}</span>}
+    </div>
   );
 }
 
@@ -122,17 +179,26 @@ function EditPanel({ row }: { row: ProdRow }) {
   return (
     <form action={action} className="mt-3 space-y-3 border-t border-[var(--color-line)] pt-3">
       <input type="hidden" name="chapter_id" value={row.moduleId} />
-      <div className="grid gap-3 sm:grid-cols-3">
+      <p className="text-xs text-[var(--color-muted)]">
+        🔒 Les prix ne sont modifiables que par l&apos;administration. Négociez
+        librement si vous attribuez plusieurs modules ; le concepteur et
+        l&apos;inspecteur les voient en lecture seule.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-xs font-semibold text-togo-green-700">
+          Prix enseignant négocié (FCFA, vide = prix de la classe)
+          <input type="number" min={0} name="cost_xof" defaultValue={row.costXof ?? ""} className={`${input} mt-1 w-full`} />
+        </label>
+        <label className="text-xs font-semibold text-togo-green-700">
+          Prix inspecteur négocié (FCFA, vide = barème 35%)
+          <input type="number" min={0} name="inspector_cost_xof" defaultValue={row.inspectorCostXof ?? ""} className={`${input} mt-1 w-full`} />
+        </label>
         <label className="text-xs font-semibold text-[var(--color-muted)]">
-          Inspecteur (nom)
+          Inspecteur (note libre, facultatif)
           <input name="inspector_name" defaultValue={row.inspector ?? ""} className={`${input} mt-1 w-full`} />
         </label>
         <label className="text-xs font-semibold text-[var(--color-muted)]">
-          Coût final retenu (FCFA, vide = prix de la classe)
-          <input type="number" min={0} name="cost_xof" defaultValue={row.costXof ?? ""} className={`${input} mt-1 w-full`} />
-        </label>
-        <label className="text-xs font-semibold text-[var(--color-muted)]">
-          Notes
+          Notes internes
           <input name="notes" className={`${input} mt-1 w-full`} />
         </label>
       </div>
@@ -167,10 +233,18 @@ function RemoveForm({ moduleId }: { moduleId: string }) {
   );
 }
 
-function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) {
+function Row({
+  row,
+  concepteurs,
+  inspectors,
+}: {
+  row: ProdRow;
+  concepteurs: Concepteur[];
+  inspectors: Person[];
+}) {
   const [open, setOpen] = useState(false);
   const suggested = modulePrice(row.classSlug);
-  const insp = inspectorPrice(row.classSlug);
+  const insp = row.inspectorCostXof ?? inspectorPrice(row.classSlug);
   const days = daysBetween(row.createdAt, row.atEnLigne);
   return (
     <li className="py-4">
@@ -211,8 +285,9 @@ function Row({ row, concepteurs }: { row: ProdRow; concepteurs: Concepteur[] }) 
           <RemoveForm moduleId={row.moduleId} />
         </div>
       </div>
-      <div className="mt-2">
+      <div className="mt-2 space-y-1.5">
         <AssignForm row={row} concepteurs={concepteurs} />
+        <InspectorAssign row={row} inspectors={inspectors} />
       </div>
       {open && <EditPanel row={row} />}
     </li>
@@ -245,9 +320,11 @@ function AddForm() {
 export function ProductionBoard({
   rows,
   concepteurs,
+  inspectors,
 }: {
   rows: ProdRow[];
   concepteurs: Concepteur[];
+  inspectors: Person[];
 }) {
   const published = rows.filter((r) => r.atEnLigne);
   const avgDays = published.length
@@ -309,7 +386,7 @@ export function ProductionBoard({
 
       <ul className="divide-y divide-[var(--color-line)]">
         {rows.map((r) => (
-          <Row key={r.moduleId} row={r} concepteurs={concepteurs} />
+          <Row key={r.moduleId} row={r} concepteurs={concepteurs} inspectors={inspectors} />
         ))}
         {rows.length === 0 && (
           <li className="py-6 text-sm text-[var(--color-muted)]">

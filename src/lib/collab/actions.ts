@@ -249,3 +249,94 @@ export async function submitVersion(
   revalidatePath("/espace-concepteur");
   return { ok: true };
 }
+
+// ---- Attribution d'un module a un inspecteur (admin) ----
+export async function assignInspector(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const admin = createSupabaseAdminClient();
+  if (!admin) return { error: "Service indisponible." };
+
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const inspectorId = String(formData.get("inspector_id") ?? "");
+  if (!chapterId || !inspectorId) return { error: "Paramètres manquants." };
+  const { error } = await admin
+    .from("module_inspectors")
+    .upsert({ chapter_id: chapterId, inspector_id: inspectorId });
+  if (error) return { error: "Échec de l'attribution." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}
+
+// ---- Retrait d'un inspecteur d'un module (admin) ----
+export async function unassignInspector(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const admin = createSupabaseAdminClient();
+  if (!admin) return { error: "Service indisponible." };
+
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const inspectorId = String(formData.get("inspector_id") ?? "");
+  if (!chapterId || !inspectorId) return { error: "Paramètres manquants." };
+  const { error } = await admin
+    .from("module_inspectors")
+    .delete()
+    .eq("chapter_id", chapterId)
+    .eq("inspector_id", inspectorId);
+  if (error) return { error: "Échec du retrait." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}
+
+// ---- Depot d'une relecture par l'inspecteur ----
+export async function submitReview(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, user, ok } = await requireRole("inspecteur");
+  if (!ok || !user) return { error: "Réservé aux inspecteurs." };
+
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const version = parseInt(String(formData.get("version") ?? "0"), 10);
+  const comment = String(formData.get("comment") ?? "").trim();
+  const decision = String(formData.get("decision") ?? "");
+  if (!chapterId || !version) return { error: "Paramètres manquants." };
+  if (!comment) return { error: "Ajoutez vos observations." };
+  if (!["changes_requested", "approved"].includes(decision)) {
+    return { error: "Décision invalide." };
+  }
+
+  // L'inspecteur doit etre attribue a ce module.
+  const { data: mi } = await supabase
+    .from("module_inspectors")
+    .select("chapter_id")
+    .eq("chapter_id", chapterId)
+    .eq("inspector_id", user.id)
+    .single();
+  if (!mi) return { error: "Ce module ne vous est pas attribué." };
+
+  const { error } = await supabase.from("content_reviews").insert({
+    chapter_id: chapterId,
+    version,
+    inspector_id: user.id,
+    comment,
+    decision,
+  });
+  if (error) return { error: "Échec de l'enregistrement." };
+
+  // La decision fait avancer le module.
+  const patch =
+    decision === "approved"
+      ? { stage: "valide", at_valide: now(), updated_at: now() }
+      : { stage: "a_corriger", at_a_corriger: now(), updated_at: now() };
+  await supabase.from("content_production").update(patch).eq("chapter_id", chapterId);
+
+  revalidatePath("/espace-inspecteur");
+  return { ok: true };
+}

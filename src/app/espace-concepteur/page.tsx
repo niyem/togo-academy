@@ -26,18 +26,31 @@ export default async function ConcepteurSpace() {
 
   const { data: rows } = await supabase
     .from("content_production")
-    .select("chapter_id, stage, chapters(title, slug, class_slug, subject_key, lessons(count))")
+    .select("chapter_id, stage, cost_xof, chapters(title, slug, class_slug, subject_key, lessons(count))")
     .eq("concepteur_id", user.id)
     .order("updated_at", { ascending: false });
 
   const chapterIds = (rows ?? []).map((r: any) => r.chapter_id);
-  const { data: subs } = chapterIds.length
-    ? await supabase
-        .from("content_submissions")
-        .select("chapter_id, version, file_path, file_name, note, created_at")
-        .in("chapter_id", chapterIds)
-        .order("version", { ascending: false })
-    : { data: [] as any[] };
+  const [{ data: subs }, { data: reviews }] = chapterIds.length
+    ? await Promise.all([
+        supabase
+          .from("content_submissions")
+          .select("chapter_id, version, file_path, file_name, note, created_at")
+          .in("chapter_id", chapterIds)
+          .order("version", { ascending: false }),
+        supabase
+          .from("content_reviews")
+          .select("chapter_id, version, comment, decision, created_at")
+          .in("chapter_id", chapterIds)
+          .order("created_at", { ascending: false }),
+      ])
+    : [{ data: [] as any[] }, { data: [] as any[] }];
+  const revsByModule = new Map<string, any[]>();
+  for (const r of reviews ?? []) {
+    const arr = revsByModule.get(r.chapter_id) ?? [];
+    arr.push(r);
+    revsByModule.set(r.chapter_id, arr);
+  }
 
   const admin = createSupabaseAdminClient();
   const urls = new Map<string, string>();
@@ -57,7 +70,7 @@ export default async function ConcepteurSpace() {
   }
 
   const totalPay = (rows ?? []).reduce(
-    (sum: number, r: any) => sum + modulePrice(r.chapters?.class_slug ?? ""),
+    (sum: number, r: any) => sum + (r.cost_xof ?? modulePrice(r.chapters?.class_slug ?? "")),
     0,
   );
 
@@ -92,7 +105,9 @@ export default async function ConcepteurSpace() {
           {(rows ?? []).map((r: any) => {
             const cls = r.chapters?.class_slug ?? "";
             const versions = subsByModule.get(r.chapter_id) ?? [];
+            const myRevs = revsByModule.get(r.chapter_id) ?? [];
             const lessonCount = r.chapters?.lessons?.[0]?.count ?? 0;
+            const pay = r.cost_xof ?? modulePrice(cls);
             return (
               <Card key={r.chapter_id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -107,10 +122,28 @@ export default async function ConcepteurSpace() {
                       [{cls}] {r.chapters?.subject_key} · {lessonCount} leçon(s) à développer
                     </div>
                   </div>
-                  <div className="text-right text-sm font-bold text-togo-green-700">
-                    {modulePrice(cls).toLocaleString("fr-FR")} FCFA
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-togo-green-700">
+                      {pay.toLocaleString("fr-FR")} FCFA
+                    </div>
+                    <div className="text-[11px] text-[var(--color-muted)]">
+                      🔒 fixé par l&apos;administration
+                    </div>
                   </div>
                 </div>
+
+                {myRevs.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {myRevs.map((rv: any, i: number) => (
+                      <div key={i} className="rounded-lg bg-togo-green-50 p-3 text-sm">
+                        <Badge tone={rv.decision === "approved" ? "green" : "yellow"}>
+                          v{rv.version} · {rv.decision === "approved" ? "Validé" : "Corrections demandées"}
+                        </Badge>
+                        <p className="mt-1 text-ink/90">{rv.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {versions.length > 0 && (
                   <ul className="mt-3 divide-y divide-[var(--color-line)] text-sm">
