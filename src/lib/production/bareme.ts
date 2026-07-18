@@ -7,50 +7,53 @@
 // qui ont DEJA leurs cours -> tout est de l'ADAPTATION en format APC + plateforme.
 // Le prix depend de la CLASSE / SERIE du module, pas d'un decompte d'elements.
 //
-// Echelle 3 000 (primaire, plancher) -> 7 000 FCFA (Terminale C/D, plafond),
-// par regression selon le niveau. Les series litteraires (A) sont plafonnees au
-// prix de la 3e (5 000). L'inspecteur est paye une fraction du tarif enseignant.
+// Echelle 1 000 (primaire, plancher) -> 3 000 (fin college / serie A) -> 5 000
+// FCFA (Terminale C/D, plafond). Les series litteraires (A) sont plafonnees au
+// prix de la 3e (3 000). L'inspecteur est paye 60 % du tarif enseignant.
 //
 // Tout se regle ici : modifiez ces montants pour recalibrer apres le pilote.
 
-export const INSPECTOR_FACTOR = 0.35; // relecture inspecteur ~35 % du tarif auteur
+export const INSPECTOR_FACTOR = 0.6; // relecture inspecteur = 60 % du tarif auteur
 
-// Prix enseignant (FCFA) par slug de classe. Litteraire (serie A) = prix de la 3e.
+// Prix enseignant (FCFA) par slug de classe. Grille revue le 18/07/2026 pour
+// tenir le budget (conception + relecture + mise en video par module) :
+// 1 000 (primaire) -> 3 000 (fin college / serie A) -> 5 000 (Terminale sci).
+// Litteraire (serie A) = plafonne au prix de la 3e (3 000).
 export const LESSON_PRICE: Record<string, number> = {
   // Primaire (plancher) + CEPD (fin de primaire)
-  cp1: 3000,
-  cp2: 3000,
-  ce1: 3000,
-  ce2: 3000,
-  cm1: 3000,
-  cm2: 3000,
-  cepd: 3000,
-  // College : regression
-  "6eme": 3500,
-  "5eme": 4000,
-  "4eme": 4500,
-  "3eme": 5000,
-  bepc: 5000, // fin de college = 3e
-  // Lycee LITTERAIRE (serie A) : plafonne au prix de la 3e
-  seconde: 5000, // Seconde A
-  premiere: 5000, // Premiere A
-  terminale: 5000, // Terminale A
-  "probatoire-a": 5000,
-  "bac-a": 5000,
-  toefl: 5000, // preparation TOEFL (produit a part) : ajustable
-  // Lycee SCIENTIFIQUE : regression jusqu'au plafond
-  "seconde-c": 5500, // Seconde C (le "scientifique" du niveau seconde)
-  "premiere-c": 6000,
-  "premiere-d": 6000,
-  "probatoire-c": 6000,
-  "probatoire-d": 6000,
-  "terminale-c": 7000, // top
-  "terminale-d": 7000, // top
-  "bac-c": 7000,
-  "bac-d": 7000,
+  cp1: 1000,
+  cp2: 1000,
+  ce1: 1000,
+  ce2: 1000,
+  cm1: 1000,
+  cm2: 1000,
+  cepd: 1000,
+  // College : regression 1 500 -> 3 000
+  "6eme": 1500,
+  "5eme": 2000,
+  "4eme": 2500,
+  "3eme": 3000,
+  bepc: 3000, // fin de college = 3e
+  // Lycee LITTERAIRE (serie A) : plafonne au prix de la 3e (3 000)
+  seconde: 3000, // Seconde A
+  premiere: 3000, // Premiere A
+  terminale: 3000, // Terminale A
+  "probatoire-a": 3000,
+  "bac-a": 3000,
+  toefl: 3000, // preparation TOEFL (produit a part) : ajustable
+  // Lycee SCIENTIFIQUE : regression 3 500 -> 5 000
+  "seconde-c": 3500, // Seconde C (le "scientifique" du niveau seconde)
+  "premiere-c": 4000,
+  "premiere-d": 4000,
+  "probatoire-c": 4000,
+  "probatoire-d": 4000,
+  "terminale-c": 5000, // top
+  "terminale-d": 5000, // top
+  "bac-c": 5000,
+  "bac-d": 5000,
 };
 
-export const DEFAULT_PRICE = 5000; // classe inconnue : repli prudent
+export const DEFAULT_PRICE = 3000; // classe inconnue : repli prudent
 
 /** Prix enseignant (FCFA) d'un MODULE selon sa classe. */
 export function modulePrice(classSlug: string): number {
