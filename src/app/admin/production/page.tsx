@@ -31,6 +31,7 @@ export default async function ProductionPage() {
     { data: miRows },
     { data: chapterRows },
     { data: classRows },
+    { data: subjectRows },
   ] = await Promise.all([
     supabase
       .from("content_production")
@@ -41,7 +42,12 @@ export default async function ProductionPage() {
     supabase.from("module_inspectors").select("chapter_id, inspector_id, profiles(full_name)"),
     supabase.from("chapters").select("slug, title, class_slug, subject_key, sort_order"),
     supabase.from("classes").select("slug, name, sort_order, education_levels(sort_order)"),
+    supabase.from("subjects").select("key, name"),
   ]);
+
+  const subjectName = new Map<string, string>(
+    ((subjectRows ?? []) as any[]).map((s) => [s.key, s.name]),
+  );
 
   // Rang scolaire d'une classe (primaire -> terminale) + son nom lisible.
   const classInfo = new Map<string, { name: string; rank: number }>();
@@ -61,6 +67,7 @@ export default async function ProductionPage() {
       classSlug: c.class_slug,
       className: classInfo.get(c.class_slug)?.name ?? c.class_slug,
       subjectKey: c.subject_key,
+      subjectName: subjectName.get(c.subject_key) ?? c.subject_key,
       tracked: trackedSlugs.has(c.slug),
       _rank: classInfo.get(c.class_slug)?.rank ?? 9999,
       _sort: c.sort_order ?? 0,

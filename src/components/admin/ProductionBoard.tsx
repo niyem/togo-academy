@@ -36,6 +36,7 @@ export type Module = {
   classSlug: string;
   className: string;
   subjectKey: string;
+  subjectName: string;
   tracked: boolean;
 };
 
@@ -324,6 +325,17 @@ function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Con
     }
   }
   const filtered = cls ? modules.filter((m) => m.classSlug === cls) : [];
+  // Regroupe les modules par matiere (cluster) pour s'y retrouver.
+  const groups: { name: string; items: Module[] }[] = [];
+  const gIdx = new Map<string, number>();
+  for (const m of filtered) {
+    if (!gIdx.has(m.subjectKey)) {
+      gIdx.set(m.subjectKey, groups.length);
+      groups.push({ name: m.subjectName, items: [] });
+    }
+    groups[gIdx.get(m.subjectKey)!].items.push(m);
+  }
+  groups.sort((a, b) => a.name.localeCompare(b.name));
   return (
     <form action={action} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -340,10 +352,14 @@ function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Con
           2. Module
           <select name="slug" required disabled={!cls} className={`${input} mt-1 w-full`}>
             <option value="">{cls ? "— choisir —" : "choisir une classe"}</option>
-            {filtered.map((m) => (
-              <option key={m.slug} value={m.slug} disabled={m.tracked}>
-                {m.title}{m.tracked ? " (déjà suivi)" : ""}
-              </option>
+            {groups.map((g) => (
+              <optgroup key={g.name} label={g.name}>
+                {g.items.map((m) => (
+                  <option key={m.slug} value={m.slug} disabled={m.tracked}>
+                    {m.title}{m.tracked ? " (déjà suivi)" : ""}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>
