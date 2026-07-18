@@ -20,6 +20,8 @@ const TOPIC_LABEL: Record<string, string> = {
   question: "Question générale",
   abonnement: "Abonnement & paiement",
   tuteur: "Devenir tuteur",
+  concevoir: "Concevoir des cours",
+  inspection: "Relire / valider (inspecteur)",
   technique: "Problème technique",
   partenariat: "Partenariat",
   autre: "Autre",

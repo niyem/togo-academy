@@ -10,6 +10,8 @@ const TOPICS: [string, string][] = [
   ["question", "Question générale"],
   ["abonnement", "Abonnement & paiement"],
   ["tuteur", "Devenir tuteur"],
+  ["concevoir", "Concevoir des cours (enseignant-concepteur)"],
+  ["inspection", "Relire et valider des cours (inspecteur)"],
   ["technique", "Problème technique"],
   ["partenariat", "Partenariat / établissement scolaire"],
   ["autre", "Autre"],

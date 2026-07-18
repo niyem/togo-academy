@@ -60,6 +60,21 @@ export default function ContactPage() {
                   et disponibilités.
                 </span>
               </li>
+              <li className="flex items-start gap-3">
+                <Check />
+                <span>
+                  Envie de <strong>concevoir des cours</strong> ou de{" "}
+                  <strong>relire et valider</strong> des contenus ? Choisissez le
+                  sujet correspondant, ou candidatez directement sur la page{" "}
+                  <a
+                    href="/rejoindre-production"
+                    className="font-semibold text-togo-green-700 hover:underline"
+                  >
+                    Rejoindre l&apos;équipe de production
+                  </a>
+                  .
+                </span>
+              </li>
             </ul>
           </div>
 
