@@ -128,33 +128,36 @@ export default async function AdminPage() {
   return (
     <Section>
       <Container>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-extrabold">Administration</h1>
-            <p className="mt-1 text-[var(--color-muted)]">
-              Vue d&apos;ensemble de Togo Academy.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+        <h1 className="text-3xl font-extrabold">Administration</h1>
+        <p className="mt-1 text-[var(--color-muted)]">
+          Vue d&apos;ensemble de Togo Academy.
+        </p>
+
+        {/* Acces rapide aux outils */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {(
+            [
+              ["/admin/presentations", "🎤", "Présentations", "Présenter en plein écran ou télécharger les decks"],
+              ["/admin/production", "🏭", "Production de contenu", "Suivre la chaîne éditoriale et le coût par leçon"],
+              ["/enseignant", "📚", "Contenu (leçons)", "Créer, relire et publier toutes les leçons"],
+            ] as const
+          ).map(([href, icon, title, desc]) => (
             <Link
-              href="/admin/presentations"
-              className="rounded-lg border border-togo-green-500 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
+              key={href}
+              href={href}
+              className="flex items-start gap-3 rounded-[var(--radius-card)] border border-togo-green-100 bg-white p-4 transition-colors hover:border-togo-green-500 hover:bg-togo-green-50"
             >
-              🎤 Présentations
+              <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-togo-green-600 text-xl">
+                {icon}
+              </span>
+              <span>
+                <span className="block font-bold text-ink">{title}</span>
+                <span className="mt-0.5 block text-xs text-[var(--color-muted)]">
+                  {desc}
+                </span>
+              </span>
             </Link>
-            <Link
-              href="/admin/production"
-              className="rounded-lg border border-togo-green-500 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
-            >
-              🏭 Production de contenu
-            </Link>
-            <Link
-              href="/enseignant"
-              className="rounded-lg bg-togo-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-togo-green-700"
-            >
-              📚 Tout le contenu (leçons)
-            </Link>
-          </div>
+          ))}
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-5">
