@@ -112,12 +112,6 @@ export const subjects: Subject[] = [
     icon: "⚙️",
     description: "Objets techniques et démarche d'ingénierie.",
   },
-  {
-    key: "informatique",
-    name: "Informatique",
-    icon: "💻",
-    description: "Algorithmique, bureautique et culture numérique.",
-  },
 ];
 
 export const chapters: Chapter[] = [

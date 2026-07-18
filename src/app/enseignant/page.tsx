@@ -93,7 +93,6 @@ export default async function TeacherHomePage() {
     "spt",
     "svt",
     "technologie",
-    "informatique",
   ];
   const subjectRank = (k: string) => {
     const i = SUBJECT_ORDER.indexOf(k);

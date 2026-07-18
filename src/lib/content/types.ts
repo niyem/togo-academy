@@ -17,8 +17,7 @@ export type SubjectKey =
   | "svt" // Sciences de la Vie et de la Terre (biology / life sciences)
   | "spt" // Sciences Physiques et Technologie (physique-chimie-techno, college)
   | "anglais" // English (school subject + primary songs + TOEFL prep)
-  | "technologie"
-  | "informatique";
+  | "technologie";
 
 export type ActivityType =
   | "video"
