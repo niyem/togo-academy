@@ -23,6 +23,10 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
+  // Les contributeurs vont directement a leur espace de production.
+  if (profile?.role === "concepteur") redirect("/espace-concepteur");
+  if (profile?.role === "inspecteur") redirect("/espace-inspecteur");
+
   const firstName = profile?.full_name?.split(" ")[0] ?? "toi";
 
   // Dernier abonnement de l'utilisateur (RLS : les siens uniquement).

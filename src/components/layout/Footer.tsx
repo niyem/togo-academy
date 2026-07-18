@@ -16,6 +16,7 @@ const columns = [
     title: "La plateforme",
     links: [
       { href: "/tutorat", label: "Tutorat en direct" },
+      { href: "/rejoindre-production", label: "Concevoir des cours (recrutement)" },
       { href: "/a-propos", label: "À propos" },
       { href: "/faq", label: "Questions fréquentes" },
       { href: "/contact", label: "Contact & support" },
