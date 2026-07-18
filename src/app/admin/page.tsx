@@ -135,12 +135,20 @@ export default async function AdminPage() {
               Vue d&apos;ensemble de Togo Academy.
             </p>
           </div>
-          <Link
-            href="/enseignant"
-            className="rounded-lg bg-togo-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-togo-green-700"
-          >
-            📚 Tout le contenu (leçons)
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/production"
+              className="rounded-lg border border-togo-green-500 px-4 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-50"
+            >
+              🏭 Production de contenu
+            </Link>
+            <Link
+              href="/enseignant"
+              className="rounded-lg bg-togo-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-togo-green-700"
+            >
+              📚 Tout le contenu (leçons)
+            </Link>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-5">
