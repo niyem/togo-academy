@@ -54,7 +54,11 @@ export default async function PresenterPage({
           pour les notes.
         </p>
         <div className="mt-5">
-          <DeckPresenter slides={deck.slides} deckName={deck.name} />
+          <DeckPresenter
+            slug={deck.slug}
+            notes={deck.slides.map((s) => s.notes)}
+            deckName={deck.name}
+          />
         </div>
       </Container>
     </Section>
