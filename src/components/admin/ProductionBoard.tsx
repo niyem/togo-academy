@@ -225,7 +225,7 @@ function EditPanel({ row }: { row: ProdRow }) {
   );
 }
 
-function RemoveForm({ moduleId }: { moduleId: string }) {
+function RemoveForm({ moduleId, title }: { moduleId: string; title: string }) {
   const [, action, pending] = useActionState(stopTracking, initial);
   return (
     <form action={action}>
@@ -233,9 +233,18 @@ function RemoveForm({ moduleId }: { moduleId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="text-xs text-[var(--color-muted)] hover:text-togo-red-700 disabled:opacity-40"
+        onClick={(e) => {
+          if (
+            !window.confirm(
+              `Retirer « ${title} » de la chaîne de production ?\n\nLe module lui-même n'est pas supprimé du programme ; il est seulement retiré du suivi (attribution, versions et relectures liées seront perdues).`,
+            )
+          ) {
+            e.preventDefault();
+          }
+        }}
+        className="rounded-full border border-togo-red-200 px-3 py-1.5 text-xs font-semibold text-togo-red-700 hover:bg-togo-red-50 disabled:opacity-40"
       >
-        Retirer du suivi
+        🗑 Retirer de la chaîne
       </button>
     </form>
   );
@@ -290,7 +299,7 @@ function Row({
           >
             {open ? "Fermer" : "Modifier"}
           </button>
-          <RemoveForm moduleId={row.moduleId} />
+          <RemoveForm moduleId={row.moduleId} title={row.title} />
         </div>
       </div>
       <div className="mt-2 space-y-1.5">
