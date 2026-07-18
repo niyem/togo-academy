@@ -30,7 +30,13 @@ import {
 
 export type Person = { id: string; name: string };
 export type Concepteur = Person;
-export type Module = { slug: string; title: string; classSlug: string; subjectKey: string };
+export type Module = {
+  slug: string;
+  title: string;
+  classSlug: string;
+  className: string;
+  subjectKey: string;
+};
 
 export type ProdRow = {
   moduleId: string; // chapter_id
@@ -298,7 +304,15 @@ function Row({
 function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Concepteur[] }) {
   const [state, action, pending] = useActionState(startTracking, initial);
   const [cls, setCls] = useState("");
-  const classes = Array.from(new Set(modules.map((m) => m.classSlug))).sort();
+  // Classes uniques dans l'ordre d'apparition (deja triees par ordre scolaire).
+  const classes: { slug: string; name: string }[] = [];
+  const seen = new Set<string>();
+  for (const m of modules) {
+    if (!seen.has(m.classSlug)) {
+      seen.add(m.classSlug);
+      classes.push({ slug: m.classSlug, name: m.className });
+    }
+  }
   const filtered = cls ? modules.filter((m) => m.classSlug === cls) : [];
   return (
     <form action={action} className="space-y-3">
@@ -308,7 +322,7 @@ function AddForm({ modules, concepteurs }: { modules: Module[]; concepteurs: Con
           <select value={cls} onChange={(e) => setCls(e.target.value)} className={`${input} mt-1 w-full`}>
             <option value="">— choisir —</option>
             {classes.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
         </label>

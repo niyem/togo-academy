@@ -30,6 +30,7 @@ export default async function ProductionPage() {
     { data: inspectorRows },
     { data: miRows },
     { data: chapterRows },
+    { data: classRows },
   ] = await Promise.all([
     supabase
       .from("content_production")
@@ -38,12 +39,16 @@ export default async function ProductionPage() {
     supabase.from("profiles").select("id, full_name").eq("role", "concepteur").order("full_name"),
     supabase.from("profiles").select("id, full_name").eq("role", "inspecteur").order("full_name"),
     supabase.from("module_inspectors").select("chapter_id, inspector_id, profiles(full_name)"),
-    supabase
-      .from("chapters")
-      .select("slug, title, class_slug, subject_key")
-      .order("class_slug")
-      .order("sort_order"),
+    supabase.from("chapters").select("slug, title, class_slug, subject_key, sort_order"),
+    supabase.from("classes").select("slug, name, sort_order, education_levels(sort_order)"),
   ]);
+
+  // Rang scolaire d'une classe (primaire -> terminale) + son nom lisible.
+  const classInfo = new Map<string, { name: string; rank: number }>();
+  for (const c of (classRows ?? []) as any[]) {
+    const rank = (c.education_levels?.sort_order ?? 0) * 1000 + (c.sort_order ?? 0);
+    classInfo.set(c.slug, { name: c.name ?? c.slug, rank });
+  }
 
   const trackedSlugs = new Set(
     (data ?? []).map((p: any) => p.chapters?.slug).filter(Boolean),
@@ -54,8 +59,13 @@ export default async function ProductionPage() {
       slug: c.slug,
       title: c.title,
       classSlug: c.class_slug,
+      className: classInfo.get(c.class_slug)?.name ?? c.class_slug,
       subjectKey: c.subject_key,
-    }));
+      _rank: classInfo.get(c.class_slug)?.rank ?? 9999,
+      _sort: c.sort_order ?? 0,
+    }))
+    .sort((a: any, b: any) => a._rank - b._rank || a._sort - b._sort)
+    .map(({ _rank, _sort, ...m }: any) => m); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const concepteurs = (concepteurRows ?? []).map((c: any) => ({
     id: c.id,
