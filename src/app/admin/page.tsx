@@ -78,6 +78,11 @@ export default async function AdminPage() {
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
+  const [concepteurs, inspecteurs] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "concepteur"),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "inspecteur"),
+  ]);
+
   // URLs signees (1 h) des pieces justificatives des candidatures en attente.
   const adminClient = createSupabaseAdminClient();
   const tutorDocs = new Map<string, { cv?: string; proof?: string }>();
@@ -127,6 +132,8 @@ export default async function AdminPage() {
   const kpis: [string, number][] = [
     ["Élèves inscrits", students.count ?? 0],
     ["Parents", parents.count ?? 0],
+    ["Concepteurs validés", concepteurs.count ?? 0],
+    ["Inspecteurs validés", inspecteurs.count ?? 0],
     ["Abonnements actifs", activeSubs.count ?? 0],
     ["Leçons publiées", published.count ?? 0],
     ["Quiz réalisés", attempts.count ?? 0],
@@ -168,7 +175,7 @@ export default async function AdminPage() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
           {kpis.map(([labelText, value]) => (
             <Card key={labelText} className="text-center">
               <div className="text-2xl font-extrabold text-togo-green-600">
