@@ -90,7 +90,7 @@ export async function sendApprovalEmail(opts: {
         Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
         <a href="${opts.loginUrl}">${opts.loginUrl}</a>
       </p>
-      <p>À très vite,<br>L'équipe Togo Academy</p>
+      <p>À très bientôt,<br>L'équipe Togo Academy</p>
     </div>`;
   const text = `${hello}
 
@@ -98,6 +98,7 @@ Votre compte ${label} sur Togo Academy vient d'être approuvé.
 Connectez-vous avec l'e-mail et le mot de passe que vous avez choisis :
 ${opts.loginUrl}
 
+À très bientôt,
 L'équipe Togo Academy`;
   return sendMail({ to: opts.to, subject, html, text });
 }
