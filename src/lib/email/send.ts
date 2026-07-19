@@ -8,8 +8,11 @@
 // bloquer une approbation.
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+// L'expediteur doit etre sur un domaine VERIFIE dans Resend. Seul
+// groupebm.net est verifie (pas le sous-domaine academie.), on envoie donc
+// depuis @groupebm.net. Surchargeable via RESEND_FROM.
 const DEFAULT_FROM =
-  process.env.RESEND_FROM ?? "Togo Academy <no-reply@academie.groupebm.net>";
+  process.env.RESEND_FROM ?? "Togo Academy <no-reply@groupebm.net>";
 
 type SendResult = { ok: boolean; skipped?: boolean; error?: string };
 
