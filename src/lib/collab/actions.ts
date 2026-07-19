@@ -463,6 +463,56 @@ export async function closeCollaboration(
   return { ok: true };
 }
 
+// ==================== PHASE 4 : paie ====================
+
+// L'admin marque un montant comme PAYE a un contributeur pour un module.
+export async function markPaid(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const payeeId = String(formData.get("payee_id") ?? "");
+  const role = String(formData.get("role") ?? "");
+  const amount = parseInt(String(formData.get("amount_xof") ?? "0"), 10);
+  if (!chapterId || !payeeId || !["concepteur", "inspecteur"].includes(role)) {
+    return { error: "Paramètres manquants." };
+  }
+  const { error } = await supabase.from("collab_payments").upsert({
+    chapter_id: chapterId,
+    payee_id: payeeId,
+    role,
+    amount_xof: Number.isFinite(amount) ? amount : 0,
+    paid_at: now(),
+  });
+  if (error) return { error: "Échec de l'enregistrement du paiement." };
+  revalidatePath("/admin/paie");
+  return { ok: true };
+}
+
+// L'admin annule un paiement (erreur de saisie).
+export async function unmarkPaid(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const payeeId = String(formData.get("payee_id") ?? "");
+  const role = String(formData.get("role") ?? "");
+  if (!chapterId || !payeeId || !role) return { error: "Paramètres manquants." };
+  const { error } = await supabase
+    .from("collab_payments")
+    .delete()
+    .eq("chapter_id", chapterId)
+    .eq("payee_id", payeeId)
+    .eq("role", role);
+  if (error) return { error: "Échec de l'annulation." };
+  revalidatePath("/admin/paie");
+  return { ok: true };
+}
+
 // L'admin rouvre un cycle de revision (redonne l'acces au concepteur).
 export async function reopenCycle(
   _prev: CollabState,

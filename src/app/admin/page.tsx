@@ -141,11 +141,12 @@ export default async function AdminPage() {
         </p>
 
         {/* Acces rapide aux outils */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(
             [
               ["/admin/presentations", "🎤", "Présentations", "Présenter en plein écran ou télécharger les decks"],
-              ["/admin/production", "🏭", "Production de contenu", "Suivre la chaîne éditoriale et le coût par leçon"],
+              ["/admin/production", "🏭", "Production de contenu", "Suivre la chaîne éditoriale et le coût par module"],
+              ["/admin/paie", "💰", "Paie des contributeurs", "Voir et régler ce que vous devez aux concepteurs et inspecteurs"],
               ["/enseignant", "📚", "Contenu (leçons)", "Créer, relire et publier toutes les leçons"],
             ] as const
           ).map(([href, icon, title, desc]) => (

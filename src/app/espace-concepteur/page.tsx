@@ -70,6 +70,13 @@ export default async function ConcepteurSpace() {
     subsByModule.set(s.chapter_id, arr);
   }
 
+  const { data: myPayments } = await supabase
+    .from("collab_payments")
+    .select("amount_xof")
+    .eq("payee_id", user.id)
+    .eq("role", "concepteur");
+  const paidTotal = (myPayments ?? []).reduce((s: number, p: any) => s + (p.amount_xof ?? 0), 0);
+
   const totalPay = (rows ?? []).reduce(
     (sum: number, r: any) => sum + (r.cost_xof ?? modulePrice(r.chapters?.class_slug ?? "")),
     0,
@@ -87,18 +94,28 @@ export default async function ConcepteurSpace() {
 
         <ConfidentialNotice className="mt-5" />
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:grid-cols-4">
           <Card className="text-center">
             <div className="text-2xl font-extrabold text-togo-green-600">{rows?.length ?? 0}</div>
             <div className="text-xs text-[var(--color-muted)]">modules attribués</div>
           </Card>
           <Card className="text-center">
             <div className="text-2xl font-extrabold text-togo-green-600">
-              {totalPay.toLocaleString("fr-FR")} FCFA
+              {totalPay.toLocaleString("fr-FR")}
             </div>
-            <div className="text-xs text-[var(--color-muted)]">
-              votre rémunération prévue (tous modules attribués)
+            <div className="text-xs text-[var(--color-muted)]">rémunération prévue (FCFA)</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-2xl font-extrabold text-togo-green-600">
+              {paidTotal.toLocaleString("fr-FR")}
             </div>
+            <div className="text-xs text-[var(--color-muted)]">déjà reçu (FCFA)</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-2xl font-extrabold text-ink">
+              {Math.max(0, totalPay - paidTotal).toLocaleString("fr-FR")}
+            </div>
+            <div className="text-xs text-[var(--color-muted)]">reste à recevoir (FCFA)</div>
           </Card>
         </div>
 
