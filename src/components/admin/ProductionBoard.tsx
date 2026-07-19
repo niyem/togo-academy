@@ -25,6 +25,10 @@ import {
   assignConcepteur,
   assignInspector,
   unassignInspector,
+  startVideoQA,
+  publishModule,
+  closeCollaboration,
+  reopenCycle,
   type CollabState,
 } from "@/lib/collab/actions";
 
@@ -54,6 +58,9 @@ export type ProdRow = {
   inspectors: Person[]; // inspecteurs attribues (comptes)
   costXof: number | null;
   inspectorCostXof: number | null;
+  videoUrl: string | null;
+  locked: boolean;
+  videoReviews: { by: string; decision: string; comment: string }[];
   createdAt: string;
   atEnLigne: string | null;
 };
@@ -251,6 +258,95 @@ function RemoveForm({ moduleId, title }: { moduleId: string; title: string }) {
   );
 }
 
+function VideoLockControls({ row }: { row: ProdRow }) {
+  const [vs, vAction, vPending] = useActionState(startVideoQA, collabInit);
+  const [ps, pAction, pPending] = useActionState(publishModule, collabInit);
+  const [, cAction] = useActionState(closeCollaboration, collabInit);
+  const [, rAction] = useActionState(reopenCycle, collabInit);
+  const afterProd = ["en_production", "verification", "en_ligne"].includes(row.stage);
+
+  if (row.locked) {
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-3 rounded-xl border border-togo-green-100 bg-togo-green-50 p-3">
+        <Badge tone="green">🔒 Verrouillé — sous contrôle exclusif de l&apos;administration</Badge>
+        <form action={rAction}>
+          <input type="hidden" name="chapter_id" value={row.moduleId} />
+          <button
+            type="submit"
+            onClick={(e) => { if (!window.confirm("Rouvrir un cycle de révision ? Le concepteur retrouvera l'accès au module.")) e.preventDefault(); }}
+            className="rounded-full border border-[var(--color-line)] px-3 py-1.5 text-xs font-semibold hover:border-togo-green-500"
+          >
+            🔓 Rouvrir un cycle
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 space-y-2 rounded-xl border border-togo-green-100 bg-white p-3">
+      <div className="text-xs font-bold uppercase tracking-widest text-togo-green-700">
+        Vidéo & clôture
+      </div>
+      {afterProd && (
+        <form action={vAction} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="chapter_id" value={row.moduleId} />
+          <input
+            name="video_url"
+            defaultValue={row.videoUrl ?? ""}
+            placeholder="Lien de la vidéo produite"
+            className={`${input} min-w-0 flex-1`}
+          />
+          <button type="submit" disabled={vPending} className="rounded-full bg-togo-green-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+            Envoyer en vérification
+          </button>
+          {vs.error && <span className="text-xs text-togo-red-700">{vs.error}</span>}
+        </form>
+      )}
+      {row.videoUrl && (
+        <a href={row.videoUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-xs font-semibold text-togo-green-700 hover:underline">
+          ▶ Voir la vidéo attachée
+        </a>
+      )}
+      {row.videoReviews.length > 0 && (
+        <div className="space-y-1">
+          {row.videoReviews.map((r, i) => (
+            <div key={i} className="text-xs">
+              <Badge tone={r.decision === "approved" ? "green" : "yellow"}>
+                {r.by} · {r.decision === "approved" ? "Validé" : "Erreur signalée"}
+              </Badge>{" "}
+              <span className="text-[var(--color-muted)]">{r.comment}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {row.stage === "verification" && (
+          <form action={pAction}>
+            <input type="hidden" name="chapter_id" value={row.moduleId} />
+            <button type="submit" disabled={pPending} className="rounded-full bg-togo-green-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40">
+              ✅ Publier (en ligne)
+            </button>
+          </form>
+        )}
+        {row.stage === "en_ligne" && (
+          <form action={cAction}>
+            <input type="hidden" name="chapter_id" value={row.moduleId} />
+            <button
+              type="submit"
+              onClick={(e) => { if (!window.confirm("Clôturer et verrouiller ce module ? Le concepteur et les inspecteurs perdront tout droit d'accès et de modification ; le contenu passera sous contrôle exclusif de l'administration.")) e.preventDefault(); }}
+              className="rounded-full border border-togo-red-200 px-3 py-1.5 text-xs font-semibold text-togo-red-700 hover:bg-togo-red-50"
+            >
+              🔒 Clôturer et verrouiller
+            </button>
+          </form>
+        )}
+        {ps.error && <span className="text-xs text-togo-red-700">{ps.error}</span>}
+      </div>
+    </div>
+  );
+}
+
 function Row({
   row,
   concepteurs,
@@ -307,6 +403,7 @@ function Row({
         <AssignForm row={row} concepteurs={concepteurs} />
         <InspectorAssign row={row} inspectors={inspectors} />
       </div>
+      <VideoLockControls row={row} />
       {open && <EditPanel row={row} />}
     </li>
   );

@@ -340,3 +340,149 @@ export async function submitReview(
   revalidatePath("/espace-inspecteur");
   return { ok: true };
 }
+
+// ==================== PHASE 3 : video + cloture ====================
+
+// L'admin attache la video produite et envoie le module en verification finale.
+export async function startVideoQA(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const videoUrl = String(formData.get("video_url") ?? "").trim();
+  if (!chapterId || !videoUrl) return { error: "Lien de la vidéo requis." };
+  const { error } = await supabase
+    .from("content_production")
+    .update({
+      video_url: videoUrl,
+      stage: "verification",
+      at_verification: now(),
+      updated_at: now(),
+    })
+    .eq("chapter_id", chapterId);
+  if (error) return { error: "Échec de l'envoi en vérification." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}
+
+// Le concepteur OU un inspecteur attribue fait le controle qualite de la video.
+export async function submitVideoReview(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Non connecté." };
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!["concepteur", "inspecteur"].includes(profile?.role ?? "")) {
+    return { error: "Réservé aux contributeurs." };
+  }
+
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  const comment = String(formData.get("comment") ?? "").trim();
+  const decision = String(formData.get("decision") ?? "");
+  if (!chapterId || !comment) return { error: "Ajoutez vos observations." };
+  if (!["approved", "changes_requested"].includes(decision)) {
+    return { error: "Décision invalide." };
+  }
+
+  // Le module doit etre attribue a cet utilisateur et non verrouille.
+  const { data: prod } = await supabase
+    .from("content_production")
+    .select("chapter_id, concepteur_id, locked_at")
+    .eq("chapter_id", chapterId)
+    .single();
+  if (!prod || prod.locked_at) return { error: "Module indisponible." };
+  let allowed = prod.concepteur_id === user.id;
+  if (!allowed) {
+    const { data: mi } = await supabase
+      .from("module_inspectors")
+      .select("chapter_id")
+      .eq("chapter_id", chapterId)
+      .eq("inspector_id", user.id)
+      .single();
+    allowed = !!mi;
+  }
+  if (!allowed) return { error: "Ce module ne vous est pas attribué." };
+
+  const { error } = await supabase.from("content_reviews").insert({
+    chapter_id: chapterId,
+    version: 0, // 0 = relecture video (pas une version de fichier)
+    inspector_id: user.id,
+    comment,
+    decision,
+    on_video: true,
+  });
+  if (error) return { error: "Échec de l'enregistrement." };
+  revalidatePath("/espace-concepteur");
+  revalidatePath("/espace-inspecteur");
+  return { ok: true };
+}
+
+// L'admin publie le module (en ligne).
+export async function publishModule(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  if (!chapterId) return { error: "Module manquant." };
+  const { error } = await supabase
+    .from("content_production")
+    .update({ stage: "en_ligne", at_en_ligne: now(), updated_at: now() })
+    .eq("chapter_id", chapterId);
+  if (error) return { error: "Échec de la publication." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}
+
+// L'admin cloture la collaboration : verrouille et retire les droits.
+export async function closeCollaboration(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, user, ok } = await requireRole("admin");
+  if (!ok || !user) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  if (!chapterId) return { error: "Module manquant." };
+  const { error } = await supabase
+    .from("content_production")
+    .update({ locked_at: now(), locked_by: user.id, updated_at: now() })
+    .eq("chapter_id", chapterId);
+  if (error) return { error: "Échec de la clôture." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}
+
+// L'admin rouvre un cycle de revision (redonne l'acces au concepteur).
+export async function reopenCycle(
+  _prev: CollabState,
+  formData: FormData,
+): Promise<CollabState> {
+  const { supabase, ok } = await requireRole("admin");
+  if (!ok) return { error: "Réservé à l'administration." };
+  const chapterId = String(formData.get("chapter_id") ?? "");
+  if (!chapterId) return { error: "Module manquant." };
+  const { error } = await supabase
+    .from("content_production")
+    .update({
+      locked_at: null,
+      locked_by: null,
+      stage: "a_corriger",
+      at_a_corriger: now(),
+      updated_at: now(),
+    })
+    .eq("chapter_id", chapterId);
+  if (error) return { error: "Échec de la réouverture." };
+  revalidatePath("/admin/production");
+  return { ok: true };
+}

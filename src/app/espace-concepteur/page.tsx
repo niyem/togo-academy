@@ -4,6 +4,7 @@ import { Badge, Card, Container, Section } from "@/components/ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { SubmissionForm } from "@/components/collab/SubmissionForm";
+import { VideoReviewForm } from "@/components/collab/VideoReviewForm";
 import { ConfidentialNotice } from "@/lib/collab/notice";
 import { STAGE_LABEL, STAGE_TONE, type Stage } from "@/lib/production/stages";
 import { modulePrice } from "@/lib/production/bareme";
@@ -26,7 +27,7 @@ export default async function ConcepteurSpace() {
 
   const { data: rows } = await supabase
     .from("content_production")
-    .select("chapter_id, stage, cost_xof, chapters(title, slug, class_slug, subject_key, lessons(count))")
+    .select("chapter_id, stage, cost_xof, video_url, chapters(title, slug, class_slug, subject_key, lessons(count))")
     .eq("concepteur_id", user.id)
     .order("updated_at", { ascending: false });
 
@@ -172,7 +173,11 @@ export default async function ConcepteurSpace() {
                   </ul>
                 )}
 
-                <SubmissionForm moduleId={r.chapter_id} />
+                {r.stage === "verification" && r.video_url ? (
+                  <VideoReviewForm moduleId={r.chapter_id} videoUrl={r.video_url} />
+                ) : (
+                  <SubmissionForm moduleId={r.chapter_id} />
+                )}
               </Card>
             );
           })}

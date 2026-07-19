@@ -4,6 +4,7 @@ import { Badge, Card, Container, Section } from "@/components/ui";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ReviewForm } from "@/components/collab/ReviewForm";
+import { VideoReviewForm } from "@/components/collab/VideoReviewForm";
 import { ConfidentialNotice } from "@/lib/collab/notice";
 import { STAGE_LABEL, STAGE_TONE, type Stage } from "@/lib/production/stages";
 import { inspectorPrice } from "@/lib/production/bareme";
@@ -34,7 +35,7 @@ export default async function InspecteurSpace() {
     ? await Promise.all([
         supabase
           .from("content_production")
-          .select("chapter_id, stage, inspector_cost_xof, chapters(title, class_slug, subject_key)")
+          .select("chapter_id, stage, inspector_cost_xof, video_url, chapters(title, class_slug, subject_key)")
           .in("chapter_id", chapterIds),
         supabase
           .from("content_submissions")
@@ -173,7 +174,11 @@ export default async function InspecteurSpace() {
                   </div>
                 )}
 
-                {latest && <ReviewForm moduleId={p.chapter_id} version={latest.version} />}
+                {p.stage === "verification" && p.video_url ? (
+                  <VideoReviewForm moduleId={p.chapter_id} videoUrl={p.video_url} />
+                ) : (
+                  latest && <ReviewForm moduleId={p.chapter_id} version={latest.version} />
+                )}
               </Card>
             );
           })}

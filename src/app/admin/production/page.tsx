@@ -32,6 +32,7 @@ export default async function ProductionPage() {
     { data: chapterRows },
     { data: classRows },
     { data: subjectRows },
+    { data: videoReviewRows },
   ] = await Promise.all([
     supabase
       .from("content_production")
@@ -43,7 +44,19 @@ export default async function ProductionPage() {
     supabase.from("chapters").select("slug, title, class_slug, subject_key, sort_order"),
     supabase.from("classes").select("slug, name, sort_order, education_levels(sort_order)"),
     supabase.from("subjects").select("key, name"),
+    supabase
+      .from("content_reviews")
+      .select("chapter_id, decision, comment, profiles(full_name)")
+      .eq("on_video", true)
+      .order("created_at", { ascending: true }),
   ]);
+
+  const videoRevByModule = new Map<string, { by: string; decision: string; comment: string }[]>();
+  for (const r of (videoReviewRows ?? []) as any[]) {
+    const arr = videoRevByModule.get(r.chapter_id) ?? [];
+    arr.push({ by: r.profiles?.full_name ?? "Contributeur", decision: r.decision, comment: r.comment });
+    videoRevByModule.set(r.chapter_id, arr);
+  }
 
   const subjectName = new Map<string, string>(
     ((subjectRows ?? []) as any[]).map((s) => [s.key, s.name]),
@@ -106,6 +119,9 @@ export default async function ProductionPage() {
     inspectors: inspByModule.get(p.chapter_id) ?? [],
     costXof: p.cost_xof,
     inspectorCostXof: p.inspector_cost_xof ?? null,
+    videoUrl: p.video_url ?? null,
+    locked: !!p.locked_at,
+    videoReviews: videoRevByModule.get(p.chapter_id) ?? [],
     createdAt: p.created_at,
     atEnLigne: p.at_en_ligne,
   }));
