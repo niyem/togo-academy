@@ -161,6 +161,7 @@ export default async function AdminPage() {
               ["/admin/presentations", "🎤", "Présentations", "Présenter en plein écran ou télécharger les decks"],
               ["/admin/production", "🏭", "Production de contenu", "Suivre la chaîne éditoriale et le coût par module"],
               ["/admin/paie", "💰", "Paie des contributeurs", "Voir et régler ce que vous devez aux concepteurs et inspecteurs"],
+              ["/admin/contributeurs", "👥", "Contributeurs", "Gérer et supprimer les concepteurs, inspecteurs et tuteurs"],
               ["/enseignant", "📚", "Contenu (leçons)", "Créer, relire et publier toutes les leçons"],
             ] as const
           ).map(([href, icon, title, desc]) => (

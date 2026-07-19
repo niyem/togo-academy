@@ -5,6 +5,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type AdminState = { error?: string; ok?: boolean };
 
@@ -133,6 +134,51 @@ export async function grantExamRetake(
     note: note || `Paiement validé par l'administration`,
   });
   if (error) return { error: "Échec de l'enregistrement." };
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+// Suppression COMPLETE d'un compte contributeur (concepteur / inspecteur /
+// tuteur) : auth + profil. Les modules tenus redeviennent non attribues, les
+// affectations et la paie sont retirees, les versions/relectures sont
+// conservees mais detachees (ON DELETE CASCADE / SET NULL selon les tables).
+const DELETABLE_ROLES = ["concepteur", "inspecteur", "tutor"];
+
+export async function deleteContributor(
+  _prev: AdminState,
+  formData: FormData,
+): Promise<AdminState> {
+  const { supabase, admin } = await requireAdmin();
+  if (!admin) return { error: "Réservé à l'administration." };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = String(formData.get("user_id") ?? "");
+  if (!userId) return { error: "Compte manquant." };
+  if (userId === user?.id) {
+    return { error: "Vous ne pouvez pas supprimer votre propre compte." };
+  }
+
+  // Securite : seuls les contributeurs sont supprimables par ce bouton.
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+  if (!target || !DELETABLE_ROLES.includes(target.role)) {
+    return {
+      error:
+        "Seuls les concepteurs, inspecteurs et tuteurs peuvent être supprimés ici.",
+    };
+  }
+
+  const adminClient = createSupabaseAdminClient();
+  if (!adminClient) return { error: "Service indisponible." };
+  const { error } = await adminClient.auth.admin.deleteUser(userId);
+  if (error) return { error: "Échec de la suppression du compte." };
+
+  revalidatePath("/admin/contributeurs");
   revalidatePath("/admin");
   return { ok: true };
 }
