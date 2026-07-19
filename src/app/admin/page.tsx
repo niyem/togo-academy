@@ -7,6 +7,7 @@ import { ContactInbox, type InboxItem } from "@/components/admin/ContactInbox";
 import { GrantRetakeForm } from "@/components/admin/GrantRetakeForm";
 import { TutorReview } from "@/components/tutor/forms";
 import { CollabReview } from "@/components/admin/CollabReview";
+import { ParentReview } from "@/components/admin/ParentReview";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -75,6 +76,12 @@ export default async function AdminPage() {
   const collabApps = await supabase
     .from("collab_applications")
     .select("user_id, desired_role, full_name, headline, phone, subject_keys, created_at")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  const parentApps = await supabase
+    .from("parent_applications")
+    .select("user_id, full_name, phone, child_link_code, child_full_name, created_at")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
@@ -323,6 +330,33 @@ export default async function AdminPage() {
                     </span>
                   </div>
                   <CollabReview userId={c.user_id} desiredRole={c.desired_role} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
+        {(parentApps.data ?? []).length > 0 && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold">👪 Demandes de compte parent</h2>
+              <Badge tone="yellow">{(parentApps.data ?? []).length}</Badge>
+            </div>
+            <ul className="mt-3 divide-y divide-[var(--color-line)]">
+              {(parentApps.data ?? []).map((p) => (
+                <li key={p.user_id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div>
+                    <span className="font-medium">{p.full_name ?? "Parent"}</span>
+                    <span className="block text-xs text-[var(--color-muted)]">
+                      Enfant : {p.child_full_name ?? "—"} · code {p.child_link_code}
+                    </span>
+                    {p.phone && (
+                      <span className="block text-xs text-[var(--color-muted)]">
+                        Tél. : {p.phone}
+                      </span>
+                    )}
+                  </div>
+                  <ParentReview userId={p.user_id} />
                 </li>
               ))}
             </ul>

@@ -13,6 +13,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { sendApprovalEmail } from "@/lib/email/send";
+import { siteOrigin } from "@/lib/site";
 
 export type CollabState = { error?: string; ok?: boolean };
 
@@ -86,10 +88,12 @@ export async function applyAsCollaborator(
   if (cv && cv.size > DOC_MAX) return { error: "CV : fichier trop lourd (25 Mo max)." };
 
   const supabase = await createSupabaseServerClient();
+  // Compte cree "en attente" (pending) : role provisoire student, aucun acces
+  // tant que l'admin n'a pas approuve.
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName, phone, role: "student" } },
+    options: { data: { full_name: fullName, phone, role: "student", pending: "yes" } },
   });
   if (error) return { error: error.message };
   const userId = data.user?.id;
@@ -125,6 +129,9 @@ export async function applyAsCollaborator(
     });
     if (aErr) return { error: "Compte créé mais candidature non enregistrée." };
   }
+  // On ne laisse PAS le candidat connecte : le compte reste inactif jusqu'a
+  // l'approbation de l'administration.
+  await supabase.auth.signOut();
   redirect("/rejoindre-production/merci");
 }
 
@@ -149,11 +156,31 @@ export async function reviewCollaborator(
   if (sErr) return { error: "Erreur lors de la mise à jour." };
 
   if (decision === "approved" && ["concepteur", "inspecteur"].includes(desiredRole)) {
+    // Accorde le role ET active le compte (via la session admin authentifiee).
     const { error: rErr } = await supabase
       .from("profiles")
-      .update({ role: desiredRole })
+      .update({ role: desiredRole, access_state: "active" })
       .eq("id", userId);
     if (rErr) return { error: "Candidature validée mais rôle non accordé." };
+
+    // E-mail de connexion (best-effort : n'echoue jamais l'approbation).
+    const admin = createSupabaseAdminClient();
+    const email = admin ? (await admin.auth.admin.getUserById(userId)).data.user?.email : null;
+    if (email) {
+      const { data: prof } = await supabase
+        .from("profiles").select("full_name").eq("id", userId).single();
+      await sendApprovalEmail({
+        to: email,
+        name: prof?.full_name ?? null,
+        role: desiredRole,
+        loginUrl: `${await siteOrigin()}/connexion`,
+      });
+    }
+  } else if (decision === "rejected") {
+    await supabase
+      .from("profiles")
+      .update({ access_state: "rejected" })
+      .eq("id", userId);
   }
   revalidatePath("/admin");
   return { ok: true };

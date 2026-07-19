@@ -19,9 +19,14 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, class_slug, link_code")
+    .select("full_name, role, class_slug, link_code, access_state")
     .eq("id", user.id)
     .single();
+
+  // Compte en attente d'approbation (ou refuse) : pas d'acces au tableau.
+  if (profile && profile.access_state && profile.access_state !== "active") {
+    redirect("/compte-en-attente");
+  }
 
   // Les contributeurs vont directement a leur espace de production.
   if (profile?.role === "concepteur") redirect("/espace-concepteur");

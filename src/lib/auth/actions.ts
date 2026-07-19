@@ -27,7 +27,10 @@ export async function signUp(
   const password = String(formData.get("password") ?? "");
   const fullName = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
-  const role = formData.get("role") === "parent" ? "parent" : "student";
+  // L'inscription libre ne cree que des comptes ELEVE (actifs immediatement).
+  // Les parents, tuteurs, concepteurs et inspecteurs passent par une demande
+  // approuvee par l'administration (voir /demander-compte-parent, etc.).
+  const role = "student";
   const classSlug = String(formData.get("class_slug") ?? "").trim() || null;
 
   if (!email || !password || !fullName) {

@@ -4,12 +4,10 @@
 // l'inscription"), branchee sur la vraie action signUp. Le choix de role
 // eleve/parent est conserve (absent de la maquette, requis par la plateforme).
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
 import { Button, Container } from "@/components/ui";
 import { signUp, type AuthState } from "@/lib/auth/actions";
-
-type Role = "eleve" | "parent";
 
 const CLASSES = [
   ["", "Choisir plus tard"], ["cp1", "CP1"], ["cp2", "CP2"], ["ce1", "CE1"],
@@ -26,7 +24,6 @@ const PERKS = [
 ];
 
 export default function RegisterPage() {
-  const [role, setRole] = useState<Role>("eleve");
   const [state, action, pending] = useActionState<AuthState, FormData>(
     signUp,
     {},
@@ -45,29 +42,7 @@ export default function RegisterPage() {
             minute.
           </p>
 
-          <div className="mb-6 mt-6 grid grid-cols-2 gap-2 rounded-full border border-togo-green-100 bg-white p-1">
-            {(["eleve", "parent"] as Role[]).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                className={`rounded-full py-2 text-sm font-semibold transition-colors ${
-                  role === r
-                    ? "bg-togo-green-600 text-white"
-                    : "text-togo-green-700"
-                }`}
-              >
-                {r === "eleve" ? "Je suis élève" : "Je suis parent"}
-              </button>
-            ))}
-          </div>
-
-          <form action={action} className="grid gap-5">
-            <input
-              type="hidden"
-              name="role"
-              value={role === "parent" ? "parent" : "student"}
-            />
+          <form action={action} className="mt-6 grid gap-5">
             <Input label="Nom complet" name="name" placeholder="Kossi Mensah" required />
             <Input
               label="Adresse e-mail"
@@ -81,27 +56,25 @@ export default function RegisterPage() {
               name="phone"
               placeholder="+228 ..."
             />
-            {role === "eleve" && (
-              <div>
-                <label
-                  htmlFor="class_slug"
-                  className="mb-1.5 block text-sm font-medium text-ink"
-                >
-                  Classe
-                </label>
-                <select
-                  id="class_slug"
-                  name="class_slug"
-                  className="w-full rounded-lg border border-[var(--color-line)] bg-white px-3.5 py-2.5 text-ink outline-none focus:border-togo-green-500"
-                >
-                  {CLASSES.map(([v, l]) => (
-                    <option key={v} value={v}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div>
+              <label
+                htmlFor="class_slug"
+                className="mb-1.5 block text-sm font-medium text-ink"
+              >
+                Classe
+              </label>
+              <select
+                id="class_slug"
+                name="class_slug"
+                className="w-full rounded-lg border border-[var(--color-line)] bg-white px-3.5 py-2.5 text-ink outline-none focus:border-togo-green-500"
+              >
+                {CLASSES.map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Input
               label="Mot de passe"
               name="password"
@@ -117,9 +90,7 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="mt-1 w-full">
-              {pending
-                ? "Création..."
-                : `Créer mon compte ${role === "parent" ? "parent" : "élève"}`}
+              {pending ? "Création..." : "Créer mon compte élève"}
             </Button>
           </form>
 
@@ -139,6 +110,15 @@ export default function RegisterPage() {
               className="font-semibold text-togo-green-700 hover:underline"
             >
               Devenir tuteur
+            </Link>
+          </p>
+          <p className="mt-2 text-center text-sm text-[var(--color-muted)]">
+            Vous êtes parent ?{" "}
+            <Link
+              href="/demander-compte-parent"
+              className="font-semibold text-togo-green-700 hover:underline"
+            >
+              Demander un compte parent
             </Link>
           </p>
         </div>

@@ -12,6 +12,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { sendApprovalEmail } from "@/lib/email/send";
+import { siteOrigin } from "@/lib/site";
 
 export type TutorState = { error?: string; ok?: boolean };
 
@@ -107,8 +109,9 @@ export async function applyAsTutor(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    // Role 'student' a la creation ; il deviendra 'tutor' apres validation.
-    options: { data: { full_name: fullName, phone, role: "student" } },
+    // Compte "en attente" : role provisoire student, aucun acces avant
+    // approbation ; il deviendra 'tutor' apres validation.
+    options: { data: { full_name: fullName, phone, role: "student", pending: "yes" } },
   });
   if (error) return { error: error.message };
   const userId = data.user?.id;
@@ -138,6 +141,8 @@ export async function applyAsTutor(
     });
     if (pErr) return { error: "Compte créé mais candidature non enregistrée." };
   }
+  // Le candidat n'est pas laisse connecte : compte inactif jusqu'a validation.
+  await supabase.auth.signOut();
   redirect("/devenir-tuteur/merci");
 }
 
@@ -276,9 +281,27 @@ export async function reviewTutor(
   if (decision === "approved") {
     const { error: rErr } = await supabase
       .from("profiles")
-      .update({ role: "tutor" })
+      .update({ role: "tutor", access_state: "active" })
       .eq("id", userId);
     if (rErr) return { error: "Candidature validée mais rôle non accordé." };
+
+    const admin = createSupabaseAdminClient();
+    const email = admin ? (await admin.auth.admin.getUserById(userId)).data.user?.email : null;
+    if (email) {
+      const { data: prof } = await supabase
+        .from("profiles").select("full_name").eq("id", userId).single();
+      await sendApprovalEmail({
+        to: email,
+        name: prof?.full_name ?? null,
+        role: "tutor",
+        loginUrl: `${await siteOrigin()}/connexion`,
+      });
+    }
+  } else if (decision === "rejected") {
+    await supabase
+      .from("profiles")
+      .update({ access_state: "rejected" })
+      .eq("id", userId);
   }
   revalidatePath("/admin");
   return { ok: true };

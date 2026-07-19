@@ -14,14 +14,13 @@ export default function TutorThanksPage() {
           </h1>
           <p className="mt-3 text-[var(--color-muted)]">
             Merci ! Votre compte est créé et votre candidature de tuteur est en
-            cours d&apos;examen. Vous recevrez l&apos;accès à votre espace tuteur
-            dès qu&apos;elle sera validée par l&apos;équipe.
+            cours d&apos;examen. Dès qu&apos;elle sera validée par l&apos;équipe,
+            vous recevrez un e-mail avec un lien de connexion. Vous vous
+            connecterez alors avec l&apos;adresse e-mail et le mot de passe que
+            vous avez choisis, pour accéder à votre espace tuteur.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Button href="/tableau-de-bord">Mon tableau de bord</Button>
-            <Button href="/" variant="secondary">
-              Accueil
-            </Button>
+            <Button href="/">Accueil</Button>
           </div>
         </div>
       </Container>
