@@ -78,15 +78,9 @@ export const subjects: Subject[] = [
   },
   {
     key: "physique",
-    name: "Physique",
-    icon: "🧲",
-    description: "Mécanique, électricité, optique et énergie.",
-  },
-  {
-    key: "chimie",
-    name: "Chimie",
+    name: "Sciences physiques",
     icon: "⚗️",
-    description: "Matière, réactions et transformations.",
+    description: "Physique et chimie au lycée.",
   },
   {
     key: "svt",

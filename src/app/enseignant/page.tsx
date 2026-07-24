@@ -89,7 +89,6 @@ export default async function TeacherHomePage() {
   const SUBJECT_ORDER = [
     "mathematiques",
     "physique",
-    "chimie",
     "spt",
     "svt",
     "technologie",
