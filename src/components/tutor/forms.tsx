@@ -2,16 +2,83 @@
 
 // Formulaires client du tutorat en direct.
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import {
   applyAsTutor,
+  createTutorDocUploadUrl,
   updateTutorProfile,
   requestSession,
   respondSession,
   reviewTutor,
   type TutorState,
 } from "@/lib/tutor/actions";
+
+const DOC_MAX = 8 * 1024 * 1024; // 8 Mo (limite du bucket tutor-docs)
+
+// Champ fichier bien visible : bouton + nom du fichier choisi.
+function FileField({
+  name,
+  label: fieldLabel,
+  hint,
+  onPick,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  onPick: (file: File | null) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [picked, setPicked] = useState<string | null>(null);
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-ink">{fieldLabel}</label>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="inline-flex items-center gap-2 rounded-lg border border-togo-green-600 bg-togo-green-50 px-3.5 py-2 text-sm font-semibold text-togo-green-700 hover:bg-togo-green-100"
+        >
+          <span aria-hidden>📎</span> {picked ? "Changer le fichier" : "Choisir un fichier"}
+        </button>
+        <span className="text-sm text-[var(--color-muted)]">{picked ?? "Aucun fichier"}</span>
+      </div>
+      <input
+        ref={ref}
+        name={name}
+        type="file"
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+        className="sr-only"
+        onChange={(e) => {
+          const f = e.target.files?.[0] ?? null;
+          setPicked(f?.name ?? null);
+          onPick(f);
+        }}
+      />
+      {hint && <p className="mt-1 text-xs text-[var(--color-muted)]">{hint}</p>}
+    </div>
+  );
+}
+
+/** Upload direct navigateur -> Supabase via URL signee (evite la limite Vercel). */
+async function uploadTutorDoc(kind: "cv" | "proof", file: File): Promise<string> {
+  const ext = file.name.split(".").pop() || "bin";
+  const signed = await createTutorDocUploadUrl(kind, ext);
+  if (signed.error || !signed.path || !signed.signedUrl) {
+    throw new Error(signed.error ?? "upload");
+  }
+  const res = await fetch(signed.signedUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": file.type || "application/octet-stream",
+      "x-upsert": "true",
+    },
+    body: file,
+  });
+  if (!res.ok) throw new Error("upload");
+  return signed.path;
+}
 
 type Opt = { value: string; label: string };
 
@@ -65,12 +132,55 @@ export function TutorApplicationForm({
   subjects: Opt[];
   classes: Opt[];
 }) {
-  const [state, action, pending] = useActionState<TutorState, FormData>(
-    applyAsTutor,
-    {},
-  );
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const cvRef = useRef<File | null>(null);
+  const proofRef = useRef<File | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+    setError(null);
+    const formEl = e.currentTarget;
+    const fd = new FormData(formEl);
+    const cv = cvRef.current;
+    const proof = proofRef.current;
+
+    if (!cv) return setError("Ajoutez votre CV.");
+    if (!proof) return setError("Ajoutez votre justificatif d'emploi.");
+    if (cv.size > DOC_MAX) return setError("CV : fichier trop lourd (8 Mo max).");
+    if (proof.size > DOC_MAX) {
+      return setError("Justificatif : fichier trop lourd (8 Mo max).");
+    }
+
+    setPending(true);
+    try {
+      const [cvPath, proofPath] = await Promise.all([
+        uploadTutorDoc("cv", cv),
+        uploadTutorDoc("proof", proof),
+      ]);
+      // On n'envoie a la Server Action que des champs texte (corps minuscule).
+      fd.delete("cv");
+      fd.delete("proof");
+      fd.set("cv_path", cvPath);
+      fd.set("proof_path", proofPath);
+
+      const res = await applyAsTutor({}, fd);
+      if (res?.error) {
+        setError(res.error);
+        setPending(false);
+        return;
+      }
+      router.push("/devenir-tuteur/merci");
+    } catch {
+      setError("Échec du téléversement. Vérifiez votre connexion et réessayez.");
+      setPending(false);
+    }
+  }
+
   return (
-    <form action={action} className="grid gap-5">
+    <form onSubmit={handleSubmit} className="grid gap-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={label}>Nom complet</label>
@@ -140,36 +250,36 @@ export function TutorApplicationForm({
           (8 Mo max par fichier).
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={label}>CV</label>
-            <input
-              name="cv"
-              type="file"
-              required
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-togo-green-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-togo-green-700"
-            />
-          </div>
-          <div>
-            <label className={label}>Justificatif d&apos;emploi</label>
-            <input
-              name="proof"
-              type="file"
-              required
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-togo-green-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-togo-green-700"
-            />
-            <p className="mt-1 text-xs text-[var(--color-muted)]">
-              Attestation de travail, contrat ou bulletin de salaire.
-            </p>
-          </div>
+          <FileField
+            name="cv"
+            label="CV"
+            onPick={(f) => {
+              cvRef.current = f;
+            }}
+          />
+          <FileField
+            name="proof"
+            label="Justificatif d'emploi"
+            hint="Attestation de travail, contrat ou bulletin de salaire."
+            onPick={(f) => {
+              proofRef.current = f;
+            }}
+          />
         </div>
       </div>
 
-      <Err state={state} />
-      <Button type="submit" className="w-fit">
+      {error && (
+        <p className="rounded-lg bg-togo-red-100 px-3 py-2 text-sm text-togo-red-700">
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-lg bg-togo-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-togo-green-700 disabled:opacity-40"
+      >
         {pending ? "Envoi..." : "Envoyer ma candidature"}
-      </Button>
+      </button>
       <p className="text-xs text-[var(--color-muted)]">
         Votre candidature est examinée par l&apos;équipe avant publication.
       </p>

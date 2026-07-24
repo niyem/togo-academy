@@ -32,6 +32,34 @@ export default function ContactPage() {
         </div>
 
         <div className="flex flex-col gap-5">
+          {/* Rejoindre l'equipe : raccourcis de candidature */}
+          <div className="rounded-2xl border border-togo-green-100 bg-white p-7">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">
+              Rejoindre Togo Academy
+            </div>
+            <h2 className="font-semibold text-ink">
+              Enseignant(e) ? Candidatez en ligne
+            </h2>
+            <p className="mt-1.5 text-sm text-[var(--color-muted)]">
+              Concevez les cours du programme togolais ou donnez des séances de
+              tutorat en direct.
+            </p>
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
+              <Link
+                href="/rejoindre-production"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-togo-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-togo-green-700"
+              >
+                Concevoir des cours
+              </Link>
+              <Link
+                href="/devenir-tuteur"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-togo-green-500 px-4 py-2.5 text-sm font-semibold text-togo-green-700 transition-colors hover:bg-togo-green-50"
+              >
+                Tutorat
+              </Link>
+            </div>
+          </div>
+
           {/* Panneau clair : à savoir */}
           <div className="rounded-2xl border border-togo-green-100 bg-togo-green-50 p-8 text-ink">
             <div className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-togo-green-600">

@@ -9,7 +9,6 @@
 // admin fait passer profiles.role a 'tutor'.
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sendApprovalEmail } from "@/lib/email/send";
@@ -19,59 +18,27 @@ export type TutorState = { error?: string; ok?: boolean };
 
 const now = () => new Date().toISOString();
 
-// Documents de candidature : CV + justificatif d'emploi.
-const DOC_MAX_BYTES = 8 * 1024 * 1024; // 8 Mo
-const DOC_ALLOWED = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-
-type UploadFile = {
-  name: string;
-  type: string;
-  size: number;
-  arrayBuffer: () => Promise<ArrayBuffer>;
-};
-
-function asFile(v: FormDataEntryValue | null): UploadFile | null {
-  if (v && typeof v === "object" && "arrayBuffer" in v && "size" in v) {
-    return v as unknown as UploadFile;
-  }
-  return null;
-}
-
-/** Valide un fichier ; renvoie un message d'erreur ou null si OK. */
-function validateDoc(f: UploadFile | null, label: string): string | null {
-  if (!f || f.size === 0) return `Ajoutez votre ${label}.`;
-  if (f.size > DOC_MAX_BYTES) return `${label} : fichier trop lourd (8 Mo max).`;
-  if (f.type && !DOC_ALLOWED.includes(f.type)) {
-    return `${label} : format accepté PDF, Word, JPG ou PNG.`;
-  }
-  return null;
-}
-
-/** Televerse un document dans tutor-docs ; renvoie le chemin ou null. */
-async function uploadDoc(
-  admin: ReturnType<typeof createSupabaseAdminClient>,
-  userId: string,
-  file: UploadFile,
+// CV et justificatif sont televerses DIRECTEMENT du navigateur vers Supabase
+// (bucket tutor-docs, 8 Mo/fichier), pas via cette Server Action : Vercel
+// plafonne le corps d'une fonction serverless a ~4,5 Mo, donc deux pieces
+// jointes renvoyaient un 413 "This page couldn't load" a la soumission. Cette
+// action ne fait que fabriquer une URL d'upload signee (reponse minuscule).
+export async function createTutorDocUploadUrl(
   kind: string,
-): Promise<string | null> {
-  if (!admin) return null;
-  const ext = (file.name.split(".").pop() || "bin")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-  const path = `${userId}/${kind}.${ext}`;
-  const { error } = await admin.storage
+  ext: string,
+): Promise<{ path?: string; signedUrl?: string; error?: string }> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return { error: "Service indisponible." };
+  const safeKind = kind === "proof" ? "proof" : "cv";
+  const safeExt = (ext || "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "bin";
+  const rand =
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const path = `applications/${rand}-${safeKind}.${safeExt}`;
+  const { data, error } = await admin.storage
     .from("tutor-docs")
-    .upload(path, await file.arrayBuffer(), {
-      contentType: file.type || "application/octet-stream",
-      upsert: true,
-    });
-  return error ? null : path;
+    .createSignedUploadUrl(path);
+  if (error || !data) return { error: "Préparation du téléversement impossible." };
+  return { path: data.path, signedUrl: data.signedUrl };
 }
 
 export async function applyAsTutor(
@@ -88,8 +55,10 @@ export async function applyAsTutor(
   const rate = Number(formData.get("rate") ?? 0) || null;
   const subjectKeys = formData.getAll("subjects").map(String).filter(Boolean);
   const classSlugs = formData.getAll("classes").map(String).filter(Boolean);
-  const cv = asFile(formData.get("cv"));
-  const proof = asFile(formData.get("proof"));
+  // Les pieces ont deja ete televersees cote navigateur ; on ne recoit que
+  // leurs chemins dans le bucket, jamais les octets.
+  const cvPath = String(formData.get("cv_path") ?? "").trim();
+  const proofPath = String(formData.get("proof_path") ?? "").trim();
 
   if (!email || !password || !fullName) {
     return { error: "Nom, e-mail et mot de passe sont obligatoires." };
@@ -100,10 +69,10 @@ export async function applyAsTutor(
   if (subjectKeys.length === 0) {
     return { error: "Choisissez au moins une matière que vous enseignez." };
   }
-  const cvErr = validateDoc(cv, "CV");
-  if (cvErr) return { error: cvErr };
-  const proofErr = validateDoc(proof, "justificatif d'emploi");
-  if (proofErr) return { error: proofErr };
+  if (!cvPath.startsWith("applications/")) return { error: "Ajoutez votre CV." };
+  if (!proofPath.startsWith("applications/")) {
+    return { error: "Ajoutez votre justificatif d'emploi." };
+  }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
@@ -119,11 +88,6 @@ export async function applyAsTutor(
 
   const admin = createSupabaseAdminClient();
   if (admin) {
-    // Documents deja valides ci-dessus ; upload via la cle service.
-    const cvPath = cv ? await uploadDoc(admin, userId, cv, "cv") : null;
-    const proofPath = proof
-      ? await uploadDoc(admin, userId, proof, "justificatif")
-      : null;
     const { error: pErr } = await admin.from("tutor_profiles").upsert({
       user_id: userId,
       status: "pending",
@@ -142,8 +106,9 @@ export async function applyAsTutor(
     if (pErr) return { error: "Compte créé mais candidature non enregistrée." };
   }
   // Le candidat n'est pas laisse connecte : compte inactif jusqu'a validation.
+  // La redirection est faite cote client (flux appele depuis un handler).
   await supabase.auth.signOut();
-  redirect("/devenir-tuteur/merci");
+  return { ok: true };
 }
 
 export async function updateTutorProfile(
