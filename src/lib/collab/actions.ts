@@ -9,7 +9,6 @@
 // Le role n'est jamais accorde en self-service : seule l'approbation admin
 // fait passer profiles.role a 'concepteur' / 'inspecteur'.
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -19,6 +18,27 @@ import { siteOrigin } from "@/lib/site";
 export type CollabState = { error?: string; ok?: boolean };
 
 const now = () => new Date().toISOString();
+
+// Le CV est televerse DIRECTEMENT du navigateur vers Supabase Storage (le
+// bucket accepte 25 Mo), et non via cette Server Action : Vercel plafonne le
+// corps d'une fonction serverless a ~4,5 Mo, donc un CV plus lourd (photo ou
+// scan de telephone) renvoyait un 413 "This page couldn't load". Cette action
+// ne fait que fabriquer une URL d'upload signee (reponse minuscule).
+export async function createCollabCvUploadUrl(
+  ext: string,
+): Promise<{ path?: string; signedUrl?: string; error?: string }> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return { error: "Service indisponible." };
+  const safeExt = (ext || "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "bin";
+  const rand =
+    (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.round(Math.random() * 1e9)}`);
+  const path = `applications/${rand}.${safeExt}`;
+  const { data, error } = await admin.storage
+    .from("collab-docs")
+    .createSignedUploadUrl(path);
+  if (error || !data) return { error: "Préparation du téléversement impossible." };
+  return { path: data.path, signedUrl: data.signedUrl };
+}
 
 type UploadFile = {
   name: string;
@@ -71,7 +91,9 @@ export async function applyAsCollaborator(
   const message = String(formData.get("message") ?? "").trim() || null;
   const subjectKeys = formData.getAll("subjects").map(String).filter(Boolean);
   const ipAccepted = formData.get("ip_accept") === "on";
-  const cv = asFile(formData.get("cv"));
+  // Le CV a deja ete televerse cote navigateur (voir createCollabCvUploadUrl) ;
+  // ici on ne recoit que son chemin dans le bucket, jamais les octets.
+  const cvPathInput = String(formData.get("cv_path") ?? "").trim();
 
   if (!email || !password || !fullName) {
     return { error: "Nom, e-mail et mot de passe sont obligatoires." };
@@ -85,7 +107,6 @@ export async function applyAsCollaborator(
   if (!ipAccepted) {
     return { error: "Vous devez accepter les conditions de cession des droits." };
   }
-  if (cv && cv.size > DOC_MAX) return { error: "CV : fichier trop lourd (25 Mo max)." };
 
   const supabase = await createSupabaseServerClient();
   // Compte cree "en attente" (pending) : role provisoire student, aucun acces
@@ -101,18 +122,8 @@ export async function applyAsCollaborator(
 
   const admin = createSupabaseAdminClient();
   if (admin) {
-    let cvPath: string | null = null;
-    if (cv && cv.size > 0) {
-      const ext = (cv.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const path = `${userId}/cv.${ext}`;
-      const { error: uErr } = await admin.storage
-        .from("collab-docs")
-        .upload(path, await cv.arrayBuffer(), {
-          contentType: cv.type || "application/octet-stream",
-          upsert: true,
-        });
-      cvPath = uErr ? null : path;
-    }
+    // On n'accepte que les chemins produits par createCollabCvUploadUrl.
+    const cvPath = cvPathInput.startsWith("applications/") ? cvPathInput : null;
     const { error: aErr } = await admin.from("collab_applications").upsert({
       user_id: userId,
       desired_role: desiredRole,
@@ -130,9 +141,10 @@ export async function applyAsCollaborator(
     if (aErr) return { error: "Compte créé mais candidature non enregistrée." };
   }
   // On ne laisse PAS le candidat connecte : le compte reste inactif jusqu'a
-  // l'approbation de l'administration.
+  // l'approbation de l'administration. La redirection est faite cote client
+  // (ce flux est appele depuis un handler, pas via <form action>).
   await supabase.auth.signOut();
-  redirect("/rejoindre-production/merci");
+  return { ok: true };
 }
 
 // ---- Approbation par l'admin ----
