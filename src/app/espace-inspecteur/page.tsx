@@ -7,7 +7,6 @@ import { ReviewForm } from "@/components/collab/ReviewForm";
 import { VideoReviewForm } from "@/components/collab/VideoReviewForm";
 import { ConfidentialNotice } from "@/lib/collab/notice";
 import { STAGE_LABEL, STAGE_TONE, type Stage } from "@/lib/production/stages";
-import { inspectorPrice } from "@/lib/production/bareme";
 
 export const metadata: Metadata = { title: "Espace inspecteur" };
 
@@ -71,19 +70,6 @@ export default async function InspecteurSpace() {
     revsBy.set(r.chapter_id, arr);
   }
 
-  const { data: myPayments } = await supabase
-    .from("collab_payments")
-    .select("amount_xof")
-    .eq("payee_id", user.id)
-    .eq("role", "inspecteur");
-  const paidTotal = (myPayments ?? []).reduce((s: number, p: any) => s + (p.amount_xof ?? 0), 0);
-
-  const totalPay = (prod ?? []).reduce(
-    (sum: number, p: any) =>
-      sum + (p.inspector_cost_xof ?? inspectorPrice(p.chapters?.class_slug ?? "")),
-    0,
-  );
-
   return (
     <Section>
       <Container>
@@ -101,24 +87,6 @@ export default async function InspecteurSpace() {
             <div className="text-2xl font-extrabold text-togo-green-600">{prod?.length ?? 0}</div>
             <div className="text-xs text-[var(--color-muted)]">modules à relire</div>
           </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-togo-green-600">
-              {totalPay.toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">rémunération prévue (FCFA)</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-togo-green-600">
-              {paidTotal.toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">déjà reçu (FCFA)</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-ink">
-              {Math.max(0, totalPay - paidTotal).toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">reste à recevoir (FCFA)</div>
-          </Card>
         </div>
 
         <div className="mt-6 space-y-4">
@@ -127,7 +95,6 @@ export default async function InspecteurSpace() {
             const versions = subsBy.get(p.chapter_id) ?? [];
             const myRevs = revsBy.get(p.chapter_id) ?? [];
             const latest = versions[0];
-            const pay = p.inspector_cost_xof ?? inspectorPrice(cls);
             return (
               <Card key={p.chapter_id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -140,14 +107,6 @@ export default async function InspecteurSpace() {
                     </div>
                     <div className="mt-1 text-xs text-[var(--color-muted)]">
                       [{cls}] {p.chapters?.subject_key}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-togo-green-700">
-                      {pay.toLocaleString("fr-FR")} FCFA
-                    </div>
-                    <div className="text-[11px] text-[var(--color-muted)]">
-                      🔒 fixé par l&apos;administration
                     </div>
                   </div>
                 </div>

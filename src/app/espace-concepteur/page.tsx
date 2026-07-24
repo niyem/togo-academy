@@ -7,7 +7,6 @@ import { SubmissionForm } from "@/components/collab/SubmissionForm";
 import { VideoReviewForm } from "@/components/collab/VideoReviewForm";
 import { ConfidentialNotice } from "@/lib/collab/notice";
 import { STAGE_LABEL, STAGE_TONE, type Stage } from "@/lib/production/stages";
-import { modulePrice } from "@/lib/production/bareme";
 
 export const metadata: Metadata = { title: "Espace concepteur" };
 
@@ -70,18 +69,6 @@ export default async function ConcepteurSpace() {
     subsByModule.set(s.chapter_id, arr);
   }
 
-  const { data: myPayments } = await supabase
-    .from("collab_payments")
-    .select("amount_xof")
-    .eq("payee_id", user.id)
-    .eq("role", "concepteur");
-  const paidTotal = (myPayments ?? []).reduce((s: number, p: any) => s + (p.amount_xof ?? 0), 0);
-
-  const totalPay = (rows ?? []).reduce(
-    (sum: number, r: any) => sum + (r.cost_xof ?? modulePrice(r.chapters?.class_slug ?? "")),
-    0,
-  );
-
   return (
     <Section>
       <Container>
@@ -99,24 +86,6 @@ export default async function ConcepteurSpace() {
             <div className="text-2xl font-extrabold text-togo-green-600">{rows?.length ?? 0}</div>
             <div className="text-xs text-[var(--color-muted)]">modules attribués</div>
           </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-togo-green-600">
-              {totalPay.toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">rémunération prévue (FCFA)</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-togo-green-600">
-              {paidTotal.toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">déjà reçu (FCFA)</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-extrabold text-ink">
-              {Math.max(0, totalPay - paidTotal).toLocaleString("fr-FR")}
-            </div>
-            <div className="text-xs text-[var(--color-muted)]">reste à recevoir (FCFA)</div>
-          </Card>
         </div>
 
         <div className="mt-6 space-y-4">
@@ -125,7 +94,6 @@ export default async function ConcepteurSpace() {
             const versions = subsByModule.get(r.chapter_id) ?? [];
             const myRevs = revsByModule.get(r.chapter_id) ?? [];
             const lessonCount = r.chapters?.lessons?.[0]?.count ?? 0;
-            const pay = r.cost_xof ?? modulePrice(cls);
             return (
               <Card key={r.chapter_id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -138,14 +106,6 @@ export default async function ConcepteurSpace() {
                     </div>
                     <div className="mt-1 text-xs text-[var(--color-muted)]">
                       [{cls}] {r.chapters?.subject_key} · {lessonCount} leçon(s) à développer
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-togo-green-700">
-                      {pay.toLocaleString("fr-FR")} FCFA
-                    </div>
-                    <div className="text-[11px] text-[var(--color-muted)]">
-                      🔒 fixé par l&apos;administration
                     </div>
                   </div>
                 </div>
