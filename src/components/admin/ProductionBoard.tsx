@@ -20,7 +20,7 @@ import {
   nextStage,
   type Stage,
 } from "@/lib/production/stages";
-import { modulePrice, inspectorPrice } from "@/lib/production/bareme";
+import { subjectPrice, inspectorSubjectPrice } from "@/lib/production/bareme";
 import {
   assignConcepteur,
   assignInspector,
@@ -196,19 +196,11 @@ function EditPanel({ row }: { row: ProdRow }) {
     <form action={action} className="mt-3 space-y-3 border-t border-[var(--color-line)] pt-3">
       <input type="hidden" name="chapter_id" value={row.moduleId} />
       <p className="text-xs text-[var(--color-muted)]">
-        🔒 Les prix ne sont modifiables que par l&apos;administration. Négociez
-        librement si vous attribuez plusieurs modules ; le concepteur et
-        l&apos;inspecteur les voient en lecture seule.
+        🔒 La rémunération suit le barème PAR MATIÈRE (montant forfaitaire pour
+        toute la matière ; inspecteur = 50 %). Elle est gérée uniquement par
+        l&apos;administration et n&apos;est jamais visible par les contributeurs.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-xs font-semibold text-togo-green-700">
-          Prix enseignant négocié (FCFA, vide = prix de la classe)
-          <input type="number" min={0} name="cost_xof" defaultValue={row.costXof ?? ""} className={`${input} mt-1 w-full`} />
-        </label>
-        <label className="text-xs font-semibold text-togo-green-700">
-          Prix inspecteur négocié (FCFA, vide = barème 35%)
-          <input type="number" min={0} name="inspector_cost_xof" defaultValue={row.inspectorCostXof ?? ""} className={`${input} mt-1 w-full`} />
-        </label>
         <label className="text-xs font-semibold text-[var(--color-muted)]">
           Inspecteur (note libre, facultatif)
           <input name="inspector_name" defaultValue={row.inspector ?? ""} className={`${input} mt-1 w-full`} />
@@ -357,8 +349,8 @@ function Row({
   inspectors: Person[];
 }) {
   const [open, setOpen] = useState(false);
-  const suggested = modulePrice(row.classSlug);
-  const insp = row.inspectorCostXof ?? inspectorPrice(row.classSlug);
+  const matiere = subjectPrice(row.classSlug); // prix forfaitaire de la matiere
+  const insp = inspectorSubjectPrice(row.classSlug);
   const days = daysBetween(row.createdAt, row.atEnLigne);
   return (
     <li className="py-4">
@@ -377,13 +369,19 @@ function Row({
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm font-bold text-togo-green-700">
-            {fmt(row.costXof ?? suggested)} FCFA
-          </div>
-          <div className="text-[11px] text-[var(--color-muted)]">
-            {row.costXof != null ? `grille : ${fmt(suggested)}` : "prix du module"}
-          </div>
-          <div className="text-[11px] text-[var(--color-muted)]">inspecteur ~ {fmt(insp)}</div>
+          {matiere == null ? (
+            <div className="text-sm font-semibold text-[var(--color-muted)]">tarif à définir</div>
+          ) : (
+            <>
+              <div className="text-sm font-bold text-togo-green-700">{fmt(matiere)} FCFA</div>
+              <div className="text-[11px] text-[var(--color-muted)]">
+                matière entière (tous les modules)
+              </div>
+              {insp != null && (
+                <div className="text-[11px] text-[var(--color-muted)]">inspecteur {fmt(insp)}</div>
+              )}
+            </>
+          )}
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -508,10 +506,16 @@ export function ProductionBoard({
           published.length,
       )
     : null;
-  const totalCost = rows.reduce(
-    (s, r) => s + (r.costXof ?? modulePrice(r.classSlug)),
-    0,
-  );
+  // Coût = somme des MATIERES distinctes (subject x classe) au forfait, pas
+  // par module (une matiere = un seul prix, quel que soit le nombre de modules).
+  const seenMatiere = new Set<string>();
+  let totalCost = 0;
+  for (const r of rows) {
+    const k = `${r.subjectKey}|${r.classSlug}`;
+    if (seenMatiere.has(k)) continue;
+    seenMatiere.add(k);
+    totalCost += subjectPrice(r.classSlug) ?? 0;
+  }
   const perStage = STAGES.map((s) => ({
     ...s,
     count: rows.filter((r) => r.stage === s.key).length,

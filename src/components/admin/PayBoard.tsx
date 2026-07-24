@@ -7,11 +7,13 @@ import { markPaid, unmarkPaid, type CollabState } from "@/lib/collab/actions";
 const initial: CollabState = {};
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 
+// Une entree = UNE matiere (subject x classe), payee au forfait.
 export type PayEntry = {
-  chapterId: string;
-  title: string;
-  className: string;
-  amount: number;
+  key: string;
+  matiere: string; // nom de la matiere (ex. "Sciences physiques")
+  className: string; // slug de classe (ex. "terminale-d")
+  amount: number | null; // prix forfaitaire ; null = niveau non encore tarife
+  chapterIds: string[]; // tous les modules de la matiere
   paid: boolean;
 };
 export type PayGroup = {
@@ -24,51 +26,57 @@ export type PayGroup = {
 function PayRow({ payeeId, role, e }: { payeeId: string; role: string; e: PayEntry }) {
   const [, payAction, payPending] = useActionState(markPaid, initial);
   const [, unpayAction] = useActionState(unmarkPaid, initial);
+  const ids = e.chapterIds.join(",");
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
       <span>
-        <span className="font-medium">{e.title}</span>
-        <span className="ml-2 text-xs text-[var(--color-muted)]">[{e.className}]</span>
+        <span className="font-medium">{e.matiere}</span>
+        <span className="ml-2 text-xs text-[var(--color-muted)]">
+          [{e.className}] · {e.chapterIds.length} module(s)
+        </span>
       </span>
       <span className="flex items-center gap-3">
-        <span className="font-bold text-togo-green-700">{fmt(e.amount)} FCFA</span>
-        {e.paid ? (
-          <form action={unpayAction} className="flex items-center gap-2">
-            <input type="hidden" name="chapter_id" value={e.chapterId} />
-            <input type="hidden" name="payee_id" value={payeeId} />
-            <input type="hidden" name="role" value={role} />
-            <Badge tone="green">Payé ✓</Badge>
-            <button type="submit" className="text-xs text-[var(--color-muted)] hover:text-togo-red-700">annuler</button>
-          </form>
+        {e.amount == null ? (
+          <span className="text-xs italic text-[var(--color-muted)]">tarif à définir</span>
         ) : (
-          <form action={payAction}>
-            <input type="hidden" name="chapter_id" value={e.chapterId} />
-            <input type="hidden" name="payee_id" value={payeeId} />
-            <input type="hidden" name="role" value={role} />
-            <input type="hidden" name="amount_xof" value={e.amount} />
-            <button
-              type="submit"
-              disabled={payPending}
-              className="rounded-full bg-togo-green-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            >
-              Marquer payé
-            </button>
-          </form>
+          <>
+            <span className="font-bold text-togo-green-700">{fmt(e.amount)} FCFA</span>
+            {e.paid ? (
+              <form action={unpayAction} className="flex items-center gap-2">
+                <input type="hidden" name="chapter_ids" value={ids} />
+                <input type="hidden" name="payee_id" value={payeeId} />
+                <input type="hidden" name="role" value={role} />
+                <Badge tone="green">Payé ✓</Badge>
+                <button type="submit" className="text-xs text-[var(--color-muted)] hover:text-togo-red-700">annuler</button>
+              </form>
+            ) : (
+              <form action={payAction}>
+                <input type="hidden" name="chapter_ids" value={ids} />
+                <input type="hidden" name="payee_id" value={payeeId} />
+                <input type="hidden" name="role" value={role} />
+                <input type="hidden" name="amount_xof" value={e.amount} />
+                <button
+                  type="submit"
+                  disabled={payPending}
+                  className="rounded-full bg-togo-green-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+                >
+                  Marquer payé
+                </button>
+              </form>
+            )}
+          </>
         )}
       </span>
     </li>
   );
 }
 
+const entryDue = (e: PayEntry) => (e.amount != null && !e.paid ? e.amount : 0);
+const entryPaid = (e: PayEntry) => (e.amount != null && e.paid ? e.amount : 0);
+
 export function PayBoard({ groups }: { groups: PayGroup[] }) {
-  const dueTotal = groups.reduce(
-    (s, g) => s + g.entries.filter((e) => !e.paid).reduce((a, e) => a + e.amount, 0),
-    0,
-  );
-  const paidTotal = groups.reduce(
-    (s, g) => s + g.entries.filter((e) => e.paid).reduce((a, e) => a + e.amount, 0),
-    0,
-  );
+  const dueTotal = groups.reduce((s, g) => s + g.entries.reduce((a, e) => a + entryDue(e), 0), 0);
+  const paidTotal = groups.reduce((s, g) => s + g.entries.reduce((a, e) => a + entryPaid(e), 0), 0);
 
   return (
     <div className="space-y-6">
@@ -97,8 +105,8 @@ export function PayBoard({ groups }: { groups: PayGroup[] }) {
       )}
 
       {groups.map((g) => {
-        const due = g.entries.filter((e) => !e.paid).reduce((a, e) => a + e.amount, 0);
-        const paid = g.entries.filter((e) => e.paid).reduce((a, e) => a + e.amount, 0);
+        const due = g.entries.reduce((a, e) => a + entryDue(e), 0);
+        const paid = g.entries.reduce((a, e) => a + entryPaid(e), 0);
         return (
           <Card key={`${g.payeeId}-${g.role}`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -113,7 +121,7 @@ export function PayBoard({ groups }: { groups: PayGroup[] }) {
             </div>
             <ul className="mt-2 divide-y divide-[var(--color-line)]">
               {g.entries.map((e) => (
-                <PayRow key={e.chapterId} payeeId={g.payeeId} role={g.role} e={e} />
+                <PayRow key={e.key} payeeId={g.payeeId} role={g.role} e={e} />
               ))}
             </ul>
           </Card>

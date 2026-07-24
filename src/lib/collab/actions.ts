@@ -511,20 +511,25 @@ export async function markPaid(
 ): Promise<CollabState> {
   const { supabase, ok } = await requireRole("admin");
   if (!ok) return { error: "Réservé à l'administration." };
-  const chapterId = String(formData.get("chapter_id") ?? "");
+  // Le paiement se fait PAR MATIERE : on marque payes tous les modules de la
+  // matiere en une fois. On repartit le montant forfaitaire sur les modules.
+  const chapterIds = String(formData.get("chapter_ids") ?? "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
   const payeeId = String(formData.get("payee_id") ?? "");
   const role = String(formData.get("role") ?? "");
-  const amount = parseInt(String(formData.get("amount_xof") ?? "0"), 10);
-  if (!chapterId || !payeeId || !["concepteur", "inspecteur"].includes(role)) {
+  const total = parseInt(String(formData.get("amount_xof") ?? "0"), 10) || 0;
+  if (chapterIds.length === 0 || !payeeId || !["concepteur", "inspecteur"].includes(role)) {
     return { error: "Paramètres manquants." };
   }
-  const { error } = await supabase.from("collab_payments").upsert({
-    chapter_id: chapterId,
+  const per = Math.round(total / chapterIds.length);
+  const rows = chapterIds.map((cid) => ({
+    chapter_id: cid,
     payee_id: payeeId,
     role,
-    amount_xof: Number.isFinite(amount) ? amount : 0,
+    amount_xof: per,
     paid_at: now(),
-  });
+  }));
+  const { error } = await supabase.from("collab_payments").upsert(rows);
   if (error) return { error: "Échec de l'enregistrement du paiement." };
   revalidatePath("/admin/paie");
   return { ok: true };
@@ -537,14 +542,15 @@ export async function unmarkPaid(
 ): Promise<CollabState> {
   const { supabase, ok } = await requireRole("admin");
   if (!ok) return { error: "Réservé à l'administration." };
-  const chapterId = String(formData.get("chapter_id") ?? "");
+  const chapterIds = String(formData.get("chapter_ids") ?? "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
   const payeeId = String(formData.get("payee_id") ?? "");
   const role = String(formData.get("role") ?? "");
-  if (!chapterId || !payeeId || !role) return { error: "Paramètres manquants." };
+  if (chapterIds.length === 0 || !payeeId || !role) return { error: "Paramètres manquants." };
   const { error } = await supabase
     .from("collab_payments")
     .delete()
-    .eq("chapter_id", chapterId)
+    .in("chapter_id", chapterIds)
     .eq("payee_id", payeeId)
     .eq("role", role);
   if (error) return { error: "Échec de l'annulation." };
